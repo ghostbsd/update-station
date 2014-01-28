@@ -1,0 +1,4 @@
+updatemgr
+=========
+
+GhostBSD update manager
