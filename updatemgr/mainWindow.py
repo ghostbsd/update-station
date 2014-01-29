@@ -1,10 +1,6 @@
-#!/usr/bin/env python
-#
+#!/usr/local/bin/python
 
 import gtk
-import os
-import os.path
-from subprocess import Popen, PIPE, STDOUT, call
 
 
 class Entire():
