@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 
 import gtk
-
+from updateHandler import lookUpdate
 
 class Entire():
 
@@ -36,7 +36,7 @@ class Entire():
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         store = gtk.TreeStore(str, 'gboolean')
         #for disk in disk_query():
-        store.append(None, ["FreeBSD 10.0-p1 update", True])
+        store.append(None, [lookUpdate(), True])
         treeView = gtk.TreeView(store)
         treeView.set_model(store)
         treeView.set_rules_hint(True)
