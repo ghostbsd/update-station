@@ -9,6 +9,17 @@ fbvcmd = "freebsd-version"
 installfbupdate = "freebsd-update install"
 
 
+def listOfInstal():
+    ls = os.listdir('/var/db/freebsd-update')
+    for line in ls:
+        if 'install' in line:
+            print True
+        else:
+            print False
+
+listOfInstal()
+
+
 def chmodfu():
     call('chmod 755 /var/db/freebsd-update', shell=True)
 
@@ -35,4 +46,5 @@ def lookUpdate():
         tag = uptag.readlines()[0].rstrip().split('|')
         return "FreeBSD " + tag[2] + "-p" + tag[3] + " system update"
 
-print(lookUpdate())
+def updateText():
+    udatetitle = lookUpdate()
