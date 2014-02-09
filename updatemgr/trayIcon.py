@@ -80,7 +80,7 @@ class TrayIcon(object):
         button = 1
         position = gtk.status_icon_position_menu
         time = gtk.get_current_event_time()
-        self.nm_menu()
+        #self.nm_menu()
         self.menu.popup(None, None, position, button, time, status_icon)
 
     def icon_clicked(self, status_icon, button, time):
