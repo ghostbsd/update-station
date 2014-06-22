@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 
-import os
+from os import listdir, system, path
 from subprocess import Popen, PIPE, STDOUT, call
 fetch = "freebsd-update cron"
 fbtag = '/var/db/freebsd-update/tag'
