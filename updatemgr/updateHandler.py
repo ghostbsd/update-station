@@ -12,7 +12,7 @@ fbsd_up_file = '/var/db/freebsd-update/'
 
 
 def listOfInstal():
-    ls = os.listdir('/var/db/freebsd-update')
+    ls = listdir('/var/db/freebsd-update')
     for line in ls:
         if 'install.' in line:
             uptag = open(fbsd_up_file + line + '/INDEX-NEW', 'r')
@@ -25,7 +25,7 @@ def chmodfu():
 
 
 def checkUpdate():
-    if os.path.exists(fbtag):
+    if path.exists(fbtag):
         call('chmod 755 /var/db/freebsd-update', shell=True)
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
@@ -38,9 +38,8 @@ def checkUpdate():
         else:
             return False
 
-
 def lookUpdate():
-    if os.path.exists(fbtag):
+    if path.exists(fbtag):
         call('chmod 755 /var/db/freebsd-update', shell=True)
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')

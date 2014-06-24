@@ -2,8 +2,11 @@
 
 import gtk
 import gobject
-from updateHandler import lookUpdate, updateText
+import sys
 
+sys.path.append("/usr/home/ericbsd/update-station/updatemgr")
+from updateHandler import lookUpdate, updateText
+print(sys.path)
 
 class GUI_Controller:
 
@@ -43,7 +46,7 @@ class GUI_Controller:
         window.set_title("Update Manager")
         window.set_border_width(0)
         window.set_position(gtk.WIN_POS_CENTER)
-        window.set_icon_from_file("/usr/local/etc/gbi/logo.png")
+        #window.set_icon_from_file("/usr/local/etc/gbi/logo.png")
         box1 = gtk.VBox(False, 0)
         window.add(box1)
         box1.show()
