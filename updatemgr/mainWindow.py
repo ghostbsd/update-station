@@ -3,15 +3,15 @@
 import gtk
 import gobject
 import sys
-
 sys.path.append("/usr/home/ericbsd/update-station/updatemgr")
 from updateHandler import lookUpdate, updateText
-print(sys.path)
 
 class GUI_Controller:
-
     def close_application(self, widget):
         gtk.main_quit()
+
+    def hideWindow(self, widget):
+        self.window.hide()
 
     def create_bbox(self, horizontal, spacing, layout):
         bbox = gtk.HButtonBox()
@@ -22,7 +22,7 @@ class GUI_Controller:
         bbox.add(button)
         button = gtk.Button(stock=gtk.STOCK_CLOSE)
         bbox.add(button)
-        button.connect("clicked", self.close_application)
+        button.connect("clicked", self.hideWindow)
         return bbox
 
     def install_bbox(self, horizontal, spacing, layout):
@@ -39,16 +39,16 @@ class GUI_Controller:
         return bbox
 
     def __init__(self):
-        window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        window.connect("destroy", self.close_application)
-        window.set_size_request(700, 550)
-        window.set_resizable(False)
-        window.set_title("Update Manager")
-        window.set_border_width(0)
-        window.set_position(gtk.WIN_POS_CENTER)
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.connect("destroy", self.close_application)
+        self.window.set_size_request(700, 550)
+        self.window.set_resizable(False)
+        self.window.set_title("Update Manager")
+        self.window.set_border_width(0)
+        self.window.set_position(gtk.WIN_POS_CENTER)
         #window.set_icon_from_file("/usr/local/etc/gbi/logo.png")
         box1 = gtk.VBox(False, 0)
-        window.add(box1)
+        self.window.add(box1)
         box1.show()
         #box1.set_border_width(20)
         box2 = gtk.VBox(False, 0)
@@ -90,7 +90,7 @@ class GUI_Controller:
         # Add button
         box2.pack_start(self.create_bbox(True,
         10, gtk.BUTTONBOX_END), True, True, 5)
-        window.show_all()
+        self.window.show_all()
 
 
 class InfoModel:
@@ -164,8 +164,6 @@ def getText():
     dialog.destroy()
     return text
 
-password = getText()
+#password = getText()
 Store = InfoModel()
 Display = DisplayModel()
-GUI_Controller()
-gtk.main()

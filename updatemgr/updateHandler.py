@@ -3,16 +3,16 @@
 from os import listdir, system, path
 from subprocess import Popen, PIPE, STDOUT, call
 fetch = "freebsd-update cron"
-fbtag = '/var/db/freebsd-update/tag'
+fbtag = '/var/db/freebsd-update-check/tag'
 updatemgrtag = '/var/db/updatemgr/tag'
 fbvcmd = "freebsd-version"
 installfbupdate = "freebsd-update install"
 fblist = '/var/db/freebsd-update/tag'
-fbsd_up_file = '/var/db/freebsd-update/'
+fbsd_up_file = '/var/db/freebsd-update-check/'
 
 
 def listOfInstal():
-    ls = listdir('/var/db/freebsd-update')
+    ls = listdir(fbsd_up_file)
     for line in ls:
         if 'install.' in line:
             uptag = open(fbsd_up_file + line + '/INDEX-NEW', 'r')
@@ -20,13 +20,8 @@ def listOfInstal():
             return info
 
 
-def chmodfu():
-    call('chmod 755 /var/db/freebsd-update', shell=True)
-
-
 def checkUpdate():
     if path.exists(fbtag):
-        call('chmod 755 /var/db/freebsd-update', shell=True)
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
         upversion = tag[2] + "-p" + tag[3]
@@ -40,7 +35,6 @@ def checkUpdate():
 
 def lookUpdate():
     if path.exists(fbtag):
-        call('chmod 755 /var/db/freebsd-update', shell=True)
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
         return "Update to FreeBSD " + tag[2] + "-p" + tag[3]
