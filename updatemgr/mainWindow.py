@@ -1,11 +1,11 @@
 #!/usr/local/bin/python
 
-#import gtk
-#import gobject
+import gtk as Gtk
+import gobject as GObject
 import sys
-from gi.repository import Gtk
-from gi.repository import GObject
-sys.path.append("/usr/home/ericbsd/update-station/updatemgr")
+#from gi.repository import Gtk
+#from gi.repository import GObject
+sys.path.append("/home/ericbsd/update-station/updatemgr")
 from updateHandler import lookUpdate, updateText
 
 class GUI_Controller:
@@ -19,10 +19,10 @@ class GUI_Controller:
         bbox = Gtk.HBox()
         bbox.set_border_width(10)
         bbox.set_spacing(10)
-        button = gtk.Button(stock=Gtk.STOCK_PREFERENCES)
+        button = Gtk.Button(stock=Gtk.STOCK_PREFERENCES)
         #button.connect("clicked", root_window)
         bbox.add(button)
-        button = gtk.Button(stock=Gtk.STOCK_CLOSE)
+        button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
         bbox.add(button)
         button.connect("clicked", self.hideWindow)
         return bbox
@@ -30,7 +30,7 @@ class GUI_Controller:
     def install_bbox(self, horizontal, spacing, layout):
         bbox = Gtk.HBox()
         bbox.set_border_width(10)
-        bbox.set_layout(layout)
+        #bbox.set_layout(Gtk.BUTTONBOX_END)
         bbox.set_spacing(10)
         #button = gtk.Button(stock=Gtk.STOCK_PREFERENCES)
         #button.connect("clicked", root_window)
@@ -41,13 +41,14 @@ class GUI_Controller:
         return bbox
 
     def __init__(self):
-        self.window = Gtk.Window(gtk.WINDOW_TOPLEVEL)
+        #Gtk.WINDOW_TOPLEVEL
+        self.window = Gtk.Window()
         self.window.connect("destroy", self.close_application)
         self.window.set_size_request(700, 550)
         self.window.set_resizable(False)
         self.window.set_title("Update Manager")
         self.window.set_border_width(0)
-        self.window.set_position(Gtk.WIN_POS_CENTER)
+        #self.window.set_position(Gtk.WIN_POS_CENTER)
         #window.set_icon_from_file("/usr/local/etc/gbi/logo.png")
         box1 = Gtk.VBox(False, 0)
         self.window.add(box1)
@@ -66,15 +67,15 @@ class GUI_Controller:
         self.view = Display.make_view(self.mdl)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.SHADOW_ETCHED_IN)
-        sw.set_policy(Gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
         sw.add(self.view)
         sw.show()
         box2.pack_start(sw, True, True, 10)
         box2.pack_start(self.install_bbox(True,
-        10, gtk.BUTTONBOX_END), False, False, 5)
+        10, Gtk.BUTTONBOX_END), False, False, 5)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.SHADOW_ETCHED_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
+        sw.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
         textview = Gtk.TextView()
         textbuffer = textview.get_buffer()
         sw.add(textview)
@@ -84,7 +85,7 @@ class GUI_Controller:
         textview.set_cursor_visible(False)
         textbuffer.set_text(updateText())
         box2.pack_start(sw, True, True, 10)
-        box2 = gtk.HBox(False, 10)
+        box2 = Gtk.HBox(False, 10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, False, 0)
         #box1.set_border_width(0)
@@ -201,5 +202,6 @@ def getText():
 #password = getText()
 Store = InfoModel()
 Display = DisplayModel()
-installUpdate()
+#installUpdate()
+GUI_Controller()
 Gtk.main()
