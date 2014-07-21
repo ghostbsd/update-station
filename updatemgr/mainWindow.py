@@ -63,8 +63,8 @@ class GUI_Controller:
         Title = Gtk.Label("<b><span size='large'>%s</span></b>" % titleText)
         Title.set_use_markup(True)
         box2.pack_start(Title, False, False, 0)
-        self.mdl = Store.get_model()
-        self.view = Display.make_view(self.mdl)
+        self.mdl = self.Store()
+        self.view = self.Display(self.mdl)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.SHADOW_ETCHED_IN)
         sw.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
@@ -95,26 +95,17 @@ class GUI_Controller:
         10, Gtk.BUTTONBOX_END), True, True, 5)
         self.window.show_all()
 
-
-class InfoModel:
-
-    def __init__(self):
+    def Store(self):
         self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
         GObject.TYPE_BOOLEAN)
-
         self.tree_store.append(None, (lookUpdate(), True))
-        return
-
-    def get_model(self):
         if self.tree_store:
             return self.tree_store
         else:
             return None
 
 
-class DisplayModel:
-
-    def make_view(self, model):
+    def Display(self, model):
         self.view = Gtk.TreeView(model)
         self.renderer = Gtk.CellRendererText()
         self.renderer1 = Gtk.CellRendererToggle()
@@ -199,9 +190,7 @@ def getText():
     dialog.destroy()
     return text
 
-#password = getText()
-Store = InfoModel()
-Display = DisplayModel()
+
 #installUpdate()
 GUI_Controller()
 Gtk.main()
