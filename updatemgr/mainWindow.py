@@ -8,7 +8,7 @@ import sys
 sys.path.append("/home/ericbsd/update-station/updatemgr")
 from updateHandler import lookUpdate, updateText
 
-class GUI_Controller:
+class Window:
     def close_application(self, widget):
         gtk.main_quit()
 
@@ -122,6 +122,7 @@ class GUI_Controller:
     def col1_toggled_cb(self, cell, path, model):
         model[path][1] = not model[path][1]
         print(("Toggle '%s' to: %s" % (model[path][0], model[path][1],)))
+        fbsysupdate = model[path][1]
         return
 
 
@@ -192,5 +193,5 @@ def getText():
 
 
 #installUpdate()
-GUI_Controller()
+Window()
 Gtk.main()
