@@ -2,13 +2,14 @@
 
 from os import listdir, system, path
 from subprocess import Popen, PIPE, STDOUT, call
-fetch = "freebsd-update cron"
-fbtag = '/var/db/freebsd-update-check/tag'
-updatemgrtag = '/var/db/updatemgr/tag'
+
+fbsduf = '/var/db/freebsd-update-check/'
+fbtag = '%stag' % fbsduf
+fblist = '%stag' % fbsduf
 fbvcmd = "freebsd-version"
-installfbupdate = "freebsd-update install"
-fblist = '/var/db/freebsd-update/tag'
-fbsd_up_file = '/var/db/freebsd-update-check/'
+installfbupdate = "freebsd-update fetch install"
+fblist = '%stag' % fbsduf
+fbsduf = '/var/db/freebsd-update-check/'
 
 
 def listOfInstal():
@@ -20,7 +21,7 @@ def listOfInstal():
             return info
 
 
-def checkUpdate():
+def checkFbsdUpdate():
     if path.exists(fbtag):
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
@@ -33,15 +34,18 @@ def checkUpdate():
         else:
             return False
 
-def lookUpdate():
+
+def lookFbsdUpdate():
     if path.exists(fbtag):
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
         return "Update to FreeBSD " + tag[2] + "-p" + tag[3]
+    else:
+        return None
 
 
 def updateText():
-    udatetitle = lookUpdate()
+    udatetitle = lookFbsdUpdate()
     text = "Update Details:\n"
     text += "%s\n\n" % udatetitle
     text += "The following files will be update:\n"

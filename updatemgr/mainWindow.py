@@ -6,7 +6,7 @@ import sys
 #from gi.repository import Gtk
 #from gi.repository import GObject
 sys.path.append("/home/ericbsd/update-station/updatemgr")
-from updateHandler import lookUpdate, updateText
+from updateHandler import lookFbsdUpdate, updateText, checkFbsdUpdate
 
 class Window:
     def close_application(self, widget):
@@ -98,7 +98,8 @@ class Window:
     def Store(self):
         self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
         GObject.TYPE_BOOLEAN)
-        self.tree_store.append(None, (lookUpdate(), True))
+        if checkFbsdUpdate() is True:
+            self.tree_store.append(None, (lookFbsdUpdate(), True))
         if self.tree_store:
             return self.tree_store
         else:
@@ -122,7 +123,7 @@ class Window:
     def col1_toggled_cb(self, cell, path, model):
         model[path][1] = not model[path][1]
         print(("Toggle '%s' to: %s" % (model[path][0], model[path][1],)))
-        fbsysupdate = model[path][1]
+        self.fbsysupdate = model[path][1]
         return
 
 
