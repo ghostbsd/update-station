@@ -16,35 +16,30 @@ class Window:
         self.window.hide()
 
     def create_bbox(self, horizontal, spacing, layout):
-        bbox = Gtk.HBox()
-        bbox.set_border_width(10)
-        bbox.set_spacing(10)
-        button = Gtk.Button(stock=Gtk.STOCK_PREFERENCES)
+        table = Gtk.Table(1, 5, True)
+        #button = Gtk.Button(stock=Gtk.STOCK_PREFERENCES)
         #button.connect("clicked", root_window)
-        bbox.add(button)
+        #bbox.add(button)table = Gtk.Table(1, 5, True)
+        button = Gtk.Button("Install update")
+        table.attach(button, 0, 1, 0, 1)
+        button.connect("clicked", self.close_application)
         button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
-        bbox.add(button)
+        table.attach(button, 4, 5, 0, 1)
         button.connect("clicked", self.hideWindow)
-        return bbox
+        return table
 
     def install_bbox(self, horizontal, spacing, layout):
-        bbox = Gtk.HBox()
-        bbox.set_border_width(10)
-        #bbox.set_layout(Gtk.BUTTONBOX_END)
-        bbox.set_spacing(10)
-        #button = gtk.Button(stock=Gtk.STOCK_PREFERENCES)
-        #button.connect("clicked", root_window)
-        #bbox.add(button)
-        button = Gtk.Button('Install update')
-        bbox.add(button)
+        table = Gtk.Table(1, 5, True)
+        button = Gtk.Button("Install update")
+        table.attach(button, 4, 5, 0, 1)
         button.connect("clicked", self.close_application)
-        return bbox
+        return table
 
     def __init__(self):
         #Gtk.WINDOW_TOPLEVEL
         self.window = Gtk.Window()
         self.window.connect("destroy", self.close_application)
-        self.window.set_size_request(700, 550)
+        self.window.set_size_request(600, 400)
         self.window.set_resizable(False)
         self.window.set_title("Update Manager")
         self.window.set_border_width(0)
@@ -59,7 +54,7 @@ class Window:
         box1.pack_start(box2, True, True, 0)
         box2.show()
         # Title
-        titleText = "System updates available!"
+        titleText = "Updates available!"
         Title = Gtk.Label("<b><span size='large'>%s</span></b>" % titleText)
         Title.set_use_markup(True)
         box2.pack_start(Title, False, False, 0)
@@ -71,20 +66,20 @@ class Window:
         sw.add(self.view)
         sw.show()
         box2.pack_start(sw, True, True, 10)
-        box2.pack_start(self.install_bbox(True,
-        10, Gtk.BUTTONBOX_END), False, False, 5)
-        sw = Gtk.ScrolledWindow()
-        sw.set_shadow_type(Gtk.SHADOW_ETCHED_IN)
-        sw.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
-        textview = Gtk.TextView()
-        textbuffer = textview.get_buffer()
-        sw.add(textview)
-        sw.show()
-        textview.show()
-        textview.set_editable(False)
-        textview.set_cursor_visible(False)
-        textbuffer.set_text(updateText())
-        box2.pack_start(sw, True, True, 10)
+        #box2.pack_start(self.install_bbox(True,
+        #10, Gtk.BUTTONBOX_END), False, False, 0)
+        #sw = Gtk.ScrolledWindow()
+        #sw.set_shadow_type(Gtk.SHADOW_ETCHED_IN)
+        #sw.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
+        #textview = Gtk.TextView()
+        #textbuffer = textview.get_buffer()
+        #sw.add(textview)
+        #sw.show()
+        #textview.show()
+        #textview.set_editable(False)
+        #textview.set_cursor_visible(False)
+        #textbuffer.set_text(updateText())
+        #box2.pack_start(sw, True, True, 10)
         box2 = Gtk.HBox(False, 10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, False, 0)
@@ -98,13 +93,10 @@ class Window:
     def Store(self):
         self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
         GObject.TYPE_BOOLEAN)
+        print checkFbsdUpdate()
         if checkFbsdUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
-        if self.tree_store:
-            return self.tree_store
-        else:
-            return None
-
+        return self.tree_store
 
     def Display(self, model):
         self.view = Gtk.TreeView(model)
@@ -125,38 +117,6 @@ class Window:
         print(("Toggle '%s' to: %s" % (model[path][0], model[path][1],)))
         self.fbsysupdate = model[path][1]
         return
-
-
-class installUpdate:
-    def close_application(self, widget):
-        gtk.main_quit()
-
-    def __init__(self):
-        self.win = Gtk.Window()
-        self.win.connect("delete-event", Gtk.main_quit)
-        self.win.set_size_request(600, 150)
-        self.win.set_resizable(False)
-        self.win.set_title("Update Manager")
-        self.win.set_border_width(0)
-        self.win.set_position(Gtk.WindowPosition.CENTER)
-        box1 = Gtk.VBox(False, 0)
-        self.win.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(False, 10)
-        box2.set_border_width(10)
-        box1.pack_start(box2, True, True, 0)
-        box2.show()
-        self.pbar = Gtk.ProgressBar()
-        #self.pbar.set_orientation(Gtk.PROGRESS_LEFT_TO_RIGHT)
-        self.pbar.set_fraction(0.0)
-        self.pbar.set_size_request(-1, 20)
-        #self.timer = gobject.timeout_add(150, progress_timeout, self.pbar)
-        box2.pack_start(self.pbar, False, False, 0)
-        self.win.show_all()
-        #command = '%s -c %spcinstall.cfg' % (sysinstall, tmp)
-        #thr = threading.Thread(target=read_output,
-        #args=(command, window, self.pbar))
-        #thr.start()
 
 
 def responseToDialog(entry, dialog, response):
@@ -193,6 +153,5 @@ def getText():
     return text
 
 
-#installUpdate()
 Window()
 Gtk.main()

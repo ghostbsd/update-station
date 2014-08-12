@@ -13,7 +13,7 @@ class TrayIcon(object):
 
     def close_application(self, widget):
         quit()
-        
+
     def __init__(self):
         self.statusIcon = gtk.StatusIcon()
         self.statusIcon.set_tooltip('System Update availeble')

@@ -10,13 +10,13 @@ fbvcmd = "freebsd-version"
 installfbupdate = "freebsd-update fetch install"
 fblist = '%stag' % fbsduf
 fbsduf = '/var/db/freebsd-update-check/'
-
+pulcmd = 'pkg upgrade -n' 
 
 def listOfInstal():
-    ls = listdir(fbsd_up_file)
+    ls = listdir(fbsduf)
     for line in ls:
         if 'install.' in line:
-            uptag = open(fbsd_up_file + line + '/INDEX-NEW', 'r')
+            uptag = open(fbsduf + line + '/INDEX-NEW', 'r')
             info = uptag.readlines()
             return info
 
@@ -30,16 +30,16 @@ def checkFbsdUpdate():
         stderr=STDOUT, close_fds=True)
         fbsdversion = fbv.stdout.readlines()[0].rstrip()
         if fbsdversion == upversion:
-            return True
-        else:
             return False
+        else:
+            return True
 
 
 def lookFbsdUpdate():
     if path.exists(fbtag):
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
-        return "Update to FreeBSD " + tag[2] + "-p" + tag[3]
+        return "FreeBSD " + tag[2] + "-p" + tag[3] + " base system updates"
     else:
         return None
 
@@ -53,3 +53,11 @@ def updateText():
         txtlist = line.split('|')
         text += "%s" % txtlist[0] + "\n"
     return text
+
+def pkg_update():
+    fbv = Popen('%s | grep -v upgrade | grep -v package' % pulcmd, shell=True, stdin=PIPE, stdout=PIPE,
+    stderr=STDOUT, close_fds=True)
+    print fbv.stdout.read()
+
+pkg_update() 
+    
