@@ -39,7 +39,7 @@ def lookFbsdUpdate():
     if path.exists(fbtag):
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
-        return "FreeBSD " + tag[2] + "-p" + tag[3] + " base system updates"
+        return "FreeBSD Update:" + tag[2] + "-p" + tag[3]
     else:
         return None
 
