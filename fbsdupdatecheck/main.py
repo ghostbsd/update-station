@@ -3,7 +3,7 @@
 from os import system
 from sys import argv
 
-if len(argv) == 2: 
+if len(argv) == 2:
     if argv[1] != "update":
         print("Invalid option!")
     else:
@@ -18,5 +18,3 @@ else:
     system("chmod 755 /var/db/freebsd-update-check")
     system("chmod 755 /var/db/freebsd-update-check/*")
     system("rm /tmp/.fbsdup-lock")
-
-

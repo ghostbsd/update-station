@@ -1,15 +1,16 @@
 #!/usr/local/bin/python
 
 import gtk as Gtk
-import gobject as GObject
+#import gobject as GObject
 import sys
 #from gi.repository import Gtk
 #from gi.repository import GObject
 sys.path.append("/home/ericbsd/update-station/updatemgr")
 
+
 class installUpdate:
     def close_application(self, widget):
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def __init__(self):
         self.win = Gtk.Window()
@@ -18,7 +19,7 @@ class installUpdate:
         self.win.set_resizable(False)
         self.win.set_title("Update Manager")
         self.win.set_border_width(0)
-        self.win.set_position(Gtk.WindowPosition.CENTER)
+        #self.win.set_position(Gtk.WindowPosition.CENTER)
         box1 = Gtk.VBox(False, 0)
         self.win.add(box1)
         box1.show()
@@ -37,5 +38,5 @@ class installUpdate:
         #thr = threading.Thread(target=read_output,
         #args=(command, window, self.pbar))
         #thr.start()
-        
+
 installUpdate()

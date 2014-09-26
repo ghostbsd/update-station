@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 
-from os import listdir, system, path
-from subprocess import Popen, PIPE, STDOUT, call
+from os import listdir, path
+from subprocess import Popen, PIPE, STDOUT
 
 fbsduf = '/var/db/freebsd-update-check/'
 fbtag = '%stag' % fbsduf
@@ -10,7 +10,8 @@ fbvcmd = "freebsd-version"
 installfbupdate = "freebsd-update fetch install"
 fblist = '%stag' % fbsduf
 fbsduf = '/var/db/freebsd-update-check/'
-pulcmd = 'pkg upgrade -n' 
+pulcmd = 'pkg upgrade -n'
+
 
 def listOfInstal():
     ls = listdir(fbsduf)
@@ -54,10 +55,11 @@ def updateText():
         text += "%s" % txtlist[0] + "\n"
     return text
 
-def pkg_update():
-    fbv = Popen('%s | grep -v upgrade | grep -v package' % pulcmd, shell=True, stdin=PIPE, stdout=PIPE,
-    stderr=STDOUT, close_fds=True)
-    print fbv.stdout.read()
 
-pkg_update() 
-    
+def pkg_update():
+    fbv = Popen('%s | grep -v upgrade | grep -v package' % pulcmd,
+    shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    print((fbv.stdout.read()))
+
+
+#pkg_update()

@@ -1,16 +1,13 @@
 #!/usr/local/bin/python
 
 import gtk
-import gobject
+#import gobject
 from sys import path
-path.append("/usr/home/ericbsd/update-station/updatemgr")
-from mainWindow import GUI_Controller
-# from gi.overrides.Gtk import Gtk
-# from gtk.compat import GTK
+path.append("/home/ericbsd/update-station/update-station/")
+from window import Window
 
 
-class TrayIcon(object):
-
+class TrayIcon():
     def close_application(self, widget):
         quit()
 
@@ -26,9 +23,9 @@ class TrayIcon(object):
 
     def nm_menu(self):
         self.menu = gtk.Menu()
-        disconnected = gtk.MenuItem()
-        set_item = gtk.MenuItem("Setting")
-        self.menu.append(set_item)
+        #disconnected = gtk.MenuItem()
+        #set_item = gtk.MenuItem("Setting")
+        #self.menu.append(set_item)
         #set_item.connect("activate", self.wireddisconnect)
         close_item = gtk.MenuItem("Close")
         close_item.connect("activate", self.close_application)
@@ -37,11 +34,7 @@ class TrayIcon(object):
         return self.menu
 
     def leftclick(self, status_icon):
-        button = 1
-        position = gtk.status_icon_position_menu
-        time = gtk.get_current_event_time()
-        GUI_Controller()
-        #self.menu.popup(None, None, position, button, time, status_icon)
+            Window()
 
     def icon_clicked(self, status_icon, button, time):
         position = gtk.status_icon_position_menu
@@ -53,11 +46,11 @@ class TrayIcon(object):
         return True
 
     def tray(self):
-        self.check()
+        self.statusIcon.set_from_stock(gtk.STOCK_DIALOG_WARNING)
+        print('allo')
         #gobject.timeout_add(10000, self.check)
         gtk.main()
 
 
 icon = TrayIcon()
 icon.tray()
-gtk.main()
