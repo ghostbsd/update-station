@@ -6,47 +6,40 @@ import sys
 #from gi.repository import Gtk
 #from gi.repository import GObject
 sys.path.append("/home/ericbsd/update-station/update-station")
-from updateHandler import lookFbsdUpdate, checkFbsdUpdate  # updateText
+from updateHandler import lookFbsdUpdate, checkFbsdUpdate
 
 
 class Window:
     def close_application(self, widget):
-        Gtk.main_quit()
+        quit()
 
     def hideWindow(self, widget):
         self.window.hide()
+
+    def showWindow(self):
+        self.window.show_all()
 
     def create_bbox(self, horizontal, spacing, layout):
         table = Gtk.Table(1, 5, True)
         button = Gtk.Button("Install update")
         table.attach(button, 0, 1, 0, 1)
-        button.connect("clicked", self.close_application)
+        button.connect("clicked", self.hideWindow)
         button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
         table.attach(button, 4, 5, 0, 1)
         button.connect("clicked", self.hideWindow)
         return table
 
-    def install_bbox(self, horizontal, spacing, layout):
-        table = Gtk.Table(1, 5, True)
-        button = Gtk.Button("Install update")
-        table.attach(button, 4, 5, 0, 1)
-        button.connect("clicked", self.close_application)
-        return table
-
     def __init__(self):
-        #Gtk.WINDOW_TOPLEVEL
         self.window = Gtk.Window()
-        self.window.connect("destroy", self.close_application)
+        self.window.connect("destroy", self.hideWindow)
         self.window.set_size_request(600, 400)
         self.window.set_resizable(False)
         self.window.set_title("Update Manager")
         self.window.set_border_width(0)
         self.window.set_position(Gtk.WIN_POS_CENTER)
-        #window.set_icon_from_file("/usr/local/etc/gbi/logo.png")
         box1 = Gtk.VBox(False, 0)
         self.window.add(box1)
         box1.show()
-        #box1.set_border_width(20)
         box2 = Gtk.VBox(False, 0)
         box2.set_border_width(20)
         box1.pack_start(box2, True, True, 0)
@@ -67,12 +60,26 @@ class Window:
         box2 = Gtk.HBox(False, 10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, False, 0)
-        #box1.set_border_width(0)
         box2.show()
         # Add button
         box2.pack_start(self.create_bbox(True,
         10, Gtk.BUTTONBOX_END), True, True, 5)
-        self.window.show_all()
+        # Statue Tray Code
+        self.statusIcon = Gtk.StatusIcon()
+        self.statusIcon.set_tooltip('System Update availeble')
+        self.statusIcon.set_visible(True)
+        self.menu = Gtk.Menu()
+        self.menu.show_all()
+        self.statusIcon.connect("activate", self.leftclick)
+        self.statusIcon.connect('popup-menu', self.icon_clicked)
+
+    def nm_menu(self):
+        self.menu = Gtk.Menu()
+        close_item = Gtk.MenuItem("Close")
+        close_item.connect("activate", self.close_application)
+        self.menu.append(close_item)
+        self.menu.show_all()
+        return self.menu
 
     def Store(self):
         self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
@@ -80,7 +87,6 @@ class Window:
         print((checkFbsdUpdate()))
         if checkFbsdUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
-
         return self.tree_store
 
     def Display(self, model):
@@ -103,41 +109,46 @@ class Window:
         self.fbsysupdate = model[path][1]
         return
 
+    def leftclick(self, status_icon):
+        self.window.show_all()
+
+    def icon_clicked(self, status_icon, button, time):
+        position = Gtk.status_icon_position_menu
+        self.nm_menu()
+        self.menu.popup(None, None, position, button, time, status_icon)
+
+    def check(self):
+        self.statusIcon.set_from_stock(Gtk.STOCK_DIALOG_WARNING)
+        return True
+
+    def tray(self):
+        self.statusIcon.set_from_stock(Gtk.STOCK_DIALOG_WARNING)
+        print('allo')
+        Gtk.main()
+
 
 def responseToDialog(entry, dialog, response):
     dialog.response(response)
 
 
 def getText():
-    #base this on a message dialog
-    dialog = Gtk.MessageDialog(
-        None,
+    dialog = Gtk.MessageDialog(None,
         Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT,
-        Gtk.MESSAGE_QUESTION,
-        Gtk.BUTTONS_OK,
-        None)
+        Gtk.MESSAGE_QUESTION, Gtk.BUTTONS_OK, None)
     dialog.set_markup('Please enter your passord:')
-    #create the text input field
     entry = Gtk.Entry()
     entry.set_visibility(False)
-    #allow the user to press enter to do ok
     entry.connect("activate", responseToDialog, dialog, Gtk.RESPONSE_OK)
-    #create a horizontal box to pack the entry and a label
     hbox = Gtk.HBox()
     hbox.pack_start(Gtk.Label("Password:"), False, 5, 5)
     hbox.pack_end(entry)
-    #some secondary text
     dialog.format_secondary_markup(
     "This will be used for <i>identification</i> purposes")
-    #add it and show it
     dialog.vbox.pack_end(hbox, True, True, 0)
     dialog.show_all()
-    #go go go
     dialog.run()
     text = entry.get_text()
     dialog.destroy()
     return text
 
-
-#Window()
-#Gtk.main()
+Window().tray()
