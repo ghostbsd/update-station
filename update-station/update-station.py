@@ -19,6 +19,11 @@ class Window:
     def showWindow(self):
         self.window.show_all()
 
+    def delete_event(self, window, event):
+        #don't delete; hide instead
+        self.window.hide_on_delete()
+        return True
+
     def create_bbox(self, horizontal, spacing, layout):
         table = Gtk.Table(1, 5, True)
         button = Gtk.Button("Install update")
@@ -31,7 +36,7 @@ class Window:
 
     def __init__(self):
         self.window = Gtk.Window()
-        self.window.connect("destroy", self.hideWindow)
+        self.window.connect("delete-event", self.delete_event)
         self.window.set_size_request(600, 400)
         self.window.set_resizable(False)
         self.window.set_title("Update Manager")
