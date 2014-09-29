@@ -3,8 +3,6 @@
 import gtk as Gtk
 #import gobject as GObject
 import sys
-#from gi.repository import Gtk
-#from gi.repository import GObject
 sys.path.append("/home/ericbsd/update-station/updatemgr")
 
 
@@ -40,3 +38,4 @@ class installUpdate:
         #thr.start()
 
 installUpdate()
+Gtk.main()

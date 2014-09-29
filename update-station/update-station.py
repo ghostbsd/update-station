@@ -3,32 +3,30 @@
 import gtk as Gtk
 import gobject as GObject
 import sys
-#from gi.repository import Gtk
-#from gi.repository import GObject
 sys.path.append("/home/ericbsd/update-station/update-station")
 from updateHandler import lookFbsdUpdate, checkFbsdUpdate
 
 
-class Window:
+class updateManager:
     def close_application(self, widget):
         quit()
 
     def hideWindow(self, widget):
         self.window.hide()
 
-    def showWindow(self):
-        self.window.show_all()
-
-    def delete_event(self, window, event):
+    def delete_event(self, widget):
         #don't delete; hide instead
         self.window.hide_on_delete()
         return True
+
+    def installupdate(self, widget):
+        installUpdate()
 
     def create_bbox(self, horizontal, spacing, layout):
         table = Gtk.Table(1, 5, True)
         button = Gtk.Button("Install update")
         table.attach(button, 0, 1, 0, 1)
-        button.connect("clicked", self.hideWindow)
+        button.connect("clicked", self.installupdate)
         button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
         table.attach(button, 4, 5, 0, 1)
         button.connect("clicked", self.hideWindow)
@@ -131,6 +129,64 @@ class Window:
         print('allo')
         Gtk.main()
 
+def read_output(command, window, probar):
+    probar.set_text("Beginning installation")
+    sleep(2)
+    probar.set_text("Creating partition table")
+    sleep(2)
+    if os.path.exists(tmp + 'delete'):
+        probar.set_fraction(0.001)
+        probar.set_text("Deleting partition")
+        rDeleteParttion()
+        sleep(5)
+    while 1:
+        line = p.stdout.readline()
+        if not line:
+            break
+        new_val = probar.get_fraction() + 0.000002
+        probar.set_fraction(new_val)
+        bartext = line
+        probar.set_text("%s" % bartext.rstrip())
+        filer = open("/home/ghostbsd/.gbi/tmp", "a")
+        filer.writelines(bartext)
+        filer.close
+        print(bartext)
+    probar.set_fraction(1.0)
+
+class installUpdate:
+    def close_application(self, widget):
+        Gtk.main_quit()
+
+    def __init__(self):
+        self.win = Gtk.Window()
+        self.win.connect("delete-event", Gtk.main_quit)
+        self.win.set_size_request(600, 150)
+        self.win.set_resizable(False)
+        self.win.set_title("Update Manager")
+        self.win.set_border_width(0)
+        #self.win.set_position(Gtk.WindowPosition.CENTER)
+        box1 = Gtk.VBox(False, 0)
+        self.win.add(box1)
+        box1.show()
+        box2 = Gtk.VBox(False, 10)
+        box2.set_border_width(10)
+        box1.pack_start(box2, True, True, 0)
+        box2.show()
+        self.pbar = Gtk.ProgressBar()
+        #self.pbar.set_orientation(Gtk.PROGRESS_LEFT_TO_RIGHT)
+        self.pbar.set_fraction(0.0)
+        self.pbar.set_size_request(-1, 20)
+        #self.timer = gobject.timeout_add(150, progress_timeout, self.pbar)
+        box2.pack_start(self.pbar, False, False, 0)
+        self.win.show_all()
+        #command = '%s -c %spcinstall.cfg' % (sysinstall, tmp)
+        #thr = threading.Thread(target=read_output,
+        #args=(command, window, self.pbar))
+        #thr.start()
+
+installUpdate()
+Gtk.main()
+
 
 def responseToDialog(entry, dialog, response):
     dialog.response(response)
@@ -156,4 +212,4 @@ def getText():
     dialog.destroy()
     return text
 
-Window().tray()
+#updateManager.tray()
