@@ -2,9 +2,12 @@
 
 import gtk as Gtk
 import gobject as GObject
+import threading
 import sys
+import locale
 sys.path.append("/home/ericbsd/update-station/update-station")
 from updateHandler import lookFbsdUpdate, checkFbsdUpdate
+from time import sleep
 
 
 class updateManager:
@@ -129,29 +132,22 @@ class updateManager:
         print('allo')
         Gtk.main()
 
+
+encoding = locale.getpreferredencoding()
+utf8conv = lambda x: str(x, encoding).encode('utf8')
+threadBreak = False
+GObject.threads_init()
+
+
 def read_output(command, window, probar):
     probar.set_text("Beginning installation")
-    sleep(2)
-    probar.set_text("Creating partition table")
-    sleep(2)
-    if os.path.exists(tmp + 'delete'):
-        probar.set_fraction(0.001)
-        probar.set_text("Deleting partition")
-        rDeleteParttion()
-        sleep(5)
-    while 1:
-        line = p.stdout.readline()
-        if not line:
-            break
-        new_val = probar.get_fraction() + 0.000002
+    probar.set_fraction(0.1)
+    while True:
+        new_val = probar.get_fraction() + 0.3
         probar.set_fraction(new_val)
-        bartext = line
-        probar.set_text("%s" % bartext.rstrip())
-        filer = open("/home/ghostbsd/.gbi/tmp", "a")
-        filer.writelines(bartext)
-        filer.close
-        print(bartext)
-    probar.set_fraction(1.0)
+        break
+    GObject.idle_add(window.destroy)
+
 
 class installUpdate:
     def close_application(self, widget):
@@ -173,16 +169,16 @@ class installUpdate:
         box1.pack_start(box2, True, True, 0)
         box2.show()
         self.pbar = Gtk.ProgressBar()
-        #self.pbar.set_orientation(Gtk.PROGRESS_LEFT_TO_RIGHT)
+        self.pbar.set_orientation(Gtk.PROGRESS_LEFT_TO_RIGHT)
         self.pbar.set_fraction(0.0)
         self.pbar.set_size_request(-1, 20)
         #self.timer = gobject.timeout_add(150, progress_timeout, self.pbar)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
-        #command = '%s -c %spcinstall.cfg' % (sysinstall, tmp)
-        #thr = threading.Thread(target=read_output,
-        #args=(command, window, self.pbar))
-        #thr.start()
+        command = "install"
+        thr = threading.Thread(target=read_output,
+        args=(command, self.win, self.pbar))
+        thr.start()
 
 installUpdate()
 Gtk.main()
