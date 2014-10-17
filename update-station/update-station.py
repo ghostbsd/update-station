@@ -6,8 +6,9 @@ import threading
 import sys
 import locale
 sys.path.append("/home/ericbsd/update-station/update-station")
-from updateHandler import lookFbsdUpdate, checkFbsdUpdate
-from time import sleep
+from updateHandler import lookFbsdUpdate, checkFbsdUpdate, checkPkgUpdate
+
+updateToInstall = []
 
 
 class updateManager:
@@ -22,14 +23,14 @@ class updateManager:
         self.window.hide_on_delete()
         return True
 
-    def installupdate(self, widget):
-        installUpdate()
+    def startupdate(self, widget):
+        installUpdate(updateToInstall)
 
     def create_bbox(self, horizontal, spacing, layout):
         table = Gtk.Table(1, 5, True)
         button = Gtk.Button("Install update")
         table.attach(button, 0, 1, 0, 1)
-        button.connect("clicked", self.installupdate)
+        button.connect("clicked", self.startupdate)
         button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
         table.attach(button, 4, 5, 0, 1)
         button.connect("clicked", self.hideWindow)
@@ -90,9 +91,13 @@ class updateManager:
     def Store(self):
         self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
         GObject.TYPE_BOOLEAN)
-        print((checkFbsdUpdate()))
         if checkFbsdUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
+            updateToInstall.extend([lookFbsdUpdate()])
+        if checkPkgUpdate() is True:
+            self.tree_store.append(None, ("Software Update Available", True))
+            updateToInstall.extend(["Software Update Available"])
+        print updateToInstall
         return self.tree_store
 
     def Display(self, model):
@@ -111,8 +116,11 @@ class updateManager:
 
     def col1_toggled_cb(self, cell, path, model):
         model[path][1] = not model[path][1]
-        print(("%s: %s" % (model[path][0], model[path][1],)))
-        self.fbsysupdate = model[path][1]
+        if model[path][1] is False:
+            updateToInstall.remove(model[path][0])
+        else:
+            updateToInstall.extend([model[path][0]])
+        print updateToInstall
         return
 
     def leftclick(self, status_icon):
@@ -129,7 +137,6 @@ class updateManager:
 
     def tray(self):
         self.statusIcon.set_from_stock(Gtk.STOCK_DIALOG_WARNING)
-        print('allo')
         Gtk.main()
 
 
@@ -139,28 +146,28 @@ threadBreak = False
 GObject.threads_init()
 
 
-def read_output(command, window, probar):
+def read_output(command, window, probar, installUpdate):
     probar.set_text("Beginning installation")
     probar.set_fraction(0.1)
-    while True:
-        new_val = probar.get_fraction() + 0.3
-        probar.set_fraction(new_val)
-        break
-    GObject.idle_add(window.destroy)
+    #while True:
+        #new_val = probar.get_fraction() + 0.3
+        #probar.set_fraction(new_val)
+        #break
+    #GObject.idle_add(window.destroy)
 
 
 class installUpdate:
     def close_application(self, widget):
         Gtk.main_quit()
 
-    def __init__(self):
+    def __init__(self, installUpdate):
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(600, 150)
         self.win.set_resizable(False)
         self.win.set_title("Update Manager")
         self.win.set_border_width(0)
-        #self.win.set_position(Gtk.WindowPosition.CENTER)
+        self.win.set_position(Gtk.WIN_POS_CENTER)
         box1 = Gtk.VBox(False, 0)
         self.win.add(box1)
         box1.show()
@@ -172,16 +179,15 @@ class installUpdate:
         self.pbar.set_orientation(Gtk.PROGRESS_LEFT_TO_RIGHT)
         self.pbar.set_fraction(0.0)
         self.pbar.set_size_request(-1, 20)
-        #self.timer = gobject.timeout_add(150, progress_timeout, self.pbar)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
         command = "install"
         thr = threading.Thread(target=read_output,
-        args=(command, self.win, self.pbar))
+        args=(command, self.win, self.pbar, installUpdate))
         thr.start()
 
-installUpdate()
-Gtk.main()
+#installUpdate()
+updateManager().tray()
 
 
 def responseToDialog(entry, dialog, response):
@@ -208,4 +214,4 @@ def getText():
     dialog.destroy()
     return text
 
-#updateManager.tray()
+updateManager().tray()

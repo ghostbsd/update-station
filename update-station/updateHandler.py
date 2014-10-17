@@ -40,7 +40,7 @@ def lookFbsdUpdate():
     if path.exists(fbtag):
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
-        return "FreeBSD Update:" + tag[2] + "-p" + tag[3]
+        return "FreeBSD Update: " + tag[2] + "-p" + tag[3]
     else:
         return None
 
@@ -57,16 +57,16 @@ def updateText():
 
 
 def installFreeBSDUpdate():
-    check = 'sudo fbsdupdatecheck install'
+    check = 'fbsdupdatecheck install'
     fbsdinstall = Popen(check, shell=True, stdin=PIPE, stdout=PIPE,
         stderr=STDOUT, close_fds=True)
     return fbsdinstall.stdout.read()
 
 
-def pkg_update():
-    fbv = Popen('%s | grep -v upgrade | grep -v package' % pulcmd,
+def checkPkgUpdate():
+    fbv = Popen('%s' % pulcmd,
     shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-    print((fbv.stdout.read()))
-
-
-installFreeBSDUpdate()
+    if "UPGRADED" in fbv.stdout.read():
+        return True
+    else:
+        return False
