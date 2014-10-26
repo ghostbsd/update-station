@@ -56,11 +56,25 @@ def updateText():
     return text
 
 
+def checkFreeBSDUpdate():
+    install = 'fbsdupdatecheck check'
+    fbsdInstall = Popen(install, shell=True, stdin=PIPE, stdout=PIPE,
+    stderr=STDOUT, close_fds=True)
+    return fbsdInstall.stdout.readline()
+
+
+def downloadFreeBSDUpdate():
+    download = 'fbsdupdatecheck | grep -q "will be updated"'
+    fbsdDownload = Popen(download, shell=True, stdin=PIPE, stdout=PIPE,
+    stderr=STDOUT, close_fds=True)
+    return fbsdDownload.stdout.readline()
+
+
 def installFreeBSDUpdate():
-    check = 'fbsdupdatecheck install'
-    fbsdinstall = Popen(check, shell=True, stdin=PIPE, stdout=PIPE,
-        stderr=STDOUT, close_fds=True)
-    return fbsdinstall.stdout.read()
+    install = 'fbsdupdatecheck install'
+    fbsdInstall = Popen(install, shell=True, stdin=PIPE, stdout=PIPE,
+    stderr=STDOUT, close_fds=True)
+    return fbsdInstall.stdout.readline()
 
 
 def checkPkgUpdate():

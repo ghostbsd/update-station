@@ -7,8 +7,9 @@ import sys
 import locale
 sys.path.append("/home/ericbsd/update-station/update-station")
 from updateHandler import lookFbsdUpdate, checkFbsdUpdate, checkPkgUpdate
-
+from updateHandler import installFreeBSDUpdate, downloadFreeBSDUpdate
 updateToInstall = []
+from time import sleep
 
 
 class updateManager:
@@ -97,7 +98,7 @@ class updateManager:
         if checkPkgUpdate() is True:
             self.tree_store.append(None, ("Software Update Available", True))
             updateToInstall.extend(["Software Update Available"])
-        print updateToInstall
+        print(updateToInstall)
         return self.tree_store
 
     def Display(self, model):
@@ -120,7 +121,7 @@ class updateManager:
             updateToInstall.remove(model[path][0])
         else:
             updateToInstall.extend([model[path][0]])
-        print updateToInstall
+        print(updateToInstall)
         return
 
     def leftclick(self, status_icon):
@@ -147,13 +148,18 @@ GObject.threads_init()
 
 
 def read_output(command, window, probar, installUpdate):
-    probar.set_text("Beginning installation")
-    probar.set_fraction(0.1)
-    #while True:
-        #new_val = probar.get_fraction() + 0.3
-        #probar.set_fraction(new_val)
-        #break
-    #GObject.idle_add(window.destroy)
+    howMany = len(installUpdate)
+    fraction = 1 / howMany
+    if checkFbsdUpdate() is True:
+        probar.set_text("Downloading FreeBSD updates")
+        downloadFreeBSDUpdate()
+        probar.set_text("FreeBSD updates downloaded")
+        sleep(1)
+        probar.set_text("Installing FreeBSD updates")
+        installFreeBSDUpdate()
+        probar.set_text("FreeBSD updates installed")
+        probar.set_fraction(fraction)
+    GObject.idle_add(window.destroy)
 
 
 class installUpdate:
