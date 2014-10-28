@@ -10,7 +10,10 @@ fbvcmd = "freebsd-version"
 installfbsdupdate = "freebsd-update fetch install"
 fblist = '%stag' % fbsduf
 fbsduf = '/var/db/freebsd-update-check/'
-pulcmd = 'pkg upgrade -n'
+checkpkgupgrade = 'pkg upgrade -n'
+fetchpkgupgrade = 'pkg upgrade -Fy'
+isntallpkgupgrade = 'pkg upgrade -y'
+lockpkg = 'pkg lock -y '
 
 
 def listOfInstal():
@@ -63,7 +66,7 @@ def checkFreeBSDUpdate():
     return fbsdInstall.stdout.readline()
 
 
-def downloadFreeBSDUpdate():
+def fetchFreeBSDUpdate():
     download = 'fbsdupdatecheck | grep -q "will be updated"'
     fbsdDownload = Popen(download, shell=True, stdin=PIPE, stdout=PIPE,
     stderr=STDOUT, close_fds=True)
@@ -78,9 +81,30 @@ def installFreeBSDUpdate():
 
 
 def checkPkgUpdate():
-    fbv = Popen('%s' % pulcmd,
+    fbv = Popen(checkpkgupgrade,
     shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
     if "UPGRADED" in fbv.stdout.read():
         return True
     else:
         return False
+
+
+def lockPkg():
+    #make a lock list and pass read it here.
+    #lock
+
+
+def unlockPkg():
+    # unlock all pkg
+
+
+def fetchPkgUpdate():
+    fetch = Popen(fetchpkgupgrade,
+    shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    return fetch.stdout.readline()
+
+
+def installPkgUpdate():
+    install = Popen(installpkgupgrade,
+    shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    return install.stdout.readline()

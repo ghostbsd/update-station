@@ -20,7 +20,7 @@ if len(argv) == 2:
         system("chmod 755 /var/db/freebsd-update-check/*")
         system("rm /tmp/.fbsdup-lock")
     elif argv[1] != "check" and argv[1] != "install":
-        print(argv[1] + " is an invalid option!")
+        print((argv[1] + " is an invalid option!"))
 else:
     system("touch /tmp/.fbsdup-lock")
     system("mkdir /var/db/freebsd-update-check 2>/dev/null")

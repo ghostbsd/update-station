@@ -7,7 +7,8 @@ import sys
 import locale
 sys.path.append("/home/ericbsd/update-station/update-station")
 from updateHandler import lookFbsdUpdate, checkFbsdUpdate, checkPkgUpdate
-from updateHandler import installFreeBSDUpdate, downloadFreeBSDUpdate
+from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
+from updateHandler import fetchPkgUpdate, installPkgUpdate
 updateToInstall = []
 from time import sleep
 
@@ -151,14 +152,18 @@ def read_output(command, window, probar, installUpdate):
     howMany = len(installUpdate)
     fraction = 1 / howMany
     if checkFbsdUpdate() is True:
-        probar.set_text("Downloading FreeBSD updates")
-        downloadFreeBSDUpdate()
+        probar.set_text("Fetching FreeBSD updates")
+        fetchFreeBSDUpdate()
         probar.set_text("FreeBSD updates downloaded")
         sleep(1)
         probar.set_text("Installing FreeBSD updates")
         installFreeBSDUpdate()
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
+    if checkPkgUpdate() is True:
+        probar.set_text("fetching packages")
+        fetchPkgUpdate()
+        isntallPkgUpdate()
     GObject.idle_add(window.destroy)
 
 
@@ -187,9 +192,8 @@ class installUpdate:
         self.pbar.set_size_request(-1, 20)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
-        command = "install"
         thr = threading.Thread(target=read_output,
-        args=(command, self.win, self.pbar, installUpdate))
+        args=(self.win, self.pbar, installUpdate))
         thr.start()
 
 #installUpdate()
