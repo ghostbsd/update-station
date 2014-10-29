@@ -163,7 +163,7 @@ def read_output(command, window, probar, installUpdate):
     if checkPkgUpdate() is True:
         probar.set_text("fetching packages")
         fetchPkgUpdate()
-        isntallPkgUpdate()
+        installPkgUpdate()
     GObject.idle_add(window.destroy)
 
 

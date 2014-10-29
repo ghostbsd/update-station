@@ -1,8 +1,9 @@
 #!/usr/local/bin/python
 
 from os import listdir, path
-from subprocess import Popen, PIPE, STDOUT
-
+from subprocess import Popen, PIPE, STDOUT, call
+ustation_db = '/var/db/update-station/'
+pkglockfile = '%slock-pkgs' % ustation_db
 fbsduf = '/var/db/freebsd-update-check/'
 fbtag = '%stag' % fbsduf
 fblist = '%stag' % fbsduf
@@ -14,6 +15,7 @@ checkpkgupgrade = 'pkg upgrade -n'
 fetchpkgupgrade = 'pkg upgrade -Fy'
 isntallpkgupgrade = 'pkg upgrade -y'
 lockpkg = 'pkg lock -y '
+unlockpkg = 'pkg unlock -ay'
 
 
 def listOfInstal():
@@ -91,20 +93,24 @@ def checkPkgUpdate():
 
 def lockPkg():
     #make a lock list and pass read it here.
-    #lock
+    if path.exists(pkglockfile):
+        plf = open(pkglockfile, 'r')
+        for line in plf.read():
+            call(lockpkg + line.rstrip(), shell=True)
+    return True
 
 
 def unlockPkg():
     # unlock all pkg
+    call(unlockpkg, shell=True)
+    return True
 
 
 def fetchPkgUpdate():
-    fetch = Popen(fetchpkgupgrade,
-    shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    fetch = Popen(fetchpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
     return fetch.stdout.readline()
 
 
 def installPkgUpdate():
-    install = Popen(installpkgupgrade,
-    shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    install = Popen(isntallpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
     return install.stdout.readline()
