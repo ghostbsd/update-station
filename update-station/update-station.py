@@ -161,9 +161,15 @@ def read_output(command, window, probar, installUpdate):
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
     if checkPkgUpdate() is True:
-        probar.set_text("fetching packages")
+        probar.set_text("Fetching packages updates")
         fetchPkgUpdate()
+        probar.set_text("Packages updates downloaded")
+        sleep(1)
+        probar.set_text("Installing packages updates")
         installPkgUpdate()
+        probar.set_text("Packages updates installed")
+        probar.set_fraction(fraction)
+        sleep(1)
     GObject.idle_add(window.destroy)
 
 

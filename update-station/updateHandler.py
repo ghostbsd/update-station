@@ -95,7 +95,7 @@ def lockPkg():
     #make a lock list and pass read it here.
     if path.exists(pkglockfile):
         plf = open(pkglockfile, 'r')
-        for line in plf.read():
+        for line in plf.readlines():
             call(lockpkg + line.rstrip(), shell=True)
     return True
 
