@@ -62,10 +62,15 @@ def updateText():
 
 
 def checkFreeBSDUpdate():
-    install = 'fbsdupdatecheck check'
+    install = 'sudo operator fbsdupdatecheck check'
     fbsdInstall = Popen(install, shell=True, stdin=PIPE, stdout=PIPE,
                         stderr=STDOUT, close_fds=True)
-    return fbsdInstall.stdout.readline()
+    if "updating to" in fbsdInstall.stdout.read():
+        return True
+    else:
+        return False
+
+print checkFreeBSDUpdate()
 
 
 def fetchFreeBSDUpdate():

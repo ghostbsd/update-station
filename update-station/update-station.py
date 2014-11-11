@@ -10,7 +10,9 @@ from updateHandler import lookFbsdUpdate, checkFbsdUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
 from updateHandler import fetchPkgUpdate, installPkgUpdate
 updateToInstall = []
+print(len(updateToInstall))
 from time import sleep
+insingal = True
 
 
 class updateManager:
@@ -19,14 +21,17 @@ class updateManager:
 
     def hideWindow(self, widget):
         self.window.hide()
+        self.insingal = True
 
     def delete_event(self, widget):
         # don't delete; hide instead
         self.window.hide_on_delete()
-        return True
 
     def startupdate(self, widget):
-        installUpdate(updateToInstall)
+        if len(updateToInstall) != 0:
+            if self.insingal is True:
+                installUpdate(updateToInstall)
+                self.insingal = False
 
     def create_bbox(self, horizontal, spacing, layout):
         table = Gtk.Table(1, 5, True)
@@ -39,8 +44,9 @@ class updateManager:
         return table
 
     def __init__(self):
+        self.insingal = True
         self.window = Gtk.Window()
-        self.window.connect("delete-event", self.delete_event)
+        self.window.connect("destroy", self.delete_event)
         self.window.set_size_request(600, 400)
         self.window.set_resizable(False)
         self.window.set_title("Update Manager")
@@ -148,10 +154,10 @@ threadBreak = False
 GObject.threads_init()
 
 
-def read_output(window, probar, installUpdate):
-    howMany = len(installUpdate)
+def read_output(window, probar, installupdate):
+    howMany = len(installupdate)
     fraction = 1 / howMany
-    if "FreeBSD Update" in installUpdate:
+    if "FreeBSD Update" in installupdate:
         probar.set_text("Fetching FreeBSD updates")
         fetchFreeBSDUpdate()
         print("FreeBSD Update")
@@ -161,14 +167,9 @@ def read_output(window, probar, installUpdate):
         installFreeBSDUpdate()
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
-<<<<<<< HEAD
-    if "Software Update Available" in installUpdate:
+
+    if "Software Update Available" in installupdate:
         probar.set_text("Fetching packages updates")
-        print("Software Update")
-=======
-    if checkPkgUpdate() is True:
-        probar.set_text("Fetching packages updates")
->>>>>>> 218af77cc968e38362efec359ae3fc670e21e7a6
         fetchPkgUpdate()
         probar.set_text("Packages updates downloaded")
         sleep(1)
@@ -187,7 +188,7 @@ class installUpdate:
     def __init__(self, installUpdate):
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
-        self.win.set_size_request(600, 150)
+        self.win.set_size_request(500, 75)
         self.win.set_resizable(False)
         self.win.set_title("Update Manager")
         self.win.set_border_width(0)
