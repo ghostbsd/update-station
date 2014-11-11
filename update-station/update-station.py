@@ -161,9 +161,14 @@ def read_output(window, probar, installUpdate):
         installFreeBSDUpdate()
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
+<<<<<<< HEAD
     if "Software Update Available" in installUpdate:
         probar.set_text("Fetching packages updates")
         print("Software Update")
+=======
+    if checkPkgUpdate() is True:
+        probar.set_text("Fetching packages updates")
+>>>>>>> 218af77cc968e38362efec359ae3fc670e21e7a6
         fetchPkgUpdate()
         probar.set_text("Packages updates downloaded")
         sleep(1)
