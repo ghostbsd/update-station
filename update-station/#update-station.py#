@@ -95,7 +95,7 @@ class updateManager:
                                         GObject.TYPE_BOOLEAN)
         if checkFbsdUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
-            updateToInstall.extend([lookFbsdUpdate().partition(':')[0]])
+            updateToInstall.extend([lookFbsdUpdate()])
         if checkPkgUpdate() is True:
             self.tree_store.append(None, ("Software Update Available", True))
             updateToInstall.extend(["Software Update Available"])
@@ -119,9 +119,9 @@ class updateManager:
     def col1_toggled_cb(self, cell, path, model):
         model[path][1] = not model[path][1]
         if model[path][1] is False:
-            updateToInstall.remove(model[path][0].partition(':')[0])
+            updateToInstall.remove(model[path][0])
         else:
-            updateToInstall.extend([model[path][0].partition(':')[0]])
+            updateToInstall.extend([model[path][0]])
         print(updateToInstall)
         return
 
@@ -148,27 +148,27 @@ threadBreak = False
 GObject.threads_init()
 
 
-def read_output(window, probar, installUpdate):
+def read_output(command, window, probar, installUpdate):
     howMany = len(installUpdate)
     fraction = 1 / howMany
     if "FreeBSD Update" in installUpdate:
         probar.set_text("Fetching FreeBSD updates")
-        fetchFreeBSDUpdate()
+        # fetchFreeBSDUpdate()
         print("FreeBSD Update")
         probar.set_text("FreeBSD updates downloaded")
         sleep(1)
         probar.set_text("Installing FreeBSD updates")
-        installFreeBSDUpdate()
+        # installFreeBSDUpdate()
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
     if "Software Update Available" in installUpdate:
         probar.set_text("Fetching packages updates")
-        print("Software Update")
-        fetchPkgUpdate()
+        print("Software UPdate")
+        # fetchPkgUpdate()
         probar.set_text("Packages updates downloaded")
         sleep(1)
         probar.set_text("Installing packages updates")
-        installPkgUpdate()
+        # installPkgUpdate()
         probar.set_text("Packages updates installed")
         probar.set_fraction(fraction)
         sleep(1)

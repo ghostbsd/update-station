@@ -83,7 +83,7 @@ def installFreeBSDUpdate():
 
 
 def checkPkgUpdate():
-    fbv = Popen(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    fbv = Popen(checkpkgupgrade, shell=True stdout=PIPE, close_fds=True)
     if "UPGRADED" in fbv.stdout.read():
         return True
     else:
