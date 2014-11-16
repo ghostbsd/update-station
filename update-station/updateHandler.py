@@ -8,14 +8,12 @@ fbsduf = '/var/db/freebsd-update-check/'
 fbtag = '%stag' % fbsduf
 fblist = '%stag' % fbsduf
 fbvcmd = "freebsd-version"
-installfbsdupdate = "freebsd-update fetch install"
 fblist = '%stag' % fbsduf
-fbsduf = '/var/db/freebsd-update-check/'
-checkpkgupgrade = 'pkg upgrade -n'
-fetchpkgupgrade = 'pkg upgrade -Fy'
-isntallpkgupgrade = 'pkg upgrade -y'
-lockpkg = 'pkg lock -y '
-unlockpkg = 'pkg unlock -ay'
+checkpkgupgrade = 'sudo operator pkg upgrade -n'
+fetchpkgupgrade = 'sudo operator pkg upgrade -Fy'
+isntallpkgupgrade = 'sudo operator pkg upgrade -y'
+lockpkg = 'sudo operator pkg lock -y '
+unlockpkg = 'sudo operator pkg unlock -ay'
 
 
 def listOfInstal():
@@ -27,7 +25,17 @@ def listOfInstal():
             return info
 
 
-def checkFbsdUpdate():
+def checkFreeBSDUpdate():
+    check = 'sudo operator fbsdupdatecheck check'
+    fbsdInstall = Popen(check, shell=True, stdin=PIPE, stdout=PIPE,
+                        stderr=STDOUT, close_fds=True)
+    if "updating to" in fbsdInstall.stdout.read():
+        return True
+    else:
+        return False
+
+
+def checkVersionUpdate():
     if path.exists(fbtag):
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
@@ -39,6 +47,8 @@ def checkFbsdUpdate():
             return False
         else:
             return True
+    else:
+        return "missing file"
 
 
 def lookFbsdUpdate():
@@ -61,30 +71,15 @@ def updateText():
     return text
 
 
-def checkFreeBSDUpdate():
-    install = 'sudo operator fbsdupdatecheck check'
-    fbsdInstall = Popen(install, shell=True, stdin=PIPE, stdout=PIPE,
-                        stderr=STDOUT, close_fds=True)
-    if "updating to" in fbsdInstall.stdout.read():
-        return True
-    else:
-        return False
-
-print checkFreeBSDUpdate()
-
-
 def fetchFreeBSDUpdate():
-    download = 'fbsdupdatecheck | grep -q "will be updated"'
-    fbsdDownload = Popen(download, shell=True, stdin=PIPE, stdout=PIPE,
-                         stderr=STDOUT, close_fds=True)
-    return fbsdDownload.stdout.readline()
-
+    download = 'sudo operator fbsdupdatecheck fetch grep'
+    fbsdDownload = Popen(download, shell=True, stdout=PIPE, close_fds=True)
+    return fbsdDownload.stdout
 
 def installFreeBSDUpdate():
-    install = 'fbsdupdatecheck install'
-    fbsdInstall = Popen(install, shell=True, stdin=PIPE, stdout=PIPE,
-                        stderr=STDOUT, close_fds=True)
-    return fbsdInstall.stdout.readline()
+    install = 'sudo operator fbsdupdatecheck install'
+    fbsdInstall = call(install, shell=True, stdout=PIPE, close_fds=True)
+    #return fbsdInstall.stdout.readline()
 
 
 def checkPkgUpdate():
@@ -111,10 +106,18 @@ def unlockPkg():
 
 
 def fetchPkgUpdate():
-    fetch = Popen(fetchpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    fetch = call(fetchpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
     return fetch.stdout.readline()
 
 
 def installPkgUpdate():
-    install = Popen(isntallpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    install = call(isntallpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
     return install.stdout.readline()
+
+
+def checkForUpdate():
+    if checkFreeBSDUpdate() is True or checkPkgUpdate() is True:
+        return True
+    else:
+        return False
+

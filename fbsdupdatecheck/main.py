@@ -4,7 +4,7 @@ from os import system
 from sys import argv
 
 if len(argv) == 2:
-    if argv[1] == "install":
+    if argv[1] == "fetch":
         system("touch /tmp/.fbsdup-lock")
         system("cat /usr/sbin/freebsd-update | sed 's|! -t 0|-z '1'|g' | /bin/sh -s 'fetch'")
         system("rm /tmp/.fbsdup-lock")

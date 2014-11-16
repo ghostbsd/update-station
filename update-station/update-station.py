@@ -6,13 +6,16 @@ import threading
 import sys
 import locale
 sys.path.append("/home/ericbsd/update-station/update-station")
-from updateHandler import lookFbsdUpdate, checkFbsdUpdate, checkPkgUpdate
+from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
-from updateHandler import fetchPkgUpdate, installPkgUpdate
+from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
 updateToInstall = []
-print(len(updateToInstall))
 from time import sleep
 insingal = True
+encoding = locale.getpreferredencoding()
+utf8conv = lambda x: str(x, encoding).encode('utf8')
+threadBreak = False
+GObject.threads_init()
 
 
 class updateManager:
@@ -45,6 +48,7 @@ class updateManager:
 
     def __init__(self):
         self.insingal = True
+        # window
         self.window = Gtk.Window()
         self.window.connect("destroy", self.delete_event)
         self.window.set_size_request(600, 400)
@@ -64,12 +68,12 @@ class updateManager:
         Title = Gtk.Label("<b><span size='large'>%s</span></b>" % titleText)
         Title.set_use_markup(True)
         box2.pack_start(Title, False, False, 0)
-        self.mdl = self.Store()
-        self.view = self.Display(self.mdl)
+        self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
+                                        GObject.TYPE_BOOLEAN)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.SHADOW_ETCHED_IN)
         sw.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
-        sw.add(self.view)
+        sw.add(self.Display(self.Store()))
         sw.show()
         box2.pack_start(sw, True, True, 10)
         box2 = Gtk.HBox(False, 10)
@@ -89,6 +93,7 @@ class updateManager:
         self.statusIcon.connect('popup-menu', self.icon_clicked)
 
     def nm_menu(self):
+        # right click menue
         self.menu = Gtk.Menu()
         close_item = Gtk.MenuItem("Close")
         close_item.connect("activate", self.close_application)
@@ -97,15 +102,13 @@ class updateManager:
         return self.menu
 
     def Store(self):
-        self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
-                                        GObject.TYPE_BOOLEAN)
-        if checkFbsdUpdate() is True:
+        self.tree_store.clear()
+        if checkVersionUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
             updateToInstall.extend([lookFbsdUpdate().partition(':')[0]])
         if checkPkgUpdate() is True:
             self.tree_store.append(None, ("Software Update Available", True))
             updateToInstall.extend(["Software Update Available"])
-        print(updateToInstall)
         return self.tree_store
 
     def Display(self, model):
@@ -128,11 +131,11 @@ class updateManager:
             updateToInstall.remove(model[path][0].partition(':')[0])
         else:
             updateToInstall.extend([model[path][0].partition(':')[0]])
-        print(updateToInstall)
         return
 
     def leftclick(self, status_icon):
-        self.window.show_all()
+            self.Store()
+            self.window.show_all()
 
     def icon_clicked(self, status_icon, button, time):
         position = Gtk.status_icon_position_menu
@@ -140,18 +143,20 @@ class updateManager:
         self.menu.popup(None, None, position, button, time, status_icon)
 
     def check(self):
-        self.statusIcon.set_from_stock(Gtk.STOCK_DIALOG_WARNING)
+        while True:
+            if checkForUpdate() is True:
+                self.statusIcon.set_from_stock(Gtk.STOCK_NO)
+            else:
+                self.statusIcon.set_from_stock(Gtk.STOCK_YES)
+            sleep(20)
         return True
 
     def tray(self):
-        self.statusIcon.set_from_stock(Gtk.STOCK_DIALOG_WARNING)
+        self.statusIcon.set_from_stock(Gtk.STOCK_NO)
+        thr = threading.Thread(target=self.check)
+        thr.setDaemon(True)
+        thr.start()
         Gtk.main()
-
-
-encoding = locale.getpreferredencoding()
-utf8conv = lambda x: str(x, encoding).encode('utf8')
-threadBreak = False
-GObject.threads_init()
 
 
 def read_output(window, probar, installupdate):
@@ -159,12 +164,18 @@ def read_output(window, probar, installupdate):
     fraction = 1 / howMany
     if "FreeBSD Update" in installupdate:
         probar.set_text("Fetching FreeBSD updates")
-        fetchFreeBSDUpdate()
-        print("FreeBSD Update")
+        duf = fetchFreeBSDUpdate()
+        while 1:
+            line = duf.readline()
+            if not line:
+                break
+            bartest = line
+            print bartest.rstrip()
+            probar.set_text("%s" % bartest.rstrip())
         probar.set_text("FreeBSD updates downloaded")
         sleep(1)
         probar.set_text("Installing FreeBSD updates")
-        installFreeBSDUpdate()
+        # installFreeBSDUpdate()
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
 
@@ -185,7 +196,7 @@ class installUpdate:
     def close_application(self, widget):
         Gtk.main_quit()
 
-    def __init__(self, installUpdate):
+    def __init__(self, installupdate):
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(500, 75)
@@ -207,32 +218,8 @@ class installUpdate:
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
         thr = threading.Thread(target=read_output,
-                               args=(self.win, self.pbar, installUpdate))
+                               args=(self.win, self.pbar, installupdate))
+        thr.setDaemon(True)
         thr.start()
 
 updateManager().tray()
-
-
-def responseToDialog(entry, dialog, response):
-    dialog.response(response)
-
-
-def getText():
-    dialog = Gtk.MessageDialog(None,
-                            Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT,
-                               Gtk.MESSAGE_QUESTION, Gtk.BUTTONS_OK, None)
-    dialog.set_markup('Please enter your passord:')
-    entry = Gtk.Entry()
-    entry.set_visibility(False)
-    entry.connect("activate", responseToDialog, dialog, Gtk.RESPONSE_OK)
-    hbox = Gtk.HBox()
-    hbox.pack_start(Gtk.Label("Password:"), False, 5, 5)
-    hbox.pack_end(entry)
-    dialog.format_secondary_markup(
-        "This will be used for <i>identification</i> purposes")
-    dialog.vbox.pack_end(hbox, True, True, 0)
-    dialog.show_all()
-    dialog.run()
-    text = entry.get_text()
-    dialog.destroy()
-    return text
