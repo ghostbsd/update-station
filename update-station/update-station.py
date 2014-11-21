@@ -164,9 +164,10 @@ def read_output(window, probar, installupdate):
     fraction = 1 / howMany
     if "FreeBSD Update" in installupdate:
         probar.set_text("Fetching FreeBSD updates")
-        duf = fetchFreeBSDUpdate()
+        sleep(1)
+        dfu = fetchFreeBSDUpdate()
         while 1:
-            line = duf.readline()
+            line = dfu.readline()
             if not line:
                 break
             bartest = line
@@ -175,9 +176,17 @@ def read_output(window, probar, installupdate):
         probar.set_text("FreeBSD updates downloaded")
         sleep(1)
         probar.set_text("Installing FreeBSD updates")
-        # installFreeBSDUpdate()
+        ifu = installFreeBSDUpdate()
+        while 1:
+            line = ifu.readline()
+            if not line:
+                break
+            bartest = line
+            print bartest.rstrip()
+            probar.set_text("%s" % bartest.rstrip())
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
+        sleep(1)
 
     if "Software Update Available" in installupdate:
         probar.set_text("Fetching packages updates")

@@ -72,14 +72,15 @@ def updateText():
 
 
 def fetchFreeBSDUpdate():
-    download = 'sudo operator fbsdupdatecheck fetch grep'
+    download = 'sudo operator fbsdupdatecheck fetch'
     fbsdDownload = Popen(download, shell=True, stdout=PIPE, close_fds=True)
     return fbsdDownload.stdout
 
+    
 def installFreeBSDUpdate():
     install = 'sudo operator fbsdupdatecheck install'
-    fbsdInstall = call(install, shell=True, stdout=PIPE, close_fds=True)
-    #return fbsdInstall.stdout.readline()
+    fbsdInstall = Popen(install, shell=True, stdout=PIPE, close_fds=True)
+    return fbsdInstall.stdout
 
 
 def checkPkgUpdate():
