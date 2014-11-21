@@ -187,14 +187,29 @@ def read_output(window, probar, installupdate):
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
         sleep(1)
-
     if "Software Update Available" in installupdate:
         probar.set_text("Fetching packages updates")
-        fetchPkgUpdate()
+        sleep(1)
+        fpu = fetchPkgUpdate()
+        while 1:
+            line = fpu.readline()
+            if not line:
+                break
+            bartest = line
+            print bartest.rstrip()
+            probar.set_text("%s" % bartest.rstrip())
         probar.set_text("Packages updates downloaded")
         sleep(1)
         probar.set_text("Installing packages updates")
-        installPkgUpdate()
+        sleep(1)
+        ipu = installPkgUpdate()
+        while 1:
+            line = ipu.readline()
+            if not line:
+                break
+            bartest = line
+            print bartest.rstrip()
+            probar.set_text("%s" % bartest.rstrip())
         probar.set_text("Packages updates installed")
         probar.set_fraction(fraction)
         sleep(1)

@@ -107,13 +107,13 @@ def unlockPkg():
 
 
 def fetchPkgUpdate():
-    fetch = call(fetchpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
-    return fetch.stdout.readline()
+    fetch = Popen(fetchpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    return fetch.stdout
 
 
 def installPkgUpdate():
-    install = call(isntallpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
-    return install.stdout.readline()
+    install = Popen(isntallpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    return install.stdout
 
 
 def checkForUpdate():
