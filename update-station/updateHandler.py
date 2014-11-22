@@ -48,7 +48,7 @@ def checkVersionUpdate():
         else:
             return True
     else:
-        return "missing file"
+        return True
 
 
 def lookFbsdUpdate():
@@ -116,9 +116,14 @@ def installPkgUpdate():
     return install.stdout
 
 
-def checkForUpdate():
-    if checkFreeBSDUpdate() is True or checkPkgUpdate() is True:
-        return True
+def checkForUpdate(data):
+    if data == 1:
+        if checkFreeBSDUpdate() is True or checkPkgUpdate() is True:
+            return True
+        else:
+            return False
     else:
-        return False
-
+        if checkVersionUpdate() is True or checkPkgUpdate() is True:
+            return True
+        else:
+            return False

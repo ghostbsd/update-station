@@ -33,7 +33,7 @@ class updateManager:
     def startupdate(self, widget):
         if len(updateToInstall) != 0:
             if self.insingal is True:
-                installUpdate(updateToInstall)
+                installUpdate(updateToInstall, self.window)
                 self.insingal = False
 
     def create_bbox(self, horizontal, spacing, layout):
@@ -134,6 +134,7 @@ class updateManager:
         return
 
     def leftclick(self, status_icon):
+        if checkForUpdate(2) is True:
             self.Store()
             self.window.show_all()
 
@@ -144,7 +145,7 @@ class updateManager:
 
     def check(self):
         while True:
-            if checkForUpdate() is True:
+            if checkForUpdate(1) is True:
                 self.statusIcon.set_from_stock(Gtk.STOCK_NO)
             else:
                 self.statusIcon.set_from_stock(Gtk.STOCK_YES)
@@ -171,7 +172,6 @@ def read_output(window, probar, installupdate):
             if not line:
                 break
             bartest = line
-            print bartest.rstrip()
             probar.set_text("%s" % bartest.rstrip())
         probar.set_text("FreeBSD updates downloaded")
         sleep(1)
@@ -182,7 +182,6 @@ def read_output(window, probar, installupdate):
             if not line:
                 break
             bartest = line
-            print bartest.rstrip()
             probar.set_text("%s" % bartest.rstrip())
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
@@ -196,7 +195,6 @@ def read_output(window, probar, installupdate):
             if not line:
                 break
             bartest = line
-            print bartest.rstrip()
             probar.set_text("%s" % bartest.rstrip())
         probar.set_text("Packages updates downloaded")
         sleep(1)
@@ -208,11 +206,11 @@ def read_output(window, probar, installupdate):
             if not line:
                 break
             bartest = line
-            print bartest.rstrip()
             probar.set_text("%s" % bartest.rstrip())
         probar.set_text("Packages updates installed")
         probar.set_fraction(fraction)
         sleep(1)
+        # need to add a script to set pkg after pkg update.
     GObject.idle_add(window.destroy)
 
 
@@ -220,7 +218,7 @@ class installUpdate:
     def close_application(self, widget):
         Gtk.main_quit()
 
-    def __init__(self, installupdate):
+    def __init__(self, installupdate window1):
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(500, 75)
