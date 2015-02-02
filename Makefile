@@ -2,6 +2,7 @@
 # Makefile for building: update-station and fbsdupdate 
 #############################################################################
 
+first: make_default
 MAKEFILE = Makefile
 DEL_FILE = rm -f
 CHK_DIR_EXISTS= test -d
@@ -21,31 +22,33 @@ MKDIR = mkdir -p
 PREFIX?= $(STAGEDIR)/usr/local
 SUBTARGETS = \
 		sub-fbsdupcheck \
-		sub-upstation
+		sub-upstationw
 
 sub-fbsdupcheck: fbsdupdatecheck/$(MAKEFILE) FORCE
-cd fbsdupdatecheck/ && $(MAKE) -f $(MAKEFILE)
+	cd fbsdupdatecheck/ && $(MAKE) -f $(MAKEFILE)
 sub-fbsdupcheck-all: fbsdupdatecheck/$(MAKEFILE) FORCE
-cd fbsdupdatecheck/ && $(MAKE) -f $(MAKEFILE) all
+	cd fbsdupdatecheck/ && $(MAKE) -f $(MAKEFILE) all
 sub-fbsdupcheck-clean: fbsdupdatecheck/$(MAKEFILE) FORCE
-cd fbsdupdatecheck/ && $(MAKE) -f $(MAKEFILE) clean
+	cd fbsdupdatecheck/ && $(MAKE) -f $(MAKEFILE) clean
 sub-fbsdupcheck-install_subtargets: fbsdupdatecheck/$(MAKEFILE) FORCE
-cd fbsdupdatecheck/ && $(MAKE) -f $(MAKEFILE) install
+	cd fbsdupdatecheck/ && $(MAKE) -f $(MAKEFILE) install
 
 sub-upstation: update-station/$(MAKEFILE) FORCE
-cd update-station/ && $(MAKE) -f $(MAKEFILE)
+	cd update-station/ && $(MAKE) -f $(MAKEFILE)
 sub-upstation-all: update-station/$(MAKEFILE) FORCE
-cd update-station/ && $(MAKE) -f $(MAKEFILE) all
+	cd update-station/ && $(MAKE) -f $(MAKEFILE) all
 sub-upstation-clean: update-station/$(MAKEFILE) FORCE
-cd update-station/ && $(MAKE) -f $(MAKEFILE) clean
+	cd update-station/ && $(MAKE) -f $(MAKEFILE) clean
 sub-upstation-install_subtargets: update-station/$(MAKEFILE) FORCE
-cd update-station/ && $(MAKE) -f $(MAKEFILE) install
+	cd update-station/ && $(MAKE) -f $(MAKEFILE) install
 
 ####### Install
 
-all:
+# all:
 
 
-install:
+install: sub-fbsdupcheck-install_subtargets \
+	sub-upstation-install_subtargets \
+	FORCE
 
 FORCE:

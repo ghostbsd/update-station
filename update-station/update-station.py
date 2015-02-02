@@ -5,7 +5,7 @@ import gobject as GObject
 import threading
 import sys
 import locale
-sys.path.append("/home/ericbsd/update-station/update-station")
+sys.path.append("/usr/local/lib/update-station/")
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
@@ -105,6 +105,7 @@ class updateManager:
         self.tree_store.clear()
         if checkVersionUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
+            print lookFbsdUpdate()
             updateToInstall.extend([lookFbsdUpdate().partition(':')[0]])
         if checkPkgUpdate() is True:
             self.tree_store.append(None, ("Software Update Available", True))
@@ -160,9 +161,9 @@ class updateManager:
         Gtk.main()
 
 
-def read_output(window, probar, installupdate):
+def read_output(window, probar, installupdate, window1):
     howMany = len(installupdate)
-    fraction = 1 / howMany
+    fraction = 1.0 / int(howMany)
     if "FreeBSD Update" in installupdate:
         probar.set_text("Fetching FreeBSD updates")
         sleep(1)
@@ -173,7 +174,9 @@ def read_output(window, probar, installupdate):
                 break
             bartest = line
             probar.set_text("%s" % bartest.rstrip())
+            print bartest
         probar.set_text("FreeBSD updates downloaded")
+        probar.set_fraction(fraction)
         sleep(1)
         probar.set_text("Installing FreeBSD updates")
         ifu = installFreeBSDUpdate()
@@ -212,13 +215,16 @@ def read_output(window, probar, installupdate):
         sleep(1)
         # need to add a script to set pkg after pkg update.
     GObject.idle_add(window.destroy)
+    GObject.idle_add(window1.destroy)
+    print "DONE"
+    
 
 
 class installUpdate:
     def close_application(self, widget):
         Gtk.main_quit()
 
-    def __init__(self, installupdate window1):
+    def __init__(self, installupdate, window):
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(500, 75)
@@ -240,7 +246,7 @@ class installUpdate:
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
         thr = threading.Thread(target=read_output,
-                               args=(self.win, self.pbar, installupdate))
+                               args=(self.win, self.pbar, installupdate, window))
         thr.setDaemon(True)
         thr.start()
 
