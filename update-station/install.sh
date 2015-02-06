@@ -15,11 +15,15 @@ mkdir -p ${LOCALBASE}/lib/update-station
 # Copy backend / conf / doc
 cp -r updateHandler.py  ${LOCALBASE}/lib/update-station
 
-cp -f update-station.desktop ${LOCALBASE}etc/xdg/autostart/update-station.desktop
+if [ ! -d "${LOCALBASE}/etc/xdg/autostart" ] ; then
+   mkdir -p ${LOCALBASE}/etc/xdg/autostart/
+fi
+
+cp -f update-station.desktop ${LOCALBASE}/etc/xdg/autostart/update-station.desktop
 
 # Install the executable
 if [ ! -d "${LOCALBASE}/bin" ] ; then
-  mkdir ${LOCALBASE}/bin
+   mkdir ${LOCALBASE}/bin
 fi
 
 cp update-station.py ${LOCALBASE}/bin/update-station
