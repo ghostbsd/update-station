@@ -9,6 +9,7 @@ sys.path.append("/usr/local/lib/update-station/")
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
+from updateHandler import checkFreeBSDUpdate
 updateToInstall = []
 from time import sleep
 insingal = True
@@ -250,4 +251,5 @@ class installUpdate:
         thr.setDaemon(True)
         thr.start()
 
+checkFreeBSDUpdate()
 updateManager().tray()
