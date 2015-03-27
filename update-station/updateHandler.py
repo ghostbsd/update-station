@@ -14,6 +14,28 @@ fetchpkgupgrade = 'sudo operator pkg upgrade -Fy'
 isntallpkgupgrade = 'sudo operator pkg upgrade -y'
 lockpkg = 'sudo operator pkg lock -y '
 unlockpkg = 'sudo operator pkg unlock -ay'
+arch = Popen('uname -m', shell=True, stdin=PIPE, stdout=PIPE,
+    stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
+release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
+    stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
+fbsrcurl = "ftp://ftp.freebsd.org/pub/FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
+fetchsrc = "sudo operator fetch %s" % fbsrcurl
+extractsrc = "sudo operator tar Jxvf src.txz -C /"
+fetchports = "portsnap fetch"
+extractports = "portsnap extract"
+update ports = "portsnap update"
+
+def dowloadSrc():
+    fetch = Popen('fetch %s' % fbsrcurl, shell=True, stdout=PIPE, close_fds=True)
+    return fetch.stdout
+
+
+def installSrc():
+    extract = Popen(extractsrc, shell=True, stdout=PIPE, close_fds=True)
+    return extract.stdout
+
+def portsFetch():
+
 
 
 def listOfInstal():
