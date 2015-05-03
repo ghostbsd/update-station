@@ -9,7 +9,7 @@ sys.path.append("/usr/local/lib/update-station/")
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
-from updateHandler import checkFreeBSDUpdate
+from updateHandler import checkFreeBSDUpdate, ifPortsIstall
 updateToInstall = []
 from time import sleep
 insingal = True
@@ -106,7 +106,6 @@ class updateManager:
         self.tree_store.clear()
         if checkVersionUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
-            print lookFbsdUpdate()
             updateToInstall.extend([lookFbsdUpdate().partition(':')[0]])
         if checkPkgUpdate() is True:
             self.tree_store.append(None, ("Software Update Available", True))
@@ -151,7 +150,7 @@ class updateManager:
                 self.statusIcon.set_from_stock(Gtk.STOCK_NO)
             else:
                 self.statusIcon.set_from_stock(Gtk.STOCK_YES)
-            sleep(20)
+            sleep(60)
         return True
 
     def tray(self):
@@ -218,7 +217,6 @@ def read_output(window, probar, installupdate, window1):
     GObject.idle_add(window.destroy)
     GObject.idle_add(window1.destroy)
     print "DONE"
-    
 
 
 class installUpdate:
@@ -230,7 +228,7 @@ class installUpdate:
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(500, 75)
         self.win.set_resizable(False)
-        self.win.set_title("Update Manager")
+        self.win.set_title("installing Update")
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WIN_POS_CENTER)
         box1 = Gtk.VBox(False, 0)
@@ -250,6 +248,32 @@ class installUpdate:
                                args=(self.win, self.pbar, installupdate, window))
         thr.setDaemon(True)
         thr.start()
+
+
+class initialInstall:
+    def __init__(self):
+        self.win = Gtk.Window()
+        self.win.connect("delete-event", Gtk.main_quit)
+        #self.win.set_size_request(500, 75)
+        self.win.set_resizable(False)
+        self.win.set_title("Initial Installation Before Update")
+        self.win.set_border_width(0)
+        self.win.set_position(Gtk.WIN_POS_CENTER)
+        box1 = Gtk.VBox(False, 0)
+        self.win.add(box1)
+        box1.show()
+        box2 = Gtk.VBox(False, 10)
+        box2.set_border_width(10)
+        box1.pack_start(box2, True, True, 0)
+        box2.show()
+        self.port = Gtk.CheckButton("FreeBSD ports installation")
+        self.src = Gtk.CheckButton("FreeBSD Source(Recommended for ports)")
+        box2.pack_start(self.port, False, False, 0)
+        box2.pack_start(self.src, False, False, 0)
+        self.win.show_all()
+
+#if ifPortsIstall() is False:
+#    initialInstall()
 
 checkFreeBSDUpdate()
 updateManager().tray()

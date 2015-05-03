@@ -21,9 +21,10 @@ release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
 fbsrcurl = "ftp://ftp.freebsd.org/pub/FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
 fetchsrc = "sudo operator fetch %s" % fbsrcurl
 extractsrc = "sudo operator tar Jxvf src.txz -C /"
-fetchports = "portsnap fetch"
-extractports = "portsnap extract"
-update ports = "portsnap update"
+fetchports = "sudo operator portsnap fetch"
+extractports = "sudo operator portsnap extract"
+updateports = "sudo operator portsnap update"
+
 
 def dowloadSrc():
     fetch = Popen('fetch %s' % fbsrcurl, shell=True, stdout=PIPE, close_fds=True)
@@ -34,9 +35,26 @@ def installSrc():
     extract = Popen(extractsrc, shell=True, stdout=PIPE, close_fds=True)
     return extract.stdout
 
+
 def portsFetch():
+    fetch = Popen(fetchports, shell=True, stdout=PIPE, close_fds=True)
+    return fetch.stdout
 
 
+def portsExtract():
+    extract = Popen(extractports, shell=True, stdout=PIPE, close_fds=True)
+    return extract.stdout
+
+
+def portsUpdate():
+    update = Popen(updateports, shell=True, stdout=PIPE, close_fds=True)
+    return update.stdout
+
+
+def ifPortsIstall():
+    return path.isdir('/usr/ports')
+
+print ifPortsIstall()
 
 def listOfInstal():
     ls = listdir(fbsduf)
@@ -139,8 +157,9 @@ def installPkgUpdate():
 
 
 def checkForUpdate(data):
+    checkFreeBSDUpdate()
     if data == 1:
-        if checkFreeBSDUpdate() is True or checkPkgUpdate() is True:
+        if checkVersionUpdate() is True or checkPkgUpdate() is True:
             return True
         else:
             return False
