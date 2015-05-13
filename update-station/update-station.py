@@ -9,7 +9,7 @@ sys.path.append("/usr/local/lib/update-station/")
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
-from updateHandler import checkFreeBSDUpdate, ifPortsIstall
+from updateHandler import checkFreeBSDUpdate, ifPortsIstall, cleanDesktop
 updateToInstall = []
 from time import sleep
 insingal = True
@@ -106,10 +106,12 @@ class updateManager:
         self.tree_store.clear()
         if checkVersionUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
-            updateToInstall.extend([lookFbsdUpdate().partition(':')[0]])
+            if not lookFbsdUpdate().partition(':')[0] in updateToInstall:
+                updateToInstall.extend([lookFbsdUpdate().partition(':')[0]])
         if checkPkgUpdate() is True:
             self.tree_store.append(None, ("Software Update Available", True))
-            updateToInstall.extend(["Software Update Available"])
+            if not "Software Update" in updateToInstall:
+                updateToInstall.extend(["Software Update"])
         return self.tree_store
 
     def Display(self, model):
@@ -136,7 +138,6 @@ class updateManager:
 
     def leftclick(self, status_icon):
         if checkForUpdate(2) is True:
-            self.Store()
             self.window.show_all()
 
     def icon_clicked(self, status_icon, button, time):
@@ -174,7 +175,6 @@ def read_output(window, probar, installupdate, window1):
                 break
             bartest = line
             probar.set_text("%s" % bartest.rstrip())
-            print bartest
         probar.set_text("FreeBSD updates downloaded")
         probar.set_fraction(fraction)
         sleep(1)
@@ -189,7 +189,7 @@ def read_output(window, probar, installupdate, window1):
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
         sleep(1)
-    if "Software Update Available" in installupdate:
+    if "Software Update" in installupdate:
         probar.set_text("Fetching packages updates")
         sleep(1)
         fpu = fetchPkgUpdate()
@@ -213,10 +213,13 @@ def read_output(window, probar, installupdate, window1):
         probar.set_text("Packages updates installed")
         probar.set_fraction(fraction)
         sleep(1)
+        probar.set_text("Cleaning Desktop Icon")
+        cleanDesktop()
+        probar.set_text("Cleaning Done")
+        sleep(1)
         # need to add a script to set pkg after pkg update.
-    GObject.idle_add(window.destroy)
-    GObject.idle_add(window1.destroy)
-    print "DONE"
+    GObject.idle_add(window.hide())
+    GObject.idle_add(window1.hide())
 
 
 class installUpdate:

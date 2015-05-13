@@ -24,6 +24,7 @@ extractsrc = "sudo operator tar Jxvf src.txz -C /"
 fetchports = "sudo operator portsnap fetch"
 extractports = "sudo operator portsnap extract"
 updateports = "sudo operator portsnap update"
+cleandesktop = "sudo operator sh /usr/local/lib/update-station/cleandesktop.sh"
 
 
 def dowloadSrc():
@@ -52,9 +53,11 @@ def portsUpdate():
 
 
 def ifPortsIstall():
-    return path.isdir('/usr/ports')
+    if path.isdir('/usr/ports') is True:
+        return True
+    else:
+        return False
 
-print ifPortsIstall()
 
 def listOfInstal():
     ls = listdir(fbsduf)
@@ -168,3 +171,7 @@ def checkForUpdate(data):
             return True
         else:
             return False
+
+def cleanDesktop():
+    call(cleandesktop, shell=True)
+    return
