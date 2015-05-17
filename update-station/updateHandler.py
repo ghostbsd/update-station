@@ -160,7 +160,6 @@ def installPkgUpdate():
 
 
 def checkForUpdate(data):
-    checkFreeBSDUpdate()
     if data == 1:
         if checkVersionUpdate() is True or checkPkgUpdate() is True:
             return True

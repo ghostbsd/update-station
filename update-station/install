@@ -13,7 +13,8 @@ fi
 mkdir -p ${LOCALBASE}/lib/update-station
 
 # Copy backend / conf / doc
-cp -r updateHandler.py  ${LOCALBASE}/lib/update-station
+cp -r updateHandler.py ${LOCALBASE}/lib/update-station
+cp -r cleandesktop.sh ${LOCALBASE}/lib/update-station
 
 if [ ! -d "${LOCALBASE}/etc/xdg/autostart" ] ; then
    mkdir -p ${LOCALBASE}/etc/xdg/autostart/
