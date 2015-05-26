@@ -171,6 +171,7 @@ def checkForUpdate(data):
         else:
             return False
 
+
 def cleanDesktop():
     call(cleandesktop, shell=True)
     return

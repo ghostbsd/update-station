@@ -137,22 +137,6 @@ class updateManager:
         # don't delete; hide instead
         self.window.hide_on_delete()
 
-    def startupdate(self, widget):
-        if len(updateToInstall) != 0:
-            if self.insingal is True:
-                installUpdate(updateToInstall, self.window)
-                self.insingal = False
-
-    def create_bbox(self, horizontal, spacing, layout):
-        table = Gtk.Table(1, 5, True)
-        button = Gtk.Button("Install update")
-        table.attach(button, 0, 1, 0, 1)
-        button.connect("clicked", self.startupdate)
-        button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
-        table.attach(button, 4, 5, 0, 1)
-        button.connect("clicked", self.hideWindow)
-        return table
-
     def __init__(self):
         self.insingal = True
         # Statue Tray Code
@@ -175,7 +159,6 @@ class updateManager:
 
     def leftclick(self, status_icon):
         if checkForUpdate(2) is True:
-            #self.window.show_all()
             mainWindow(self.check())
 
     def icon_clicked(self, status_icon, button, time):
@@ -265,6 +248,8 @@ def read_output(window, probar, installupdate, window1):
         # need to add a script to set pkg after pkg update.
     window.hide()
     window1.hide()
+    if "FreeBSD Update" in installupdate:
+        restartSystem()
 
 
 class installUpdate:
@@ -319,6 +304,47 @@ class initialInstall:
         box2.pack_start(self.port, False, False, 0)
         box2.pack_start(self.src, False, False, 0)
         self.win.show_all()
+
+lyrics = """In order to complete the update of your system it needs to restart."""
+
+
+class restartSystem():
+    def on_reboot(self, widget):
+        Popen('shutdown -d now', shell=True)
+        gtk.main_quit()
+
+    def on_close(self, widget, window):
+        window.hide()
+
+    def __init__(self):
+        window = gtk.Window()
+        window.set_position(gtk.WIN_POS_CENTER)
+        window.set_border_width(8)
+        window.connect("destroy", gtk.main_quit)
+        window.set_title("Update Completed")
+        window.set_icon_from_file("/usr/local/lib/gbi/logo.png")
+        box1 = gtk.VBox(False, 0)
+        window.add(box1)
+        box1.show()
+        box2 = gtk.VBox(False, 10)
+        box2.set_border_width(10)
+        box1.pack_start(box2, True, True, 0)
+        box2.show()
+        label = gtk.Label(lyrics)
+        box2.pack_start(label)
+        box2 = gtk.HBox(False, 10)
+        box2.set_border_width(5)
+        box1.pack_start(box2, False, True, 0)
+        box2.show()
+        table = gtk.Table(1, 2, True)
+        restart = gtk.Button("Restart")
+        restart.connect("clicked", self.on_reboot)
+        Continue = gtk.Button("Continue")
+        Continue.connect("clicked", self.on_close, window)
+        table.attach(Continue, 0, 1, 0, 1)
+        table.attach(restart, 1, 2, 0, 1)
+        box2.pack_start(table)
+        window.show_all()
 
 #if ifPortsIstall() is False:
 #    initialInstall()
