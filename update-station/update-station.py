@@ -9,9 +9,11 @@ sys.path.append("/usr/local/lib/update-station/")
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
-from updateHandler import checkFreeBSDUpdate, ifPortsIstall, cleanDesktop
+from updateHandler import checkFreeBSDUpdate, cleanDesktop
+# ifPortsIstall
 updateToInstall = []
 from time import sleep
+from subprocess import Popen
 insingal = True
 encoding = locale.getpreferredencoding()
 utf8conv = lambda x: str(x, encoding).encode('utf8')
@@ -19,12 +21,12 @@ threadBreak = False
 GObject.threads_init()
 
 
-class mainWindow:
+class MainWindow:
 
     def close_application(self, widget):
         quit()
 
-    def hideWindow(self, widget):
+    def hidewindow(self, widget):
         self.window.hide()
         self.insingal = True
 
@@ -32,20 +34,20 @@ class mainWindow:
         # don't delete; hide instead
         self.window.hide_on_delete()
 
-    def startupdate(self, widget):
+    def startupdate(self, widget, updatetray):
         if len(updateToInstall) != 0:
             if self.insingal is True:
                 installUpdate(updateToInstall, self.window)
                 self.insingal = False
 
-    def create_bbox(self, horizontal, spacing, layout):
+    def create_bbox(self, horizontal, spacing, layout, updatetray):
         table = Gtk.Table(1, 5, True)
         button = Gtk.Button("Install update")
         table.attach(button, 0, 1, 0, 1)
-        button.connect("clicked", self.startupdate)
+        button.connect("clicked", self.startupdate, updatetray)
         button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
         table.attach(button, 4, 5, 0, 1)
-        button.connect("clicked", self.hideWindow)
+        button.connect("clicked", self.hidewindow)
         return table
 
     def __init__(self, updatetray):
@@ -66,16 +68,17 @@ class mainWindow:
         box1.pack_start(box2, True, True, 0)
         box2.show()
         # Title
-        titleText = "Updates available!"
-        Title = Gtk.Label("<b><span size='large'>%s</span></b>" % titleText)
-        Title.set_use_markup(True)
-        box2.pack_start(Title, False, False, 0)
+        titleext = "Updates available!"
+        titlelabel = Gtk.Label(
+            "<b><span size='large'>%s</span></b>" % titleext)
+        titlelabel.set_use_markup(True)
+        box2.pack_start(titlelabel, False, False, 0)
         self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
                                         GObject.TYPE_BOOLEAN)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.SHADOW_ETCHED_IN)
         sw.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
-        sw.add(self.Display(self.Store()))
+        sw.add(self.Display(self.store()))
         sw.show()
         box2.pack_start(sw, True, True, 10)
         box2 = Gtk.HBox(False, 10)
@@ -83,21 +86,21 @@ class mainWindow:
         box1.pack_start(box2, False, False, 0)
         box2.show()
         # Add button
-        box2.pack_start(self.create_bbox(True,
-                                         10, Gtk.BUTTONBOX_END), True, True, 5, updatetray)
+        box2.pack_start(self.create_bbox(True, 10, Gtk.BUTTONBOX_END),
+                        True, True, 5, updatetray)
         self.window.show_all()
 
-    def Store(self):
+    def store(self):
         print "start"
         self.tree_store.clear()
         if checkVersionUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
-            if not "FreeBSD Update" in updateToInstall:
+            if "FreeBSD Update" not in updateToInstall:
                 updateToInstall.extend(["FreeBSD Update"])
             print "Done FreeBSD"
         if checkPkgUpdate() is True:
             self.tree_store.append(None, ("Software Update Available", True))
-            if not "Software Update" in updateToInstall:
+            if "Software Update" not in updateToInstall:
                 updateToInstall.extend(["Software Update"])
             print "Done pkg"
         return self.tree_store
@@ -125,11 +128,11 @@ class mainWindow:
         return
 
 
-class updateManager:
+class UpdateManager:
     def close_application(self, widget):
         quit()
 
-    def hideWindow(self, widget):
+    def hidewindow(self, widget):
         self.window.hide()
         self.insingal = True
 
@@ -159,7 +162,7 @@ class updateManager:
 
     def leftclick(self, status_icon):
         if checkForUpdate(2) is True:
-            mainWindow(self.check())
+            MainWindow(self.updatetray())
 
     def icon_clicked(self, status_icon, button, time):
         position = Gtk.status_icon_position_menu
@@ -182,7 +185,6 @@ class updateManager:
                 self.statusIcon.set_from_stock(Gtk.STOCK_YES)
             sleep(3600)
         return True
-
     def tray(self):
         thr = threading.Thread(target=self.check)
         thr.setDaemon(True)
@@ -190,7 +192,7 @@ class updateManager:
         Gtk.main()
 
 
-def read_output(window, probar, installupdate, window1):
+def read_output(window, probar, installupdate, window1, updatetray):
     howMany = len(installupdate)
     fraction = 1.0 / int(howMany)
     if "FreeBSD Update" in installupdate:
@@ -248,15 +250,18 @@ def read_output(window, probar, installupdate, window1):
         # need to add a script to set pkg after pkg update.
     window.hide()
     window1.hide()
+    updatetray()
     if "FreeBSD Update" in installupdate:
         restartSystem()
+    else:
+        pass
 
 
 class installUpdate:
     def close_application(self, widget):
         Gtk.main_quit()
 
-    def __init__(self, installupdate, window):
+    def __init__(self, installupdate, window, updatetray):
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(500, 75)
@@ -278,7 +283,8 @@ class installUpdate:
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
         thr = threading.Thread(target=read_output,
-                               args=(self.win, self.pbar, installupdate, window))
+                               args=(self.win, self.pbar, installupdate,
+                                     window, updatetray))
         thr.setDaemon(True)
         thr.start()
 
@@ -287,7 +293,7 @@ class initialInstall:
     def __init__(self):
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
-        #self.win.set_size_request(500, 75)
+        # self.win.set_size_request(500, 75)
         self.win.set_resizable(False)
         self.win.set_title("Initial Installation Before Update")
         self.win.set_border_width(0)
@@ -305,48 +311,48 @@ class initialInstall:
         box2.pack_start(self.src, False, False, 0)
         self.win.show_all()
 
-lyrics = """In order to complete the update of your system it needs to restart."""
+txt = """In order to complete the update of your system it needs to restart."""
 
 
 class restartSystem():
     def on_reboot(self, widget):
         Popen('shutdown -d now', shell=True)
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def on_close(self, widget, window):
         window.hide()
 
     def __init__(self):
-        window = gtk.Window()
-        window.set_position(gtk.WIN_POS_CENTER)
+        window = Gtk.Window()
+        window.set_position(Gtk.WIN_POS_CENTER)
         window.set_border_width(8)
-        window.connect("destroy", gtk.main_quit)
+        window.connect("destroy", Gtk.main_quit)
         window.set_title("Update Completed")
         window.set_icon_from_file("/usr/local/lib/gbi/logo.png")
-        box1 = gtk.VBox(False, 0)
+        box1 = Gtk.VBox(False, 0)
         window.add(box1)
         box1.show()
-        box2 = gtk.VBox(False, 10)
+        box2 = Gtk.VBox(False, 10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
         box2.show()
-        label = gtk.Label(lyrics)
+        label = Gtk.Label(txt)
         box2.pack_start(label)
-        box2 = gtk.HBox(False, 10)
+        box2 = Gtk.HBox(False, 10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
         box2.show()
-        table = gtk.Table(1, 2, True)
-        restart = gtk.Button("Restart")
+        table = Gtk.Table(1, 2, True)
+        restart = Gtk.Button("Restart")
         restart.connect("clicked", self.on_reboot)
-        Continue = gtk.Button("Continue")
+        Continue = Gtk.Button("Continue")
         Continue.connect("clicked", self.on_close, window)
         table.attach(Continue, 0, 1, 0, 1)
         table.attach(restart, 1, 2, 0, 1)
         box2.pack_start(table)
         window.show_all()
 
-#if ifPortsIstall() is False:
+# if ifPortsIstall() is False:
 #    initialInstall()
 
-updateManager().tray()
+UpdateManager().tray()
