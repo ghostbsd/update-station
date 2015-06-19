@@ -37,7 +37,8 @@ class MainWindow:
     def startupdate(self, widget, updatetray):
         if len(updateToInstall) != 0:
             if self.insingal is True:
-                installUpdate(updateToInstall, self.window)
+                installUpdate(updateToInstall, self.window, updatetray)
+                print True
                 self.insingal = False
 
     def create_bbox(self, horizontal, spacing, layout, updatetray):
@@ -86,8 +87,8 @@ class MainWindow:
         box1.pack_start(box2, False, False, 0)
         box2.show()
         # Add button
-        box2.pack_start(self.create_bbox(True, 10, Gtk.BUTTONBOX_END),
-                        True, True, 5, updatetray)
+        box2.pack_start(self.create_bbox(True, 10, Gtk.BUTTONBOX_END, updatetray),
+                        True, True, 5)
         self.window.show_all()
 
     def store(self):
@@ -101,7 +102,7 @@ class MainWindow:
         if checkPkgUpdate() is True:
             self.tree_store.append(None, ("Software Update Available", True))
             if "Software Update" not in updateToInstall:
-                updateToInstall.extend(["Software Update"])
+                updateToInstall.extend(["Software Update Available"])
             print "Done pkg"
         return self.tree_store
 
@@ -144,7 +145,7 @@ class UpdateManager:
         self.insingal = True
         # Statue Tray Code
         self.statusIcon = Gtk.StatusIcon()
-        self.statusIcon.set_tooltip('System Update availeble')
+        self.statusIcon.set_tooltip('Update Manager')
         self.statusIcon.set_visible(True)
         self.menu = Gtk.Menu()
         self.menu.show_all()
@@ -163,6 +164,7 @@ class UpdateManager:
     def leftclick(self, status_icon):
         if checkForUpdate(2) is True:
             MainWindow(self.updatetray())
+            self.updatetray()
 
     def icon_clicked(self, status_icon, button, time):
         position = Gtk.status_icon_position_menu
@@ -185,6 +187,7 @@ class UpdateManager:
                 self.statusIcon.set_from_stock(Gtk.STOCK_YES)
             sleep(3600)
         return True
+
     def tray(self):
         thr = threading.Thread(target=self.check)
         thr.setDaemon(True)
@@ -192,7 +195,7 @@ class UpdateManager:
         Gtk.main()
 
 
-def read_output(window, probar, installupdate, window1, updatetray):
+def read_output(window, probar, installupdate, window1):
     howMany = len(installupdate)
     fraction = 1.0 / int(howMany)
     if "FreeBSD Update" in installupdate:
@@ -219,7 +222,7 @@ def read_output(window, probar, installupdate, window1, updatetray):
         probar.set_text("FreeBSD updates installed")
         probar.set_fraction(fraction)
         sleep(1)
-    if "Software Update" in installupdate:
+    if "Software Update Available" in installupdate:
         probar.set_text("Fetching packages updates")
         sleep(1)
         fpu = fetchPkgUpdate()
@@ -250,7 +253,6 @@ def read_output(window, probar, installupdate, window1, updatetray):
         # need to add a script to set pkg after pkg update.
     window.hide()
     window1.hide()
-    updatetray()
     if "FreeBSD Update" in installupdate:
         restartSystem()
     else:
@@ -284,7 +286,7 @@ class installUpdate:
         self.win.show_all()
         thr = threading.Thread(target=read_output,
                                args=(self.win, self.pbar, installupdate,
-                                     window, updatetray))
+                                     window))
         thr.setDaemon(True)
         thr.start()
 
@@ -316,7 +318,7 @@ txt = """In order to complete the update of your system it needs to restart."""
 
 class restartSystem():
     def on_reboot(self, widget):
-        Popen('shutdown -d now', shell=True)
+        Popen('shutdown -r now', shell=True)
         Gtk.main_quit()
 
     def on_close(self, widget, window):
