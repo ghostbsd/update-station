@@ -256,7 +256,7 @@ def read_output(window, probar, installupdate, window1):
     if "FreeBSD Update" in installupdate:
         restartSystem()
     else:
-        pass
+        Successful()
 
 
 class installUpdate:
@@ -313,16 +313,16 @@ class initialInstall:
         box2.pack_start(self.src, False, False, 0)
         self.win.show_all()
 
-txt = """In order to complete the update of your system it needs to restart."""
-
+rtxt = """In order to complete the update of your system it needs to restart."""
 
 class restartSystem():
     def on_reboot(self, widget):
         Popen('shutdown -r now', shell=True)
         Gtk.main_quit()
 
-    def on_close(self, widget, window):
-        window.hide()
+    def on_close(self, widget):
+        Popen('update-station', shell=True)
+        Gtk.main_quit()
 
     def __init__(self):
         window = Gtk.Window()
@@ -330,7 +330,6 @@ class restartSystem():
         window.set_border_width(8)
         window.connect("destroy", Gtk.main_quit)
         window.set_title("Update Completed")
-        window.set_icon_from_file("/usr/local/lib/gbi/logo.png")
         box1 = Gtk.VBox(False, 0)
         window.add(box1)
         box1.show()
@@ -338,7 +337,7 @@ class restartSystem():
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
         box2.show()
-        label = Gtk.Label(txt)
+        label = Gtk.Label(rtxt)
         box2.pack_start(label)
         box2 = Gtk.HBox(False, 10)
         box2.set_border_width(5)
@@ -353,6 +352,40 @@ class restartSystem():
         table.attach(restart, 1, 2, 0, 1)
         box2.pack_start(table)
         window.show_all()
+
+stxt = """Update successfully completed."""
+
+class Successful():
+    def on_close(self, widget):
+        Popen('update-station', shell=True)
+        Gtk.main_quit()
+
+    def __init__(self):
+        window = Gtk.Window()
+        window.set_position(Gtk.WIN_POS_CENTER)
+        window.set_border_width(8)
+        window.connect("destroy", Gtk.main_quit)
+        window.set_title("Update Completed")
+        box1 = Gtk.VBox(False, 0)
+        window.add(box1)
+        box1.show()
+        box2 = Gtk.VBox(False, 10)
+        box2.set_border_width(10)
+        box1.pack_start(box2, True, True, 0)
+        box2.show()
+        label = Gtk.Label(txt)
+        box2.pack_start(label)
+        box2 = Gtk.HBox(False, 10)
+        box2.set_border_width(5)
+        box1.pack_start(box2, False, True, 0)
+        box2.show()
+        table = Gtk.Table(1, 2, True)
+        restart = Gtk.Button("Close")
+        restart.connect("clicked", self.on_close)
+        table.attach(restart, 1, 2, 0, 1)
+        box2.pack_start(table)
+        window.show_all()
+
 
 # if ifPortsIstall() is False:
 #    initialInstall()
