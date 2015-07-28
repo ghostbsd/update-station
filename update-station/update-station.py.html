@@ -1,11 +1,30 @@
+<!DOCTYPE html PUBLIC '-//IETF//DTD HTML//EN'>
+<!-autotranslation from ASCII or ISO-8859.1 by Gary Kline, kline@thought.org--->
+<! @(#) update-station.py.html translated from update-station.py !>
+<HTML>
+  <HEAD>
+    <TITLE>  <!your title here -->  </TITLE>
+    <! your header lines here -->
+  </HEAD>
+
+<META NAME="Keywords" CONTENT="whatever">
+ <META NAME="revisit-after" CONTENT="7 days">
+ <META NAME="author" content="Gary Kline">
+ <META NAME="copyright" content="© Thought Unlimited">
+<BODY BGCOLOR="#FFFFFF" LINK="#00FFFF" VLINK="#006633"><FONT SIZE="4">
+<BLOCKQUOTE>
+<BLOCKQUOTE>
+<BLOCKQUOTE>
+<BLOCKQUOTE>
 #!/usr/local/bin/python
+<P>
 
 import gtk as Gtk
 import gobject as GObject
 import threading
 import sys
 import locale
-sys.path.append("/usr/local/lib/update-station/")
+sys.path.append(&rdquo;/usr/local/lib/update-station/&ldquo;)
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
@@ -20,40 +39,50 @@ utf8conv = lambda x: str(x, encoding).encode('utf8')
 threadBreak = False
 GObject.threads_init()
 uwinstatue = True
+<P>
 
 class UpdateWindow:
+<P>
+
+    def close_application(self, widget):
+        quit()
+<P>
 
     def hidewindow(self, widget):
         self.window.hide()
+<P>
 
     def delete_event(self, widget):
         # don't delete; hide instead
         self.window.hide_on_delete()
+<P>
 
     def startupdate(self, widget):
         if len(updateToInstall) != 0:
             if self.insingal is True:
                 installUpdate(updateToInstall, self.window)
                 self.insingal = False
+<P>
 
     def create_bbox(self, horizontal, spacing, layout):
         table = Gtk.Table(1, 5, True)
-        button = Gtk.Button("Install update")
+        button = Gtk.Button(&ldquo;Install update&rdquo;)
         table.attach(button, 0, 1, 0, 1)
-        button.connect("clicked", self.startupdate, )
+        button.connect(&ldquo;clicked&rdquo;, self.startupdate, )
         button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
         table.attach(button, 4, 5, 0, 1)
-        button.connect("clicked", self.hidewindow)
+        button.connect(&ldquo;clicked&rdquo;, self.hidewindow)
         return table
+<P>
 
-    def __init__(self):
+    def __init__(self, ):
         self.insingal = True
         # window
         self.window = Gtk.Window()
-        self.window.connect("destroy", self.delete_event)
+        self.window.connect(&ldquo;destroy&rdquo;, self.delete_event)
         self.window.set_size_request(600, 400)
         self.window.set_resizable(False)
-        self.window.set_title("Update Manager")
+        self.window.set_title(&ldquo;Update Manager&rdquo;)
         self.window.set_border_width(0)
         self.window.set_position(Gtk.WIN_POS_CENTER)
         box1 = Gtk.VBox(False, 0)
@@ -64,9 +93,9 @@ class UpdateWindow:
         box1.pack_start(box2, True, True, 0)
         box2.show()
         # Title
-        titleext = "Updates available!"
+        titleext = &ldquo;Updates available!&rdquo;
         titlelabel = Gtk.Label(
-            "<b><span size='large'>%s</span></b>" % titleext)
+            &rdquo;<b><span size='large'>%s</span></b>&ldquo; % titleext)
         titlelabel.set_use_markup(True)
         box2.pack_start(titlelabel, False, False, 0)
         self.tree_store = Gtk.TreeStore(GObject.TYPE_STRING,
@@ -85,18 +114,20 @@ class UpdateWindow:
         box2.pack_start(self.create_bbox(True, 10, Gtk.BUTTONBOX_END),
                         True, True, 5)
         self.window.show_all()
+<P>
 
     def store(self):
         self.tree_store.clear()
         if checkVersionUpdate() is True:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
-            if "FreeBSD Update" not in updateToInstall:
-                updateToInstall.extend(["FreeBSD Update"])
+            if &ldquo;FreeBSD Update&rdquo; not in updateToInstall:
+                updateToInstall.extend([&ldquo;FreeBSD Update&rdquo;])
         if checkPkgUpdate() is True:
-            self.tree_store.append(None, ("Software Update Available", True))
-            if "Software Update" not in updateToInstall:
-                updateToInstall.extend(["Software Update Available"])
+            self.tree_store.append(None, (&ldquo;Software Update Available&rdquo;, True))
+            if &ldquo;Software Update&rdquo; not in updateToInstall:
+                updateToInstall.extend([&ldquo;Software Update Available&rdquo;])
         return self.tree_store
+<P>
 
     def Display(self, model):
         self.view = Gtk.TreeView(model)
@@ -104,13 +135,14 @@ class UpdateWindow:
         self.renderer1 = Gtk.CellRendererToggle()
         self.renderer1.set_property('activatable', True)
         self.renderer1.connect('toggled', self.col1_toggled_cb, model)
-        self.column0 = Gtk.TreeViewColumn("Name", self.renderer, text=0)
-        self.column1 = Gtk.TreeViewColumn("Complete", self.renderer1)
-        self.column1.add_attribute(self.renderer1, "active", 1)
+        self.column0 = Gtk.TreeViewColumn(&ldquo;Name&rdquo;, self.renderer, text=0)
+        self.column1 = Gtk.TreeViewColumn(&ldquo;Complete&rdquo;, self.renderer1)
+        self.column1.add_attribute(self.renderer1, &ldquo;active&rdquo;, 1)
         self.view.append_column(self.column1)
         self.view.append_column(self.column0)
         self.view.set_headers_visible(False)
         return self.view
+<P>
 
     def col1_toggled_cb(self, cell, path, model):
         model[path][1] = not model[path][1]
@@ -119,71 +151,86 @@ class UpdateWindow:
         else:
             updateToInstall.extend([model[path][0].partition(':')[0]])
         return
+<P>
 
 
-class TrayIcon:
+class UpdateManager:
     def close_application(self, widget):
         quit()
+<P>
 
     def __init__(self):
         # Statue Tray Code
+        self.uwinstatue = True
         self.statusIcon = Gtk.StatusIcon()
         self.statusIcon.set_tooltip('Update Manager')
         self.statusIcon.set_visible(True)
         self.menu = Gtk.Menu()
         self.menu.show_all()
-        self.statusIcon.connect("activate", self.leftclick)
+        self.statusIcon.connect(&ldquo;activate&rdquo;, self.leftclick)
         self.statusIcon.connect('popup-menu', self.icon_clicked)
+<P>
 
     def nm_menu(self):
         # right click menue
         self.menu = Gtk.Menu()
-        close_item = Gtk.MenuItem("Close")
-        close_item.connect("activate", self.close_application)
+        close_item = Gtk.MenuItem(&ldquo;Close&rdquo;)
+        close_item.connect(&ldquo;activate&rdquo;, self.close_application)
         self.menu.append(close_item)
         self.menu.show_all()
         return self.menu
+<P>
 
     def leftclick(self, status_icon):
         if checkForUpdate(2) is True:
-            UpdateWindow(self.updatetray())
-            self.destroy()
+            #if self.uwinstatue is True:
+            #Successful()
+            UpdateWindow()
+                #self.uwinstatue = False
+<P>
 
     def icon_clicked(self, status_icon, button, time):
         position = Gtk.status_icon_position_menu
         self.nm_menu()
         self.menu.popup(None, None, position, button, time, status_icon)
-
-    def destroy(self):
-        self.statusIcon.set_visible(False)
+<P>
 
     def updatetray(self):
+        print True
+        self.statusIcon.set_visible(False)
+        sleep(5)
         if checkForUpdate(1) is True:
-            self.statusIcon.set_visible(True)
-            self.statusIcon.set_from_stock(Gtk.STOCK_DIALOG_INFO)
+            self.statusIcon.set_from_stock(Gtk.STOCK_NO)
+            print True
         else:
-            self.statusIcon.set_visible(False)
-
-    def TreadingUpdate(self):
-        thr = threading.Thread(target=self.check)
-        thr.setDaemon(True)
-        thr.start()
-        Gtk.main()
+            self.statusIcon.set_from_stock(Gtk.STOCK_YES)
+            print False
+<P>
 
     def check(self):
         while True:
             checkFreeBSDUpdate()
-            self.updatetray()
-            sleep(1200)
+            if checkForUpdate(1) is True:
+                self.statusIcon.set_from_stock(Gtk.STOCK_NO)
+            else:
+                self.statusIcon.set_from_stock(Gtk.STOCK_YES)
+            sleep(3600)
         return True
+<P>
 
+    def tray(self):
+        thr = threading.Thread(target=self.check)
+        thr.setDaemon(True)
+        thr.start()
+        Gtk.main()
+<P>
 
 
 def read_output(window, probar, installupdate, window1):
     howMany = len(installupdate)
     fraction = 1.0 / int(howMany)
-    if "FreeBSD Update" in installupdate:
-        probar.set_text("Fetching FreeBSD updates")
+    if &ldquo;FreeBSD Update&rdquo; in installupdate:
+        probar.set_text(&ldquo;Fetching FreeBSD updates&rdquo;)
         sleep(1)
         dfu = fetchFreeBSDUpdate()
         while 1:
@@ -191,23 +238,23 @@ def read_output(window, probar, installupdate, window1):
             if not line:
                 break
             bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("FreeBSD updates downloaded")
+            probar.set_text(&rdquo;%s&ldquo; % bartest.rstrip())
+        probar.set_text(&ldquo;FreeBSD updates downloaded&rdquo;)
         probar.set_fraction(fraction)
         sleep(1)
-        probar.set_text("Installing FreeBSD updates")
+        probar.set_text(&ldquo;Installing FreeBSD updates&rdquo;)
         ifu = installFreeBSDUpdate()
         while 1:
             line = ifu.readline()
             if not line:
                 break
             bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("FreeBSD updates installed")
+            probar.set_text(&rdquo;%s&ldquo; % bartest.rstrip())
+        probar.set_text(&ldquo;FreeBSD updates installed&rdquo;)
         probar.set_fraction(fraction)
         sleep(1)
-    if "Software Update Available" in installupdate:
-        probar.set_text("Fetching packages updates")
+    if &ldquo;Software Update Available&rdquo; in installupdate:
+        probar.set_text(&ldquo;Fetching packages updates&rdquo;)
         sleep(1)
         fpu = fetchPkgUpdate()
         while 1:
@@ -215,10 +262,10 @@ def read_output(window, probar, installupdate, window1):
             if not line:
                 break
             bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("Packages updates downloaded")
+            probar.set_text(&rdquo;%s&ldquo; % bartest.rstrip())
+        probar.set_text(&ldquo;Packages updates downloaded&rdquo;)
         sleep(1)
-        probar.set_text("Installing packages updates")
+        probar.set_text(&ldquo;Installing packages updates&rdquo;)
         sleep(1)
         ipu = installPkgUpdate()
         while 1:
@@ -226,33 +273,35 @@ def read_output(window, probar, installupdate, window1):
             if not line:
                 break
             bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("Packages updates installed")
+            probar.set_text(&rdquo;%s&ldquo; % bartest.rstrip())
+        probar.set_text(&ldquo;Packages updates installed&rdquo;)
         probar.set_fraction(fraction)
         sleep(1)
-        probar.set_text("Cleaning Desktop Icon")
+        probar.set_text(&ldquo;Cleaning Desktop Icon&rdquo;)
         cleanDesktop()
-        probar.set_text("Cleaning Done")
+        probar.set_text(&ldquo;Cleaning Done&rdquo;)
         sleep(1)
         # need to add a script to set pkg after pkg update.
     window.hide()
     window1.hide()
-    if "FreeBSD Update" in installupdate:
+    if &ldquo;FreeBSD Update&rdquo; in installupdate:
         restartSystem()
     else:
         Successful()
+<P>
 
 
 class installUpdate:
     def close_application(self, widget):
         Gtk.main_quit()
+<P>
 
     def __init__(self, installupdate, window):
         self.win = Gtk.Window()
-        self.win.connect("delete-event", Gtk.main_quit)
+        self.win.connect(&ldquo;delete-event&rdquo;, Gtk.main_quit)
         self.win.set_size_request(500, 75)
         self.win.set_resizable(False)
-        self.win.set_title("installing Update")
+        self.win.set_title(&ldquo;installing Update&rdquo;)
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WIN_POS_CENTER)
         box1 = Gtk.VBox(False, 0)
@@ -273,15 +322,16 @@ class installUpdate:
                                      window))
         thr.setDaemon(True)
         thr.start()
+<P>
 
 
 class initialInstall:
     def __init__(self):
         self.win = Gtk.Window()
-        self.win.connect("delete-event", Gtk.main_quit)
+        self.win.connect(&ldquo;delete-event&rdquo;, Gtk.main_quit)
         # self.win.set_size_request(500, 75)
         self.win.set_resizable(False)
-        self.win.set_title("Initial Installation Before Update")
+        self.win.set_title(&ldquo;Initial Installation Before Update&rdquo;)
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WIN_POS_CENTER)
         box1 = Gtk.VBox(False, 0)
@@ -291,28 +341,36 @@ class initialInstall:
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
         box2.show()
-        self.port = Gtk.CheckButton("FreeBSD ports installation")
-        self.src = Gtk.CheckButton("FreeBSD Source(Recommended for ports)")
+        self.port = Gtk.CheckButton(&ldquo;FreeBSD ports installation&rdquo;)
+        self.src = Gtk.CheckButton(&ldquo;FreeBSD Source(Recommended for ports)&rdquo;)
         box2.pack_start(self.port, False, False, 0)
         box2.pack_start(self.src, False, False, 0)
         self.win.show_all()
+<P>
 
-rtxt = """In order to complete the update of your system it needs to restart."""
+rtxt = &rdquo;&ldquo;&rdquo;In order to complete the update of your system it needs to restart.&ldquo;&rdquo;&ldquo;
+<P>
 
 class restartSystem():
     def on_reboot(self, widget):
         Popen('shutdown -r now', shell=True)
         Gtk.main_quit()
+<P>
 
     def on_close(self, widget, window):
+        #Popen('update-station', shell=True)
+        #sleep(5)
+        #Gtk.main_quit()
         window.hide()
+        UpdateManager().updatetray()
+<P>
 
     def __init__(self):
         window = Gtk.Window()
         window.set_position(Gtk.WIN_POS_CENTER)
         window.set_border_width(8)
-        window.connect("destroy", self.on_close)
-        window.set_title("Update Completed")
+        window.connect(&ldquo;destroy&rdquo;, self.on_close)
+        window.set_title(&ldquo;Update Completed&rdquo;)
         box1 = Gtk.VBox(False, 0)
         window.add(box1)
         box1.show()
@@ -327,27 +385,34 @@ class restartSystem():
         box1.pack_start(box2, False, True, 0)
         box2.show()
         table = Gtk.Table(1, 2, True)
-        restart = Gtk.Button("Restart")
-        restart.connect("clicked", self.on_reboot)
-        Continue = Gtk.Button("Continue")
-        Continue.connect("clicked", self.on_close, window)
+        restart = Gtk.Button(&ldquo;Restart&rdquo;)
+        restart.connect(&ldquo;clicked&rdquo;, self.on_reboot)
+        Continue = Gtk.Button(&ldquo;Continue&rdquo;)
+        Continue.connect(&ldquo;clicked&rdquo;, self.on_close, window)
         table.attach(Continue, 0, 1, 0, 1)
         table.attach(restart, 1, 2, 0, 1)
         box2.pack_start(table)
         window.show_all()
+<P>
 
-stxt = """Update successfully completed."""
+stxt = &rdquo;&ldquo;&rdquo;Update successfully completed.&ldquo;&rdquo;&ldquo;
+<P>
 
-class Successful:
+class Successful():
     def on_close(self, widget, window):
+        # Popen('update-station', shell=True)
         window.hide()
+        UpdateManager().updatetray()
+        # sleep(5)
+        # Gtk.main_quit()
+<P>
 
     def __init__(self):
         window = Gtk.Window()
         window.set_position(Gtk.WIN_POS_CENTER)
         window.set_border_width(8)
-        window.connect("destroy", self.on_close)
-        window.set_title("Update Completed")
+        window.connect(&ldquo;destroy&rdquo;, self.on_close)
+        window.set_title(&ldquo;Update Completed&rdquo;)
         box1 = Gtk.VBox(False, 0)
         window.add(box1)
         box1.show()
@@ -362,15 +427,24 @@ class Successful:
         box1.pack_start(box2, False, True, 0)
         box2.show()
         table = Gtk.Table(1, 2, True)
-        restart = Gtk.Button("Close")
-        restart.connect("clicked", self.on_close, window)
+        restart = Gtk.Button(&ldquo;Close&rdquo;)
+        restart.connect(&ldquo;clicked&rdquo;, self.on_close, window)
         table.attach(restart, 1, 2, 0, 1)
         box2.pack_start(table)
         window.show_all()
+<P>
 
 
-class UpdateManager:
-    TrayIcon().TreadingUpdate()
+# if ifPortsIstall() is False:
+#    initialInstall()
+<P>
 
+UpdateManager().tray()
+</BLOCKQUOTE>
+</BLOCKQUOTE>
+</BLOCKQUOTE>
+</BLOCKQUOTE>
 
-UpdateManager()
+</FONT>
+</BODY>
+</HTML>

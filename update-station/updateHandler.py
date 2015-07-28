@@ -3,8 +3,10 @@
 from os import listdir, path
 from subprocess import Popen, PIPE, STDOUT, call
 ustation_db = '/var/db/update-station/'
+
 pkglockfile = '%slock-pkgs' % ustation_db
 fbsduf = '/var/db/freebsd-update-check/'
+pkgupdatefile = ustation_db + 'pkg-to-upgrade'
 fbtag = '%stag' % fbsduf
 fblist = '%stag' % fbsduf
 fbvcmd = "freebsd-version"
@@ -18,6 +20,10 @@ arch = Popen('uname -m', shell=True, stdin=PIPE, stdout=PIPE,
     stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
 release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
     stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
+if not path.isdir(ustation_db):
+    Popen('sudo  operator mkdir -p ' + ustation_db, shell=True, close_fds=True)
+    Popen('sudo  operator chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
+
 fbsrcurl = "ftp://ftp.freebsd.org/pub/FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
 fetchsrc = "sudo operator fetch %s" % fbsrcurl
 extractsrc = "sudo operator tar Jxvf src.txz -C /"
@@ -128,10 +134,22 @@ def installFreeBSDUpdate():
 
 def checkPkgUpdate():
     fbv = Popen(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
-    if "UPGRADED" in fbv.stdout.read():
+    pkglist = fbv.stdout.read()
+    # pf = open(pkgupdatefile, 'w')
+    # pf.writelines(pkglist)
+    # pf.close()
+    if "UPGRADED" in pkglist:
         return True
     else:
         return False
+
+
+def CheckPkgUpdateFromFile():
+    uptag = open(fbtag, 'r')
+    if "UPGRADED" in uptag.read:
+        return True
+    else:
+        False
 
 
 def lockPkg():
@@ -160,16 +178,10 @@ def installPkgUpdate():
 
 
 def checkForUpdate(data):
-    if data == 1:
-        if checkVersionUpdate() is True or checkPkgUpdate() is True:
-            return True
-        else:
-            return False
+    if checkVersionUpdate() is True or checkPkgUpdate() is True:
+        return True
     else:
-        if checkVersionUpdate() is True or checkPkgUpdate() is True:
-            return True
-        else:
-            return False
+        return False
 
 
 def cleanDesktop():
