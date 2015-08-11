@@ -146,7 +146,7 @@ class TrayIcon:
 
     def leftclick(self, status_icon):
         if checkForUpdate(2) is True:
-            UpdateWindow(self.updatetray())
+            UpdateWindow()
             self.destroy()
 
     def icon_clicked(self, status_icon, button, time):
@@ -168,7 +168,6 @@ class TrayIcon:
         thr = threading.Thread(target=self.check)
         thr.setDaemon(True)
         thr.start()
-        Gtk.main()
 
     def check(self):
         while True:
@@ -372,5 +371,6 @@ class Successful:
 class UpdateManager:
     TrayIcon().TreadingUpdate()
 
-
+# initialInstall()
 UpdateManager()
+Gtk.main()

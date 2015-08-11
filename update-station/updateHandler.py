@@ -58,6 +58,14 @@ def portsUpdate():
     return update.stdout
 
 
+def IfPortsUpdated():
+    fetch = Popen(fetchports, shell=True, stdout=PIPE, close_fds=True)
+    if "No updates needed." in fetch.stdout.read():
+        return False
+    else:
+        return True
+
+
 def ifPortsIstall():
     if path.isdir('/usr/ports') is True:
         return True
