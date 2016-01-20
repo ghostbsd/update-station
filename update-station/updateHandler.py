@@ -5,13 +5,14 @@ from subprocess import Popen, PIPE, STDOUT, call
 ustation_db = '/var/db/update-station/'
 
 pkglockfile = '%slock-pkgs' % ustation_db
+pkglist = '/var/db/pkg-update-check/pkg-update-list'
 fbsduf = '/var/db/freebsd-update-check/'
 pkgupdatefile = ustation_db + 'pkg-to-upgrade'
 fbtag = '%stag' % fbsduf
 fblist = '%stag' % fbsduf
 fbvcmd = "freebsd-version"
 fblist = '%stag' % fbsduf
-checkpkgupgrade = 'sudo operator pkg upgrade -n'
+checkpkgupgrade = 'sudo operator fbsdpkgupdate check'
 fetchpkgupgrade = 'sudo operator pkg upgrade -Fy'
 isntallpkgupgrade = 'sudo operator pkg upgrade -y'
 lockpkg = 'sudo operator pkg lock -y '
@@ -23,6 +24,7 @@ release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
 if not path.isdir(ustation_db):
     Popen('sudo  operator mkdir -p ' + ustation_db, shell=True, close_fds=True)
     Popen('sudo  operator chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
+    Popen('sudo  operator chown root:wheel ' + ustation_db, shell=True, close_fds=True)
 
 fbsrcurl = "ftp://ftp.freebsd.org/pub/FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
 fetchsrc = "sudo operator fetch %s" % fbsrcurl
@@ -142,22 +144,27 @@ def installFreeBSDUpdate():
 
 def checkPkgUpdate():
     fbv = Popen(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
-    pkglist = fbv.stdout.read()
-    # pf = open(pkgupdatefile, 'w')
-    # pf.writelines(pkglist)
-    # pf.close()
-    if "UPGRADED" in pkglist:
+    uptag = open(pkglist, 'r')
+    if "UPGRADED" in uptag.read():
         return True
     else:
         return False
 
 
 def CheckPkgUpdateFromFile():
-    uptag = open(fbtag, 'r')
-    if "UPGRADED" in uptag.read:
+    uptag = open(pkglist, 'r')
+    if "UPGRADED" in uptag.read():
         return True
     else:
-        False
+        return False
+
+def pkgUpdateList():
+    uppkg = open(pkglist, 'r')
+    pkgList = []
+    for line in uppkg.readlines():
+        if "->" in line:
+            pkgList.append(line.rstrip())
+    return pkgList
 
 
 def lockPkg():

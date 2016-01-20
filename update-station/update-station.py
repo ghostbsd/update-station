@@ -7,11 +7,12 @@ import sys
 import locale
 sys.path.append("/usr/local/lib/update-station/")
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
-from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
+from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate, pkgUpdateList
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
-from updateHandler import checkFreeBSDUpdate, cleanDesktop
+from updateHandler import checkFreeBSDUpdate, cleanDesktop, CheckPkgUpdateFromFile
 # ifPortsIstall
 updateToInstall = []
+PkgList = []
 from time import sleep
 from subprocess import Popen
 insingal = True
@@ -92,8 +93,10 @@ class UpdateWindow:
             self.tree_store.append(None, (lookFbsdUpdate(), True))
             if "FreeBSD Update" not in updateToInstall:
                 updateToInstall.extend(["FreeBSD Update"])
-        if checkPkgUpdate() is True:
-            self.tree_store.append(None, ("Software Update Available", True))
+        if CheckPkgUpdateFromFile() is True:
+            pinter = self.tree_store.append(None, ("Software Update Available", True))
+            for line in pkgUpdateList():
+                self.tree_store.append(pinter, (line, True))
             if "Software Update" not in updateToInstall:
                 updateToInstall.extend(["Software Update Available"])
         return self.tree_store
