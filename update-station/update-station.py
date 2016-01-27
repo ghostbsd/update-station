@@ -9,10 +9,10 @@ sys.path.append("/usr/local/lib/update-station/")
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate, pkgUpdateList
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
-from updateHandler import checkFreeBSDUpdate, cleanDesktop, CheckPkgUpdateFromFile
+from updateHandler import runUpdate, cleanDesktop, CheckPkgUpdateFromFile
 # ifPortsIstall
 updateToInstall = []
-PkgList = []
+lockPkg = []
 from time import sleep
 from subprocess import Popen
 insingal = True
@@ -117,10 +117,17 @@ class UpdateWindow:
 
     def col1_toggled_cb(self, cell, path, model):
         model[path][1] = not model[path][1]
-        if model[path][1] is False:
-            updateToInstall.remove(model[path][0].partition(':')[0])
+        if ":" in path:
+            if model[path][1] is False:
+                lockPkg.extend([model[path][0]])
+            else:
+                lockPkg.remove(model[path][0])
+            print lockPkg
         else:
-            updateToInstall.extend([model[path][0].partition(':')[0]])
+            if model[path][1] is False:
+                updateToInstall.remove(model[path][0].partition(':')[0])
+            else:
+                updateToInstall.extend([model[path][0].partition(':')[0]])
         return
 
 
@@ -131,7 +138,7 @@ class TrayIcon:
     def __init__(self):
         # Statue Tray Code
         self.statusIcon = Gtk.StatusIcon()
-        self.statusIcon.set_tooltip('Update Manager')
+        self.statusIcon.set_tooltip('Update Available')
         self.statusIcon.set_visible(True)
         self.menu = Gtk.Menu()
         self.menu.show_all()
@@ -161,11 +168,23 @@ class TrayIcon:
         self.statusIcon.set_visible(False)
 
     def updatetray(self):
-        if checkForUpdate(1) is True:
+        if checkForUpdate() is True:
             self.statusIcon.set_visible(True)
             self.statusIcon.set_from_stock(Gtk.STOCK_DIALOG_INFO)
+            var = ""
+            if checkVersionUpdate() is True:
+                var = "FreeBSD" + lookFbsdUpdate().partition(':')[2]
+            print CheckPkgUpdateFromFile()
+            if CheckPkgUpdateFromFile() is True:
+                if len(var) == 0: 
+                    var = "Software Upgrade"
+                else:
+                    var += "/nSoftware Upgrade"
+            notify = 'notify-send "Update avalable" "' + var + '" -i stock_view-details -t 10000'
+            Popen(notify, shell=True, close_fds=True)
         else:
             self.statusIcon.set_visible(False)
+        return
 
     def TreadingUpdate(self):
         thr = threading.Thread(target=self.check)
@@ -174,7 +193,7 @@ class TrayIcon:
 
     def check(self):
         while True:
-            checkFreeBSDUpdate()
+            runUpdate()
             self.updatetray()
             sleep(1200)
         return True

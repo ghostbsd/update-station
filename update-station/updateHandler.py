@@ -22,9 +22,9 @@ arch = Popen('uname -m', shell=True, stdin=PIPE, stdout=PIPE,
 release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
     stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
 if not path.isdir(ustation_db):
-    Popen('sudo  operator mkdir -p ' + ustation_db, shell=True, close_fds=True)
-    Popen('sudo  operator chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
-    Popen('sudo  operator chown root:wheel ' + ustation_db, shell=True, close_fds=True)
+    Popen('sudo operator mkdir -p ' + ustation_db, shell=True, close_fds=True)
+    Popen('sudo operator chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
+    Popen('sudo operator chown root:wheel ' + ustation_db, shell=True, close_fds=True)
 
 fbsrcurl = "ftp://ftp.freebsd.org/pub/FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
 fetchsrc = "sudo operator fetch %s" % fbsrcurl
@@ -145,10 +145,11 @@ def installFreeBSDUpdate():
 def checkPkgUpdate():
     fbv = Popen(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
     uptag = open(pkglist, 'r')
-    if "UPGRADED" in uptag.read():
-        return True
-    else:
-        return False
+
+
+def runUpdate():
+    checkFreeBSDUpdate()
+    checkPkgUpdate()
 
 
 def CheckPkgUpdateFromFile():
@@ -163,16 +164,13 @@ def pkgUpdateList():
     pkgList = []
     for line in uppkg.readlines():
         if "->" in line:
-            pkgList.append(line.rstrip())
+            pkgList.append(line.rstrip()[1:])
     return pkgList
 
 
-def lockPkg():
-    # make a lock list and pass read it here.
-    if path.exists(pkglockfile):
-        plf = open(pkglockfile, 'r')
-        for line in plf.readlines():
-            call(lockpkg + line.rstrip(), shell=True)
+def lockPkg(lockPkg):
+    for line in lockPkg:
+        call(lockpkg + line.rstrip(), shell=True)
     return True
 
 
@@ -192,8 +190,8 @@ def installPkgUpdate():
     return install.stdout
 
 
-def checkForUpdate(data):
-    if checkVersionUpdate() is True or checkPkgUpdate() is True:
+def checkForUpdate():
+    if checkVersionUpdate() is True or CheckPkgUpdateFromFile() is True:
         return True
     else:
         return False
