@@ -16,7 +16,8 @@ checkpkgupgrade = 'sudo operator fbsdpkgupdate check'
 fetchpkgupgrade = 'sudo operator pkg upgrade -Fy'
 isntallpkgupgrade = 'sudo operator pkg upgrade -y'
 lockpkg = 'sudo operator pkg lock -y '
-unlockpkg = 'sudo operator pkg unlock -ay'
+unlockallpkg = 'sudo operator pkg unlock -ay'
+unlockpkg = 'sudo operator pkg unlock -y '
 arch = Popen('uname -m', shell=True, stdin=PIPE, stdout=PIPE,
     stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
 release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
