@@ -32,10 +32,13 @@ class UpdateWindow:
         self.window.hide_on_delete()
 
     def startupdate(self, widget):
-        if len(updateToInstall) != 0:
-            if self.insingal is True:
-                installUpdate(updateToInstall, self.window)
-                self.insingal = False
+        if len(lockpkg) != 0:
+            pass
+        else:
+            if len(updateToInstall) != 0:
+                if self.insingal is True:
+                    installUpdate(updateToInstall, self.window)
+                    self.insingal = False
 
     def create_bbox(self, horizontal, spacing, layout):
         table = Gtk.Table(1, 5, True)
@@ -155,7 +158,7 @@ class TrayIcon:
         return self.menu
 
     def leftclick(self, status_icon):
-        if checkForUpdate(2) is True:
+        if checkForUpdate() is True:
             UpdateWindow()
             self.destroy()
 
@@ -176,7 +179,7 @@ class TrayIcon:
                 var = "FreeBSD" + lookFbsdUpdate().partition(':')[2]
             print CheckPkgUpdateFromFile()
             if CheckPkgUpdateFromFile() is True:
-                if len(var) == 0: 
+                if len(var) == 0:
                     var = "Software Upgrade"
                 else:
                     var += "/nSoftware Upgrade"
