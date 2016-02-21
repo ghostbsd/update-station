@@ -9,7 +9,7 @@ sys.path.append("/usr/local/lib/update-station/")
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate, pkgUpdateList
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
-from updateHandler import runUpdate, cleanDesktop, CheckPkgUpdateFromFile
+from updateHandler import runCheckUpdate, cleanDesktop, CheckPkgUpdateFromFile
 # ifPortsIstall
 updateToInstall = []
 lockPkg = []
@@ -32,13 +32,13 @@ class UpdateWindow:
         self.window.hide_on_delete()
 
     def startupdate(self, widget):
-        if len(lockpkg) != 0:
+        if len(lockPkg) != 0:
             pass
-        else:
-            if len(updateToInstall) != 0:
-                if self.insingal is True:
-                    installUpdate(updateToInstall, self.window)
-                    self.insingal = False
+
+        if len(updateToInstall) != 0:
+            if self.insingal is True:
+                installUpdate(updateToInstall, self.window)
+                self.insingal = False
 
     def create_bbox(self, horizontal, spacing, layout):
         table = Gtk.Table(1, 5, True)
@@ -196,7 +196,7 @@ class TrayIcon:
 
     def check(self):
         while True:
-            runUpdate()
+            runCheckUpdate()
             self.updatetray()
             sleep(1200)
         return True
