@@ -1,10 +1,0 @@
-€}q(UupdateHandler]q(UfetchsrcqU	unlockpkgqUcheckVersionUpdateqUfetchpkgupgradeqUisntallpkgupgradeqUustation_dbqU
-extractsrcq	Ufbvcmdq
-U
-fetchportsqUfetchFreeBSDUpdateqUextractportsqU	unlockPkgqUcheckpkgupgradeqUlockpkgqUlookFbsdUpdateqUfetchPkgUpdateqU
-portsFetchqU
-updateTextqUinstallFreeBSDUpdateqUinstallPkgUpdateqUportsUpdateqUcleandesktopqUlockPkgqUifPortsIstallqUcheckForUpdateqUcheckPkgUpdateqUlistOfInstalqUfbsrcurlqUarchqUfbtagq U
-dowloadSrcq!Upkglockfileq"Ufbsdufq#UcleanDesktopq$Ureleaseq%UportsExtractq&UcheckFreeBSDUpdateq'Uupdateportsq(Ufblistq)U
-installSrcq*eUshutilq+]q,(Ucopyfileq-Uignore_patternsq.Ucopytreeq/Uget_archive_formatsq0Ucopyfileobjq1Uregister_archive_formatq2Ucopymodeq3Umake_archiveq4Umoveq5Uunregister_archive_formatq6Urmtreeq7UErrorq8Ucopyq9U	ExecErrorq:Ucopy2q;USpecialFileErrorq<Ucopystatq=UWindowsErrorq>eUosq?]q@(Upopen4qAUexecleqBUpopen3qCUSEEK_CURqDUspawnlpqEUexeclpqFUenvironqGUspawnvpqHUspawnlqIUexecvpqJUmakedirsqKUlinesepqLUP_WAITqMUspawnvqNUspawnveqOUexecvpeqPUunsetenvqQUSEEK_SETqRUgetenvqSUpopen2qTUwalkqUUspawnleqVUexeclqWUnameqXUSEEK_ENDqYUspawnlpeqZU	P_NOWAITOq[UP_NOWAITq\U
-removedirsq]Urenamesq^Uspawnvpeq_Uexeclpeq`eUupdate-station]qa(UrestartSystemqbUencodingqcUinsingalqdU
-MainWindowqeUtxtqfUinstallUpdateqgUupdateToInstallqhUinitialInstallqiUread_outputqjUthreadBreakqkUutf8convqlUUpdateManagerqmeUdatetimeqn]qo(U	timedeltaqpUMAXYEARqqUdateqrUdatetime_CAPIqsUtzinfoqtUtimequUMINYEARqvUdatetimeqweu.
