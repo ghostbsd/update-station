@@ -6,7 +6,8 @@ import threading
 import sys
 from time import sleep
 from subprocess import Popen
-sys.path.append("/usr/local/lib/update-station/")
+ustationfile = '/usr/local/lib/update-station/'
+sys.path.append(ustationfile)
 from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate, pkgUpdateList
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
@@ -171,7 +172,8 @@ class TrayIcon:
     def updatetray(self):
         if checkForUpdate() is True:
             self.statusIcon.set_visible(True)
-            self.statusIcon.set_from_icon_name("update-manager")
+            self.statusIcon.set_from_file(ustationfile + "system-software-update.png")
+            # self.statusIcon.set_from_icon_name("update-manager")
             var = ""
             if checkVersionUpdate() is True:
                 var = "FreeBSD" + lookFbsdUpdate().partition(':')[2]
@@ -180,7 +182,7 @@ class TrayIcon:
                 if len(var) == 0:
                     var = "Software Upgrade"
                 else:
-                    var += "/nSoftware Upgrade"
+                    var += "\nSoftware Upgrade"
             notify = 'notify-send "Update avalable" "' + var + '" -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
         else:

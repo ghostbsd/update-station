@@ -31,9 +31,11 @@ def datafilelist(installbase, sourcebase):
     return datafileList
 # '{prefix}/share/man/man1'.format(prefix=sys.prefix), glob('data/*.1')),
 data_files = [
-    ('{prefix}/etc/xdg/autostart'.format(prefix=sys.prefix), ['src/update-station.desktop',]),
-    ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/cleandesktop.sh',]),
-    ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/updateHandler.py',]),
+    ('{prefix}/etc/xdg/autostart'.format(prefix=sys.prefix), ['src/update-station.desktop']),
+    ('{prefix}/share/applications'.format(prefix=sys.prefix), ['src/update-station.desktop']),
+    ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/cleandesktop.sh']),
+    ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/updateHandler.py']),
+    ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/system-software-update.png'])
 ]
 data_files.extend(datafilelist('{prefix}/share/locale'.format(prefix=sys.prefix), 'build/mo'))
 
@@ -53,6 +55,6 @@ setup(
     package_dir={'': '.'},
     data_files=data_files,
     install_requires=['setuptools'],
-    scripts=['update-station'],
+    scripts=['update-station']
 )
 # cmdclass = cmdclass,
