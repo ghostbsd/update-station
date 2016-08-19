@@ -4,6 +4,7 @@ import gtk as Gtk
 import gobject as GObject
 import threading
 import sys
+import socket
 from time import sleep
 from subprocess import Popen
 ustationfile = '/usr/local/lib/update-station/'
@@ -399,5 +400,6 @@ class UpdateManager:
     TrayIcon().TreadingUpdate()
 
 # initialInstall()
+if socket.gethostname() != 'ghostbsd':
 UpdateManager()
 Gtk.main()
