@@ -401,5 +401,7 @@ class UpdateManager:
 
 # initialInstall()
 if socket.gethostname() != 'ghostbsd':
-UpdateManager()
-Gtk.main()
+    UpdateManager()
+    Gtk.main()
+else:
+    exit()
