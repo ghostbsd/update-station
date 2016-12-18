@@ -1,9 +1,14 @@
 #!/usr/local/bin/python
 
+"""All fuction to handle various update for GhostBSD."""
+
 from os import listdir, path
 from subprocess import Popen, PIPE, STDOUT, call
-ustation_db = '/var/db/update-station/'
+# import urllib
+import platform
 
+ustation_db = '/var/db/update-station/'
+disroDesktop = "/usr/local/etc/default/distro"
 pkglockfile = '%slock-pkgs' % ustation_db
 pkglist = '/var/db/pkg-update-check/pkg-update-list'
 fbsduf = '/var/db/freebsd-update-check/'
@@ -12,6 +17,8 @@ fbtag = '%stag' % fbsduf
 fblist = '%stag' % fbsduf
 fbvcmd = "freebsd-version"
 fblist = '%stag' % fbsduf
+arch = platform.uname()[4]
+desktop = open(disroDesktop, "r").readlines()[0].rstrip()
 checkpkgupgrade = 'sudo operator fbsdpkgupdate check'
 fetchpkgupgrade = 'sudo operator pkg upgrade -Fy'
 isntallpkgupgrade = 'sudo operator pkg upgrade -y'
@@ -19,10 +26,8 @@ lockpkg = 'sudo operator pkg lock -y '
 unlockallpkg = 'sudo operator pkg unlock -ay'
 unlockpkg = 'sudo operator pkg unlock -y '
 
-arch = Popen('uname -m', shell=True, stdin=PIPE, stdout=PIPE,
-    stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
 release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
-    stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
+                stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
 if not path.isdir(ustation_db):
     Popen('sudo operator mkdir -p ' + ustation_db, shell=True, close_fds=True)
     Popen('sudo operator chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
@@ -35,10 +40,12 @@ fetchports = "sudo operator portsnap fetch"
 extractports = "sudo operator portsnap extract"
 updateports = "sudo operator portsnap update"
 cleandesktop = "sudo operator sh /usr/local/lib/update-station/cleandesktop.sh"
+ghostbsdUpdate = "ftp://ghostbsd.org/pub/GhostBSD/update/" + arch + "/" + desktop + "/update-list.txt " + "-o " + ustation_db + "update-list.txt"
 
 
 def dowloadSrc():
-    fetch = Popen('fetch %s' % fbsrcurl, shell=True, stdout=PIPE, close_fds=True)
+    fetch = Popen('fetch %s' % fbsrcurl, shell=True, stdout=PIPE,
+                  close_fds=True)
     return fetch.stdout
 
 
@@ -86,11 +93,19 @@ def listOfInstal():
             return info
 
 
+# GhostBSD port update on GitHub.
+def lookforGHPortsupdate():
+    # urllib.urlretrieve ("ftp://ghostbsd.org/pub/GhostBSD/update/" + arch + "/" + desktop + "/update-list.txt",
+    #                      ustation_db + "update-list.txt")
+    call("sudo operator fetch " + ghostbsdUpdate, shell=True, stdout=PIPE,
+         close_fds=True)
+
+
 def checkFreeBSDUpdate():
     check = 'sudo operator fbsdupdatecheck check'
-    fbsdInstall = Popen(check, shell=True, stdin=PIPE, stdout=PIPE,
+    fbsdinstall = Popen(check, shell=True, stdin=PIPE, stdout=PIPE,
                         stderr=STDOUT, close_fds=True)
-    if "updating to" in fbsdInstall.stdout.read():
+    if "updating to" in fbsdinstall.stdout.read():
         return True
     else:
         return False
@@ -134,14 +149,14 @@ def updateText():
 
 def fetchFreeBSDUpdate():
     download = 'sudo operator fbsdupdatecheck fetch'
-    fbsdDownload = Popen(download, shell=True, stdout=PIPE, close_fds=True)
-    return fbsdDownload.stdout
+    fbsddownload = Popen(download, shell=True, stdout=PIPE, close_fds=True)
+    return fbsddownload.stdout
 
 
 def installFreeBSDUpdate():
     install = 'sudo operator fbsdupdatecheck install'
-    fbsdInstall = Popen(install, shell=True, stdout=PIPE, close_fds=True)
-    return fbsdInstall.stdout
+    fbsdinstall = Popen(install, shell=True, stdout=PIPE, close_fds=True)
+    return fbsdinstall.stdout
 
 
 def checkPkgUpdate():
@@ -151,6 +166,7 @@ def checkPkgUpdate():
 def runCheckUpdate():
     checkFreeBSDUpdate()
     checkPkgUpdate()
+    lookforGHPortsupdate()
 
 
 def CheckPkgUpdateFromFile():
@@ -160,13 +176,14 @@ def CheckPkgUpdateFromFile():
     else:
         return False
 
+
 def pkgUpdateList():
     uppkg = open(pkglist, 'r')
-    pkgList = []
+    pkglist = []
     for line in uppkg.readlines():
         if "->" in line:
-            pkgList.append(line.rstrip()[1:])
-    return pkgList
+            pkglist.append(line.rstrip()[1:])
+    return pkglist
 
 
 def lockPkg(lockPkg):
@@ -202,4 +219,4 @@ def checkForUpdate():
 
 def cleanDesktop():
     call(cleandesktop, shell=True)
-    return
+    return True
