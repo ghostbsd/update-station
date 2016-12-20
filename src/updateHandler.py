@@ -40,6 +40,7 @@ fetchports = "sudo operator portsnap fetch"
 extractports = "sudo operator portsnap extract"
 updateports = "sudo operator portsnap update"
 cleandesktop = "sudo operator sh /usr/local/lib/update-station/cleandesktop.sh"
+gbupdatelist = ustation_db + "update-list.txt"
 ghostbsdUpdate = "ftp://ghostbsd.org/pub/GhostBSD/update/" + arch + "/" + desktop + "/update-list.txt " + "-o " + ustation_db + "update-list.txt"
 
 
@@ -94,11 +95,57 @@ def listOfInstal():
 
 
 # GhostBSD port update on GitHub.
-def lookforGHPortsupdate():
+def fetchGBportslist():
     # urllib.urlretrieve ("ftp://ghostbsd.org/pub/GhostBSD/update/" + arch + "/" + desktop + "/update-list.txt",
     #                      ustation_db + "update-list.txt")
     call("sudo operator fetch " + ghostbsdUpdate, shell=True, stdout=PIPE,
          close_fds=True)
+    call('sudo operator chmod -R 766 ' + gbupdatelist, shell=True,
+         close_fds=True)
+
+
+def lookGBupdate():
+    # upgb = open(gbupdatelist, 'r')
+    upgb = Popen("sudo operator cat " + gbupdatelist, shell=True, stdout=PIPE,
+                 close_fds=True)
+    for ports in upgb.stdout.readlines():
+        portsub = Popen("sudo operator pkg info " + ports.partition('-')[0],
+                        shell=True, stdout=PIPE, close_fds=True)
+        if ports.rstrip() not in portsub.stdout.read():
+            needupdate = True
+            break
+    if needupdate is True:
+        return True
+    else:
+        return False
+
+
+def downloadGBPorts():
+    download = 'sudo operator git clone https://github.com/ghostbsd/ports.git /root/ports'
+    gbsddownload = Popen(download, shell=True, stdout=PIPE, close_fds=True)
+    return gbsddownload.stdout
+
+
+def copyGBport():
+    copy = "cp -Rf /root/ports/ /usr/ports"
+    gbcopyPorts = Popen(copy, shell=True, stdout=PIPE, close_fds=True)
+    return gbcopyPorts.stdout
+
+
+def deleteGBport():
+    delete = "rm -rf /root/ports"
+    gbdeletePorts = Popen(delete, shell=True, stdout=PIPE, close_fds=True)
+    return gbdeletePorts.stdout
+
+
+def installGBUpdate():
+    upgb = Popen("sudo operator cat " + gbupdatelist, shell=True, stdout=PIPE,
+                 close_fds=True)
+    for ports in upgb.stdout.readlines():
+        findport = "find /usr/ports/ -type d -depth 2 -name " + ports.partition("-")[0]
+        port = Popen(findport, shell=True, stdout=PIPE, close_fds=True)
+        ipcmd = "cd " + port.stdout.readlines[0] + " && make install clean"
+        call(ipcmd, shell=True, stdout=PIPE, close_fds=True)
 
 
 def checkFreeBSDUpdate():
@@ -161,12 +208,14 @@ def installFreeBSDUpdate():
 
 def checkPkgUpdate():
     call(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    return True
 
 
 def runCheckUpdate():
     checkFreeBSDUpdate()
     checkPkgUpdate()
-    lookforGHPortsupdate()
+    fetchGBportslist()
+    return True
 
 
 def CheckPkgUpdateFromFile():
@@ -179,11 +228,11 @@ def CheckPkgUpdateFromFile():
 
 def pkgUpdateList():
     uppkg = open(pkglist, 'r')
-    pkglist = []
+    pkgarr = []
     for line in uppkg.readlines():
         if "->" in line:
-            pkglist.append(line.rstrip()[1:])
-    return pkglist
+            pkgarr.append(line.rstrip()[1:])
+    return pkgarr
 
 
 def lockPkg(lockPkg):
@@ -209,11 +258,9 @@ def installPkgUpdate():
 
 
 def checkForUpdate():
-    if checkVersionUpdate() is True or CheckPkgUpdateFromFile() is True:
-        print True
+    if checkVersionUpdate() is True or CheckPkgUpdateFromFile() is True or lookGBupdate() is True:
         return True
     else:
-        print False
         return False
 
 

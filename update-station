@@ -13,6 +13,8 @@ from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate, pkgUpdateList
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
 from updateHandler import runCheckUpdate, cleanDesktop, CheckPkgUpdateFromFile
+from updateHandler import lookGBupdate
+
 # ifPortsIstall
 updateToInstall = []
 lockPkg = []
@@ -101,8 +103,12 @@ class UpdateWindow:
                                             ("Software Update Available", True))
             for line in pkgUpdateList():
                 self.tree_store.append(pinter, (line, True))
-            if "Software Update" not in updateToInstall:
+            if "Software Update Available" not in updateToInstall:
                 updateToInstall.extend(["Software Update Available"])
+        if lookGBupdate() is True:
+            self.tree_store.append(None, ("GhostBSD Software Update Available", True))
+            if "GhostBSD Software Update Available" not in updateToInstall:
+                updateToInstall.extend(["GhostBSD Software Update Available"])
         return self.tree_store
 
     def Display(self, model):
@@ -184,6 +190,11 @@ class TrayIcon:
                     var = "Software Upgrade"
                 else:
                     var += "\nSoftware Upgrade"
+            if lookGBupdate() is True:
+                if len(var) == 0:
+                    var = "GhostBSD Software Update"
+                else:
+                    var += "\nGhostBSD Software Update"
             notify = 'notify-send "Update avalable" "' + var + '" -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
         else:
@@ -199,7 +210,7 @@ class TrayIcon:
         while True:
             runCheckUpdate()
             self.updatetray()
-            sleep(1200)
+            sleep(60)
         return True
 
 
@@ -217,7 +228,8 @@ def read_output(window, probar, installupdate, window1):
             bartest = line
             probar.set_text("%s" % bartest.rstrip())
         probar.set_text("FreeBSD updates downloaded")
-        probar.set_fraction(fraction)
+        new_val = probar.get_fraction() + (fraction / 2)
+        probar.set_fraction(new_val)
         sleep(1)
         probar.set_text("Installing FreeBSD updates")
         ifu = installFreeBSDUpdate()
@@ -228,7 +240,8 @@ def read_output(window, probar, installupdate, window1):
             bartest = line
             probar.set_text("%s" % bartest.rstrip())
         probar.set_text("FreeBSD updates installed")
-        probar.set_fraction(fraction)
+        new_val = probar.get_fraction() + (fraction / 2)
+        probar.set_fraction(new_val)
         sleep(1)
     if "Software Update Available" in installupdate:
         probar.set_text("Fetching packages updates")
@@ -241,6 +254,8 @@ def read_output(window, probar, installupdate, window1):
             bartest = line
             probar.set_text("%s" % bartest.rstrip())
         probar.set_text("Packages updates downloaded")
+        new_val = probar.get_fraction() + (fraction / 3)
+        probar.set_fraction(new_val)
         sleep(1)
         probar.set_text("Installing packages updates")
         sleep(1)
@@ -252,13 +267,22 @@ def read_output(window, probar, installupdate, window1):
             bartest = line
             probar.set_text("%s" % bartest.rstrip())
         probar.set_text("Packages updates installed")
-        probar.set_fraction(fraction)
+        new_val = probar.get_fraction() + (fraction / 3)
+        probar.set_fraction(new_val)
         sleep(1)
         probar.set_text("Cleaning Desktop Icon")
         cleanDesktop()
         probar.set_text("Cleaning Done")
+        new_val = probar.get_fraction() + (fraction / 3)
+        probar.set_fraction(new_val)
         sleep(1)
         # need to add a script to set pkg after pkg update.
+        #
+    #if "GhostBSD Software Update Available" in installupdate:
+    #    probar.set_text("Cleaning Desktop Icon")
+    #    new_val = probar.get_fraction() + (fraction / 2)
+    #    probar.set_fraction(new_val)
+    #    sleep(1)
     window.hide()
     window1.hide()
     if "FreeBSD Update" in installupdate:
