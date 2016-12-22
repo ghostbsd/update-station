@@ -9,12 +9,12 @@ from time import sleep
 from subprocess import Popen
 ustationfile = '/usr/local/lib/update-station/'
 sys.path.append(ustationfile)
-from updateHandler import lookFbsdUpdate, checkVersionUpdate, checkPkgUpdate
+from updateHandler import lookFbsdUpdate, checkVersionUpdate
 from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate, pkgUpdateList
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
 from updateHandler import runCheckUpdate, cleanDesktop, CheckPkgUpdateFromFile
-from updateHandler import lookGBupdate
-
+from updateHandler import lookGBupdate, downloadGBPorts, copyGBport, deleteGBport
+from updateHandler import installGBUpdate
 # ifPortsIstall
 updateToInstall = []
 lockPkg = []
@@ -215,8 +215,8 @@ class TrayIcon:
 
 
 def read_output(window, probar, installupdate, window1):
-    howMany = len(installupdate)
-    fraction = 1.0 / int(howMany)
+    howmany = len(installupdate)
+    fraction = 1.0 / int(howmany)
     if "FreeBSD Update" in installupdate:
         probar.set_text("Fetching FreeBSD updates")
         sleep(1)
@@ -277,12 +277,53 @@ def read_output(window, probar, installupdate, window1):
         probar.set_fraction(new_val)
         sleep(1)
         # need to add a script to set pkg after pkg update.
-        #
-    #if "GhostBSD Software Update Available" in installupdate:
-    #    probar.set_text("Cleaning Desktop Icon")
-    #    new_val = probar.get_fraction() + (fraction / 2)
-    #    probar.set_fraction(new_val)
-    #    sleep(1)
+    if "GhostBSD Software Update Available" in installupdate:
+        probar.set_text("Downloading GhostBSD ports")
+        sleep(1)
+        dgp = downloadGBPorts()
+        while 1:
+            line = dgp.readline()
+            if not line:
+                break
+            bartest = line
+            probar.set_text("%s" % bartest.rstrip())
+        probar.set_text("Downloading complete")
+        new_val = probar.get_fraction() + (fraction / 4)
+        probar.set_fraction(new_val)
+        sleep(1)
+        probar.set_text("Copying GhostBSD ports")
+        sleep(1)
+        cgp = copyGBport()
+        while 1:
+            line = cgp.readline()
+            if not line:
+                break
+            bartest = line
+            probar.set_text("%s" % bartest.rstrip())
+        probar.set_text("Copying ports complete")
+        new_val = probar.get_fraction() + (fraction / 4)
+        probar.set_fraction(new_val)
+        sleep(1)
+        probar.set_text("Deleting /tmp ports")
+        sleep(1)
+        dgp = deleteGBport()
+        while 1:
+            line = dgp.readline()
+            if not line:
+                break
+            bartest = line
+            probar.set_text("%s" % bartest.rstrip())
+        probar.set_text("/tmp/ports deleted")
+        new_val = probar.get_fraction() + (fraction / 4)
+        probar.set_fraction(new_val)
+        sleep(1)
+        probar.set_text("Installing GhostBSD ports update")
+        sleep(1)
+        installGBUpdate()
+        probar.set_text("GhostBSD update Complete")
+        new_val = probar.get_fraction() + (fraction / 4)
+        probar.set_fraction(new_val)
+        sleep(1)
     window.hide()
     window1.hide()
     if "FreeBSD Update" in installupdate:
@@ -292,10 +333,14 @@ def read_output(window, probar, installupdate, window1):
 
 
 class installUpdate:
+    """Installation progress window."""
+
     def close_application(self, widget):
+        """To Quit the GTK APP."""
         Gtk.main_quit()
 
     def __init__(self, installupdate, window):
+        """Initiall window."""
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(500, 75)

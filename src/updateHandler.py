@@ -2,7 +2,7 @@
 
 """All fuction to handle various update for GhostBSD."""
 
-from os import listdir, path
+from os import listdir, path, chdir
 from subprocess import Popen, PIPE, STDOUT, call
 # import urllib
 import platform
@@ -108,10 +108,16 @@ def lookGBupdate():
     # upgb = open(gbupdatelist, 'r')
     upgb = Popen("sudo operator cat " + gbupdatelist, shell=True, stdout=PIPE,
                  close_fds=True)
+    needupdate = False
     for ports in upgb.stdout.readlines():
-        portsub = Popen("sudo operator pkg info " + ports.partition('-')[0],
+        portsub = Popen("sudo operator pkg info " + ports.partition(' ')[0],
                         shell=True, stdout=PIPE, close_fds=True)
-        if ports.rstrip() not in portsub.stdout.read():
+        newport = ports.rstrip().split(' ')
+        port = newport[0] + "-" + newport[1]
+        oldport = portsub.stdout.readlines()[0].rstrip()
+        print port
+        print oldport
+        if port not in oldport:
             needupdate = True
             break
     if needupdate is True:
@@ -121,19 +127,19 @@ def lookGBupdate():
 
 
 def downloadGBPorts():
-    download = 'sudo operator git clone https://github.com/ghostbsd/ports.git /root/ports'
+    download = 'sudo operator git clone https://github.com/ghostbsd/ports.git /tmp/ports'
     gbsddownload = Popen(download, shell=True, stdout=PIPE, close_fds=True)
     return gbsddownload.stdout
 
 
 def copyGBport():
-    copy = "cp -Rf /root/ports/ /usr/ports"
+    copy = "sudo operator cp -Rfv /tmp/ports/ /usr/ports"
     gbcopyPorts = Popen(copy, shell=True, stdout=PIPE, close_fds=True)
     return gbcopyPorts.stdout
 
 
 def deleteGBport():
-    delete = "rm -rf /root/ports"
+    delete = "sudo operator rm -rf /root/ports"
     gbdeletePorts = Popen(delete, shell=True, stdout=PIPE, close_fds=True)
     return gbdeletePorts.stdout
 
@@ -142,10 +148,10 @@ def installGBUpdate():
     upgb = Popen("sudo operator cat " + gbupdatelist, shell=True, stdout=PIPE,
                  close_fds=True)
     for ports in upgb.stdout.readlines():
-        findport = "find /usr/ports/ -type d -depth 2 -name " + ports.partition("-")[0]
-        port = Popen(findport, shell=True, stdout=PIPE, close_fds=True)
-        ipcmd = "cd " + port.stdout.readlines[0] + " && make install clean"
-        call(ipcmd, shell=True, stdout=PIPE, close_fds=True)
+        findport = "find /usr/ports/ -name " + ports.split(' ')[0]
+        portdir = Popen(findport, shell=True, stdout=PIPE, close_fds=True)
+        chdir(portdir.stdout.readlines()[0].rstrip())
+        call("sudo operator make reinstall clean", shell=True, stdout=PIPE, close_fds=True)
 
 
 def checkFreeBSDUpdate():
