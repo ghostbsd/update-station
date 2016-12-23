@@ -115,8 +115,6 @@ def lookGBupdate():
         newport = ports.rstrip().split(' ')
         port = newport[0] + "-" + newport[1]
         oldport = portsub.stdout.readlines()[0].rstrip()
-        print port
-        print oldport
         if port not in oldport:
             needupdate = True
             break
@@ -139,7 +137,7 @@ def copyGBport():
 
 
 def deleteGBport():
-    delete = "sudo operator rm -rf /root/ports"
+    delete = "sudo operator rm -rf /tmp/ports"
     gbdeletePorts = Popen(delete, shell=True, stdout=PIPE, close_fds=True)
     return gbdeletePorts.stdout
 

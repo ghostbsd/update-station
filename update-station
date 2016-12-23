@@ -132,7 +132,6 @@ class UpdateWindow:
                 lockPkg.extend([model[path][0]])
             else:
                 lockPkg.remove(model[path][0])
-            print lockPkg
         else:
             if model[path][1] is False:
                 updateToInstall.remove(model[path][0].partition(':')[0])
@@ -184,7 +183,6 @@ class TrayIcon:
             var = ""
             if checkVersionUpdate() is True:
                 var = "FreeBSD" + lookFbsdUpdate().partition(':')[2]
-            print CheckPkgUpdateFromFile()
             if CheckPkgUpdateFromFile() is True:
                 if len(var) == 0:
                     var = "Software Upgrade"
