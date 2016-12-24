@@ -206,9 +206,9 @@ class TrayIcon:
 
     def check(self):
         while True:
+            sleep(1200)
             runCheckUpdate()
             self.updatetray()
-            sleep(60)
         return True
 
 

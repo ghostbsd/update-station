@@ -170,12 +170,14 @@ def checkVersionUpdate():
         fbv = Popen(fbvcmd, shell=True, stdin=PIPE, stdout=PIPE,
                     stderr=STDOUT, close_fds=True)
         fbsdversion = fbv.stdout.readlines()[0].rstrip()
-        if fbsdversion == upversion:
+        if "p0" in upversion:
+            return False
+        elif fbsdversion == upversion:
             return False
         else:
             return True
     else:
-        return True
+        return False
 
 
 def lookFbsdUpdate():
