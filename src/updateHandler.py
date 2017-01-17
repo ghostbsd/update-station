@@ -30,10 +30,13 @@ release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
                 stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
 if not path.isdir(ustation_db):
     Popen('sudo operator mkdir -p ' + ustation_db, shell=True, close_fds=True)
-    Popen('sudo operator chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
-    Popen('sudo operator chown root:wheel ' + ustation_db, shell=True, close_fds=True)
+    Popen('sudo operator chmod -R 665 ' + ustation_db, shell=True,
+          close_fds=True)
+    Popen('sudo operator chown root:wheel ' + ustation_db, shell=True,
+          close_fds=True)
 
 fbsrcurl = "ftp://ftp.freebsd.org/pub/FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
+
 fetchsrc = "sudo operator fetch %s" % fbsrcurl
 extractsrc = "sudo operator tar Jxvf src.txz -C /"
 fetchports = "sudo operator portsnap fetch"
@@ -96,8 +99,6 @@ def listOfInstal():
 
 # GhostBSD port update on GitHub.
 def fetchGBportslist():
-    # urllib.urlretrieve ("ftp://ghostbsd.org/pub/GhostBSD/update/" + arch + "/" + desktop + "/update-list.txt",
-    #                      ustation_db + "update-list.txt")
     call("sudo operator fetch " + ghostbsdUpdate, shell=True, stdout=PIPE,
          close_fds=True)
     call('sudo operator chmod -R 766 ' + gbupdatelist, shell=True,
@@ -110,18 +111,28 @@ def lookGBupdate():
                  close_fds=True)
     needupdate = False
     for ports in upgb.stdout.readlines():
-        portsub = Popen("sudo operator pkg info " + ports.partition(' ')[0],
+        nprtlist = ports.rstrip().split()
+        nprtsname = nprtlist[0]
+        print nprtsname
+        nprtversion = nprtlist[1]
+        portsub = Popen("pkg query '%n %v'| grep " + nprtsname,
                         shell=True, stdout=PIPE, close_fds=True)
-        newport = ports.rstrip().split(' ')
-        port = newport[0] + "-" + newport[1]
         oldport = portsub.stdout.readlines()[0].rstrip()
-        if port not in oldport:
+        if oldport != "":
+            prtversion = oldport.split()[1]
+            print nprtversion + ">" + prtversion
+            if nprtversion > prtversion:
+                needupdate = True
+                break
+        else:
             needupdate = True
             break
     if needupdate is True:
         return True
     else:
         return False
+
+print lookGBupdate()
 
 
 def downloadGBPorts():
@@ -146,10 +157,19 @@ def installGBUpdate():
     upgb = Popen("sudo operator cat " + gbupdatelist, shell=True, stdout=PIPE,
                  close_fds=True)
     for ports in upgb.stdout.readlines():
-        findport = "find /usr/ports/ -name " + ports.split(' ')[0]
-        portdir = Popen(findport, shell=True, stdout=PIPE, close_fds=True)
-        chdir(portdir.stdout.readlines()[0].rstrip())
-        call("sudo operator make reinstall clean", shell=True, stdout=PIPE, close_fds=True)
+        nprtlist = ports.rstrip().split()
+        nprtsname = nprtlist[0]
+        nprtversion = nprtlist[1]
+        pkgquery = Popen("sudo operator pkg query '%n %v'| grep " + nprtsname,
+                         shell=True, stdout=PIPE, close_fds=True)
+        pkglist = pkgquery.readlines()[0].rstrip().split()
+        prtversion = pkglist[1]
+        if float(prtversion) < float(nprtversion):
+            findport = "find /usr/ports/ -name " + nprtsname
+            portdir = Popen(findport, shell=True, stdout=PIPE, close_fds=True)
+            chdir(portdir.stdout.readlines()[0].rstrip())
+            call("sudo operator make reinstall clean", shell=True, stdout=PIPE,
+                 close_fds=True)
 
 
 def checkFreeBSDUpdate():
