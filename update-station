@@ -193,7 +193,7 @@ class TrayIcon:
                     var = "GhostBSD Software Update"
                 else:
                     var += "\nGhostBSD Software Update"
-            notify = 'notify-send "Update avalable" "' + var + '" -i stock_view-details -t 10000'
+            notify = 'notify-send "Update available" "' + var + '" -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
         else:
             self.statusIcon.set_visible(False)
