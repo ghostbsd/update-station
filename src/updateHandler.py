@@ -45,20 +45,21 @@ updateports = "sudo operator portsnap update"
 cleandesktop = "sudo operator sh /usr/local/lib/update-station/cleandesktop.sh"
 gbupdatelist = ustation_db + "update-list.txt"
 ghostbsdUpdate = "ftp://ghostbsd.org/pub/GhostBSD/update/" + arch + "/" + desktop + "/update-list.txt " + "-o " + ustation_db + "update-list.txt"
+portspath = "/usr/ports"
 
 
-def dowloadSrc():
+def dowloadsrc():
     fetch = Popen('fetch %s' % fbsrcurl, shell=True, stdout=PIPE,
                   close_fds=True)
     return fetch.stdout
 
 
-def installSrc():
+def installsrc():
     extract = Popen(extractsrc, shell=True, stdout=PIPE, close_fds=True)
     return extract.stdout
 
 
-def portsFetch():
+def portsfetch():
     fetch = Popen(fetchports, shell=True, stdout=PIPE, close_fds=True)
     return fetch.stdout
 
@@ -75,17 +76,19 @@ def portsUpdate():
 
 def IfPortsUpdated():
     fetch = Popen(fetchports, shell=True, stdout=PIPE, close_fds=True)
-    if "No updates needed." in fetch.stdout.read():
+    if "No updates needed" in fetch.stdout.read() or "Fetching 0" in fetch.stdout.read():
         return False
     else:
         return True
 
 
-def ifPortsIstall():
-    if path.isdir('/usr/ports') is True:
-        return True
-    else:
+def ifPortsInstall():
+    if not path.isdir(portspath):
         return False
+    elif not listdir(portspath):
+        return False
+    else:
+        return True
 
 
 def listOfInstal():
@@ -113,14 +116,12 @@ def lookGBupdate():
     for ports in upgb.stdout.readlines():
         nprtlist = ports.rstrip().split()
         nprtsname = nprtlist[0]
-        print nprtsname
         nprtversion = nprtlist[1]
         portsub = Popen("pkg query '%n %v'| grep " + nprtsname,
                         shell=True, stdout=PIPE, close_fds=True)
         oldport = portsub.stdout.readlines()[0].rstrip()
         if oldport != "":
             prtversion = oldport.split()[1]
-            print nprtversion + ">" + prtversion
             if nprtversion > prtversion:
                 needupdate = True
                 break
@@ -131,8 +132,6 @@ def lookGBupdate():
         return True
     else:
         return False
-
-print lookGBupdate()
 
 
 def downloadGBPorts():
@@ -284,7 +283,7 @@ def installPkgUpdate():
 
 
 def checkForUpdate():
-    if checkVersionUpdate() is True or CheckPkgUpdateFromFile() is True or lookGBupdate() is True:
+    if checkVersionUpdate() is True or CheckPkgUpdateFromFile() is True or lookGBupdate() is True or IfPortsUpdated() is True or ifPortsInstall() is False:
         return True
     else:
         return False

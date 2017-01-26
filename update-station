@@ -1,5 +1,6 @@
 #!/usr/local/bin/python
 
+"""Update Station main code."""
 import gtk as Gtk
 import gobject as GObject
 import threading
@@ -8,14 +9,16 @@ import socket
 from time import sleep
 from subprocess import Popen
 ustationfile = '/usr/local/lib/update-station/'
+updateImage = ustationfile + "system-software-update.png"
 sys.path.append(ustationfile)
 from updateHandler import lookFbsdUpdate, checkVersionUpdate
-from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate, pkgUpdateList
+from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
 from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
 from updateHandler import runCheckUpdate, cleanDesktop, CheckPkgUpdateFromFile
-from updateHandler import lookGBupdate, downloadGBPorts, copyGBport, deleteGBport
-from updateHandler import installGBUpdate
-# ifPortsIstall
+from updateHandler import lookGBupdate, downloadGBPorts, copyGBport
+from updateHandler import installGBUpdate, ifPortsInstall, portsfetch
+from updateHandler import portsExtract, deleteGBport, pkgUpdateList
+
 updateToInstall = []
 lockPkg = []
 
@@ -38,7 +41,7 @@ class UpdateWindow:
             pass
         if len(updateToInstall) != 0:
             if self.insingal is True:
-                installUpdate(updateToInstall, self.window)
+                InstallUpdate(updateToInstall, self.window)
                 self.insingal = False
                 self.window.hide()
 
@@ -80,7 +83,7 @@ class UpdateWindow:
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.SHADOW_ETCHED_IN)
         sw.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
-        sw.add(self.Display(self.store()))
+        sw.add(self.display(self.store()))
         sw.show()
         box2.pack_start(sw, True, True, 10)
         box2 = Gtk.HBox(False, 10)
@@ -100,18 +103,33 @@ class UpdateWindow:
                 updateToInstall.extend(["FreeBSD Update"])
         if CheckPkgUpdateFromFile() is True:
             pinter = self.tree_store.append(None,
-                                            ("Software Update Available", True))
+                                            ("Software Update Available",
+                                             True))
             for line in pkgUpdateList():
                 self.tree_store.append(pinter, (line, True))
             if "Software Update Available" not in updateToInstall:
                 updateToInstall.extend(["Software Update Available"])
-        if lookGBupdate() is True:
-            self.tree_store.append(None, ("GhostBSD Software Update Available", True))
-            if "GhostBSD Software Update Available" not in updateToInstall:
-                updateToInstall.extend(["GhostBSD Software Update Available"])
+        if ifPortsInstall() is False:
+            print "There"
+            self.tree_store.append(None,
+                                   ("Initial Ports Installation", True))
+            if "Initial Ports Installation" not in updateToInstall:
+                updateToInstall.extend(["Initial Ports Installation"])
+            # "FreeBSD Source Code(src)"
+        else:
+            # if IfPortsUpdated() is True:
+            #     self.tree_store.append(None, ("Ports Update", True))
+            #     if "Ports Update" not in updateToInstall:
+            #         updateToInstall.extend(["Ports Update"])
+            if lookGBupdate() is True:
+                self.tree_store.append(None,
+                                       ("GhostBSD Software Update",
+                                        True))
+                if "GhostBSD Software Update" not in updateToInstall:
+                    updateToInstall.extend(["GhostBSD Software Update"])
         return self.tree_store
 
-    def Display(self, model):
+    def display(self, model):
         self.view = Gtk.TreeView(model)
         self.renderer = Gtk.CellRendererText()
         self.renderer1 = Gtk.CellRendererToggle()
@@ -178,7 +196,7 @@ class TrayIcon:
     def updatetray(self):
         if checkForUpdate() is True:
             self.statusIcon.set_visible(True)
-            self.statusIcon.set_from_file(ustationfile + "system-software-update.png")
+            self.statusIcon.set_from_file(updateImage)
             # self.statusIcon.set_from_icon_name("update-manager")
             var = ""
             if checkVersionUpdate() is True:
@@ -193,13 +211,19 @@ class TrayIcon:
                     var = "GhostBSD Software Update"
                 else:
                     var += "\nGhostBSD Software Update"
-            notify = 'notify-send "Update available" "' + var + '" -i stock_view-details -t 10000'
+            if ifPortsInstall() is False:
+                if len(var) == 0:
+                    var = "Initial Ports Installation"
+                else:
+                    var += "\nInitial Ports Installation"
+            notify = 'notify-send "Update available" "'
+            notify += var + '" -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
         else:
             self.statusIcon.set_visible(False)
         return
 
-    def TreadingUpdate(self):
+    def treadingupdate(self):
         thr = threading.Thread(target=self.check)
         thr.setDaemon(True)
         thr.start()
@@ -275,7 +299,36 @@ def read_output(window, probar, installupdate, window1):
         probar.set_fraction(new_val)
         sleep(1)
         # need to add a script to set pkg after pkg update.
-    if "GhostBSD Software Update Available" in installupdate:
+    if "Initial Ports Installation" in installupdate:
+        probar.set_text("Downloading Ports")
+        sleep(1)
+        dp = portsfetch()
+        while 1:
+            line = dp.readline()
+            if not line:
+                break
+            bartest = line
+            probar.set_text("%s" % bartest.rstrip())
+        probar.set_text("Ports Downloaded")
+        new_val = probar.get_fraction() + (fraction / 2)
+        probar.set_fraction(new_val)
+        sleep(1)
+        probar.set_text("Extracting Ports")
+        sleep(1)
+        ep = portsExtract()
+        while 1:
+            line = ep.readline()
+            if not line:
+                break
+            bartest = line
+            probar.set_text("%s" % bartest.rstrip())
+        probar.set_text("Ports Extracted")
+        new_val = probar.get_fraction() + (fraction / 2)
+        probar.set_fraction(new_val)
+        sleep(1)
+        probar.set_text("Ports")
+        sleep(1)
+    if "GhostBSD Software Update" in installupdate:
         probar.set_text("Downloading GhostBSD ports")
         sleep(1)
         dgp = downloadGBPorts()
@@ -325,12 +378,12 @@ def read_output(window, probar, installupdate, window1):
     window.hide()
     window1.hide()
     if "FreeBSD Update" in installupdate:
-        restartSystem()
+        RestartSystem()
     else:
         Successful()
 
 
-class installUpdate:
+class InstallUpdate:
     """Installation progress window."""
 
     def close_application(self, widget):
@@ -366,33 +419,10 @@ class installUpdate:
         thr.start()
 
 
-class initialInstall:
-    def __init__(self):
-        self.win = Gtk.Window()
-        self.win.connect("delete-event", Gtk.main_quit)
-        # self.win.set_size_request(500, 75)
-        self.win.set_resizable(False)
-        self.win.set_title("Initial Installation Before Update")
-        self.win.set_border_width(0)
-        self.win.set_position(Gtk.WIN_POS_CENTER)
-        box1 = Gtk.VBox(False, 0)
-        self.win.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(False, 10)
-        box2.set_border_width(10)
-        box1.pack_start(box2, True, True, 0)
-        box2.show()
-        self.port = Gtk.CheckButton("FreeBSD ports installation")
-        self.src = Gtk.CheckButton("FreeBSD Source(Recommended for ports)")
-        box2.pack_start(self.port, False, False, 0)
-        box2.pack_start(self.src, False, False, 0)
-        self.win.show_all()
+rtxt = "In order to complete the update of your system it needs to restart."
 
 
-rtxt = """In order to complete the update of your system it needs to restart."""
-
-
-class restartSystem():
+class RestartSystem():
     def on_reboot(self, widget):
         Popen('shutdown -r now', shell=True)
         Gtk.main_quit()
@@ -422,9 +452,9 @@ class restartSystem():
         table = Gtk.Table(1, 2, True)
         restart = Gtk.Button("Restart")
         restart.connect("clicked", self.on_reboot)
-        Continue = Gtk.Button("Continue")
-        Continue.connect("clicked", self.on_close, window)
-        table.attach(Continue, 0, 1, 0, 1)
+        continuebtn = Gtk.Button("Continue")
+        continuebtn.connect("clicked", self.on_close, window)
+        table.attach(continuebtn, 0, 1, 0, 1)
         table.attach(restart, 1, 2, 0, 1)
         box2.pack_start(table)
         window.show_all()
@@ -464,7 +494,7 @@ class Successful:
 
 
 class UpdateManager:
-    TrayIcon().TreadingUpdate()
+    TrayIcon().treadingupdate()
 
 # initialInstall()
 if socket.gethostname() != 'ghostbsd':
