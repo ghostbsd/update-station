@@ -283,7 +283,9 @@ def installPkgUpdate():
 
 
 def checkForUpdate():
-    if checkVersionUpdate() is True or CheckPkgUpdateFromFile() is True or lookGBupdate() is True or IfPortsUpdated() is True or ifPortsInstall() is False:
+    # if checkVersionUpdate() is True or CheckPkgUpdateFromFile() is True or lookGBupdate() is True or IfPortsUpdated() is True or ifPortsInstall() is False:
+    if checkVersionUpdate() is True or CheckPkgUpdateFromFile() is True or lookGBupdate() is True or ifPortsInstall() is False:
+
         return True
     else:
         return False
