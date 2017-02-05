@@ -19,33 +19,36 @@ fbvcmd = "freebsd-version"
 fblist = '%stag' % fbsduf
 arch = platform.uname()[4]
 desktop = open(disroDesktop, "r").readlines()[0].rstrip()
-checkpkgupgrade = 'sudo operator fbsdpkgupdate check'
-fetchpkgupgrade = 'sudo operator pkg upgrade -Fy'
-isntallpkgupgrade = 'sudo operator pkg upgrade -y'
-lockpkg = 'sudo operator pkg lock -y '
-unlockallpkg = 'sudo operator pkg unlock -ay'
-unlockpkg = 'sudo operator pkg unlock -y '
+checkfbsdupdate = 'doas fbsdupdatecheck check'
+fetchfbsdupdate = 'doas fbsdupdatecheck fetch'
+installfbsdupdate = 'doas fbsdupdatecheck install'
+checkpkgupgrade = 'doas fbsdpkgupdate check'
+fetchpkgupgrade = 'doas pkg upgrade -Fy'
+isntallpkgupgrade = 'doas pkg upgrade -y'
+lockpkg = 'doas pkg lock -y '
+unlockallpkg = 'doas pkg unlock -ay'
+unlockpkg = 'doas pkg unlock -y '
 
 release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
                 stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
 if not path.isdir(ustation_db):
-    Popen('sudo operator mkdir -p ' + ustation_db, shell=True, close_fds=True)
-    Popen('sudo operator chmod -R 665 ' + ustation_db, shell=True,
-          close_fds=True)
-    Popen('sudo operator chown root:wheel ' + ustation_db, shell=True,
-          close_fds=True)
+    Popen('doas mkdir -p ' + ustation_db, shell=True, close_fds=True)
+    Popen('doas chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
+fbftp = "ftp://ftp.freebsd.org/pub/"
 
-fbsrcurl = "ftp://ftp.freebsd.org/pub/FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
-
-fetchsrc = "sudo operator fetch %s" % fbsrcurl
-extractsrc = "sudo operator tar Jxvf src.txz -C /"
-fetchports = "sudo operator portsnap fetch"
-extractports = "sudo operator portsnap extract"
-updateports = "sudo operator portsnap update"
-cleandesktop = "sudo operator sh /usr/local/lib/update-station/cleandesktop.sh"
+fbsrcurl = fbftp + "FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
+extractsrc = "doas tar Jxvf src.txz -C /"
+fetchports = "doas portsnap fetch"
+extractports = "doas portsnap extract"
+updateports = "doas portsnap update"
+cleandesktop = "doas sh /usr/local/lib/update-station/cleandesktop.sh"
 gbupdatelist = ustation_db + "update-list.txt"
-ghostbsdUpdate = "ftp://ghostbsd.org/pub/GhostBSD/update/" + arch + "/" + desktop + "/update-list.txt " + "-o " + ustation_db + "update-list.txt"
+gbftp = "ftp://ghostbsd.org/pub/GhostBSD/"
+gbud = gbftp + "update/" + arch + "/" + desktop + "/update-list.txt"
+fetchgbupdate = gbud + " -o " + gbupdatelist
 portspath = "/usr/ports"
+catgbul = "doas cat " + gbupdatelist
+copygbport = "doas cp -Rfv /tmp/ports/ /usr/ports"
 
 
 def dowloadsrc():
@@ -76,7 +79,8 @@ def portsUpdate():
 
 def IfPortsUpdated():
     fetch = Popen(fetchports, shell=True, stdout=PIPE, close_fds=True)
-    if "No updates needed" in fetch.stdout.read() or "Fetching 0" in fetch.stdout.read():
+    portsmsg = fetch.stdout.read()
+    if "No updates needed" in portsmsg or "Fetching 0" in portsmsg:
         return False
     else:
         return True
@@ -102,15 +106,12 @@ def listOfInstal():
 
 # GhostBSD port update on GitHub.
 def fetchGBportslist():
-    call("sudo operator fetch " + ghostbsdUpdate, shell=True, stdout=PIPE,
-         close_fds=True)
-    call('sudo operator chmod -R 766 ' + gbupdatelist, shell=True,
-         close_fds=True)
+    call(fetchgbupdate, shell=True, stdout=PIPE, close_fds=True)
 
 
 def lookGBupdate():
     # upgb = open(gbupdatelist, 'r')
-    upgb = Popen("sudo operator cat " + gbupdatelist, shell=True, stdout=PIPE,
+    upgb = Popen(catgbul, shell=True, stdout=PIPE,
                  close_fds=True)
     needupdate = False
     for ports in upgb.stdout.readlines():
@@ -135,31 +136,30 @@ def lookGBupdate():
 
 
 def downloadGBPorts():
-    download = 'sudo operator git clone https://github.com/ghostbsd/ports.git /tmp/ports'
+    download = 'git clone https://github.com/ghostbsd/ports.git /tmp/ports'
     gbsddownload = Popen(download, shell=True, stdout=PIPE, close_fds=True)
     return gbsddownload.stdout
 
 
 def copyGBport():
-    copy = "sudo operator cp -Rfv /tmp/ports/ /usr/ports"
-    gbcopyPorts = Popen(copy, shell=True, stdout=PIPE, close_fds=True)
-    return gbcopyPorts.stdout
+    gbcopyports = Popen(copygbport, shell=True, stdout=PIPE, close_fds=True)
+    return gbcopyports.stdout
 
 
 def deleteGBport():
-    delete = "sudo operator rm -rf /tmp/ports"
-    gbdeletePorts = Popen(delete, shell=True, stdout=PIPE, close_fds=True)
-    return gbdeletePorts.stdout
+    delete = "rm -rf /tmp/ports"
+    gbdeleteports = Popen(delete, shell=True, stdout=PIPE, close_fds=True)
+    return gbdeleteports.stdout
 
 
 def installGBUpdate():
-    upgb = Popen("sudo operator cat " + gbupdatelist, shell=True, stdout=PIPE,
+    upgb = Popen(catgbul, shell=True, stdout=PIPE,
                  close_fds=True)
     for ports in upgb.stdout.readlines():
         nprtlist = ports.rstrip().split()
         nprtsname = nprtlist[0]
         nprtversion = nprtlist[1]
-        pkgquery = Popen("sudo operator pkg query '%n %v'| grep " + nprtsname,
+        pkgquery = Popen("pkg query '%n %v'| grep " + nprtsname,
                          shell=True, stdout=PIPE, close_fds=True)
         pkglist = pkgquery.readlines()[0].rstrip().split()
         prtversion = pkglist[1]
@@ -167,13 +167,12 @@ def installGBUpdate():
             findport = "find /usr/ports/ -name " + nprtsname
             portdir = Popen(findport, shell=True, stdout=PIPE, close_fds=True)
             chdir(portdir.stdout.readlines()[0].rstrip())
-            call("sudo operator make reinstall clean", shell=True, stdout=PIPE,
+            call("doas make reinstall clean", shell=True, stdout=PIPE,
                  close_fds=True)
 
 
 def checkFreeBSDUpdate():
-    check = 'sudo operator fbsdupdatecheck check'
-    fbsdinstall = Popen(check, shell=True, stdin=PIPE, stdout=PIPE,
+    fbsdinstall = Popen(checkfbsdupdate, shell=True, stdin=PIPE, stdout=PIPE,
                         stderr=STDOUT, close_fds=True)
     if "updating to" in fbsdinstall.stdout.read():
         return True
@@ -220,14 +219,14 @@ def updateText():
 
 
 def fetchFreeBSDUpdate():
-    download = 'sudo operator fbsdupdatecheck fetch'
-    fbsddownload = Popen(download, shell=True, stdout=PIPE, close_fds=True)
+    fbsddownload = Popen(fetchfbsdupdate, shell=True, stdout=PIPE,
+                         close_fds=True)
     return fbsddownload.stdout
 
 
 def installFreeBSDUpdate():
-    install = 'sudo operator fbsdupdatecheck install'
-    fbsdinstall = Popen(install, shell=True, stdout=PIPE, close_fds=True)
+    fbsdinstall = Popen(installfbsdupdate, shell=True, stdout=PIPE,
+                        close_fds=True)
     return fbsdinstall.stdout
 
 
