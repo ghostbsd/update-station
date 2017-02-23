@@ -11,13 +11,11 @@ from subprocess import Popen
 ustationfile = '/usr/local/lib/update-station/'
 updateImage = ustationfile + "system-software-update.png"
 sys.path.append(ustationfile)
-from updateHandler import lookFbsdUpdate, checkVersionUpdate
-from updateHandler import installFreeBSDUpdate, fetchFreeBSDUpdate
-from updateHandler import fetchPkgUpdate, installPkgUpdate, checkForUpdate
-from updateHandler import runCheckUpdate, cleanDesktop, CheckPkgUpdateFromFile
-from updateHandler import lookGBupdate, downloadGBPorts, copyGBport
-from updateHandler import installGBUpdate, ifPortsInstall, portsfetch
-from updateHandler import portsExtract, deleteGBport, pkgUpdateList
+from updateHandler import lookfbsdupdate, checkversionupdate
+from updateHandler import installfreebsdupdate, fetchfreebsdupdate
+from updateHandler import fetchpkgupdate, installpkgupdate, checkforupdate
+from updateHandler import runcheckupdate, cleandesktop, checkpkgupdatefromfile
+from updateHandler import pkgupdatelist
 
 updateToInstall = []
 lockPkg = []
@@ -97,36 +95,18 @@ class UpdateWindow:
 
     def store(self):
         self.tree_store.clear()
-        if checkVersionUpdate() is True:
-            self.tree_store.append(None, (lookFbsdUpdate(), True))
+        if checkversionupdate() is True:
+            self.tree_store.append(None, (lookfbsdupdate(), True))
             if "FreeBSD Update" not in updateToInstall:
                 updateToInstall.extend(["FreeBSD Update"])
-        if CheckPkgUpdateFromFile() is True:
+        if checkpkgupdatefromfile() is True:
             pinter = self.tree_store.append(None,
                                             ("Software Update Available",
                                              True))
-            for line in pkgUpdateList():
+            for line in pkgupdatelist():
                 self.tree_store.append(pinter, (line, True))
             if "Software Update Available" not in updateToInstall:
                 updateToInstall.extend(["Software Update Available"])
-        if ifPortsInstall() is False:
-            print "There"
-            self.tree_store.append(None,
-                                   ("Initial Ports Installation", True))
-            if "Initial Ports Installation" not in updateToInstall:
-                updateToInstall.extend(["Initial Ports Installation"])
-            # "FreeBSD Source Code(src)"
-        else:
-            # if IfPortsUpdated() is True:
-            #     self.tree_store.append(None, ("Ports Update", True))
-            #     if "Ports Update" not in updateToInstall:
-            #         updateToInstall.extend(["Ports Update"])
-            if lookGBupdate() is True:
-                self.tree_store.append(None,
-                                       ("GhostBSD Software Update",
-                                        True))
-                if "GhostBSD Software Update" not in updateToInstall:
-                    updateToInstall.extend(["GhostBSD Software Update"])
         return self.tree_store
 
     def display(self, model):
@@ -181,7 +161,7 @@ class TrayIcon:
         return self.menu
 
     def leftclick(self, status_icon):
-        if checkForUpdate() is True:
+        if checkforupdate() is True:
             UpdateWindow()
             self.destroy()
 
@@ -194,28 +174,18 @@ class TrayIcon:
         self.statusIcon.set_visible(False)
 
     def updatetray(self):
-        if checkForUpdate() is True:
+        if checkforupdate() is True:
             self.statusIcon.set_visible(True)
             self.statusIcon.set_from_file(updateImage)
             # self.statusIcon.set_from_icon_name("update-manager")
             var = ""
-            if checkVersionUpdate() is True:
-                var = "FreeBSD" + lookFbsdUpdate().partition(':')[2]
-            if CheckPkgUpdateFromFile() is True:
+            if checkversionupdate() is True:
+                var = "FreeBSD" + lookfbsdupdate().partition(':')[2]
+            if checkpkgupdatefromfile() is True:
                 if len(var) == 0:
                     var = "Software Upgrade"
                 else:
                     var += "\nSoftware Upgrade"
-            if lookGBupdate() is True:
-                if len(var) == 0:
-                    var = "GhostBSD Software Update"
-                else:
-                    var += "\nGhostBSD Software Update"
-            if ifPortsInstall() is False:
-                if len(var) == 0:
-                    var = "Initial Ports Installation"
-                else:
-                    var += "\nInitial Ports Installation"
             notify = 'notify-send "Update available" "'
             notify += var + '" -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
@@ -231,7 +201,7 @@ class TrayIcon:
     def check(self):
         while True:
             sleep(1200)
-            runCheckUpdate()
+            runcheckupdate()
             self.updatetray()
         return True
 
@@ -242,7 +212,7 @@ def read_output(window, probar, installupdate, window1):
     if "FreeBSD Update" in installupdate:
         probar.set_text("Fetching FreeBSD updates")
         sleep(1)
-        dfu = fetchFreeBSDUpdate()
+        dfu = fetchfreebsdupdate()
         while 1:
             line = dfu.readline()
             if not line:
@@ -254,7 +224,7 @@ def read_output(window, probar, installupdate, window1):
         probar.set_fraction(new_val)
         sleep(1)
         probar.set_text("Installing FreeBSD updates")
-        ifu = installFreeBSDUpdate()
+        ifu = installfreebsdupdate()
         while 1:
             line = ifu.readline()
             if not line:
@@ -268,7 +238,7 @@ def read_output(window, probar, installupdate, window1):
     if "Software Update Available" in installupdate:
         probar.set_text("Fetching packages updates")
         sleep(1)
-        fpu = fetchPkgUpdate()
+        fpu = fetchpkgupdate()
         while 1:
             line = fpu.readline()
             if not line:
@@ -281,7 +251,7 @@ def read_output(window, probar, installupdate, window1):
         sleep(1)
         probar.set_text("Installing packages updates")
         sleep(1)
-        ipu = installPkgUpdate()
+        ipu = installpkgupdate()
         while 1:
             line = ipu.readline()
             if not line:
@@ -293,86 +263,9 @@ def read_output(window, probar, installupdate, window1):
         probar.set_fraction(new_val)
         sleep(1)
         probar.set_text("Cleaning Desktop Icon")
-        cleanDesktop()
+        cleandesktop()
         probar.set_text("Cleaning Done")
         new_val = probar.get_fraction() + (fraction / 3)
-        probar.set_fraction(new_val)
-        sleep(1)
-        # need to add a script to set pkg after pkg update.
-    if "Initial Ports Installation" in installupdate:
-        probar.set_text("Downloading Ports")
-        sleep(1)
-        dp = portsfetch()
-        while 1:
-            line = dp.readline()
-            if not line:
-                break
-            bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("Ports Downloaded")
-        new_val = probar.get_fraction() + (fraction / 2)
-        probar.set_fraction(new_val)
-        sleep(1)
-        probar.set_text("Extracting Ports")
-        sleep(1)
-        ep = portsExtract()
-        while 1:
-            line = ep.readline()
-            if not line:
-                break
-            bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("Ports Extracted")
-        new_val = probar.get_fraction() + (fraction / 2)
-        probar.set_fraction(new_val)
-        sleep(1)
-        probar.set_text("Ports")
-        sleep(1)
-    if "GhostBSD Software Update" in installupdate:
-        probar.set_text("Downloading GhostBSD ports")
-        sleep(1)
-        dgp = downloadGBPorts()
-        while 1:
-            line = dgp.readline()
-            if not line:
-                break
-            bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("Downloading complete")
-        new_val = probar.get_fraction() + (fraction / 4)
-        probar.set_fraction(new_val)
-        sleep(1)
-        probar.set_text("Copying GhostBSD ports")
-        sleep(1)
-        cgp = copyGBport()
-        while 1:
-            line = cgp.readline()
-            if not line:
-                break
-            bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("Copying ports complete")
-        new_val = probar.get_fraction() + (fraction / 4)
-        probar.set_fraction(new_val)
-        sleep(1)
-        probar.set_text("Deleting /tmp ports")
-        sleep(1)
-        dgp = deleteGBport()
-        while 1:
-            line = dgp.readline()
-            if not line:
-                break
-            bartest = line
-            probar.set_text("%s" % bartest.rstrip())
-        probar.set_text("/tmp/ports deleted")
-        new_val = probar.get_fraction() + (fraction / 4)
-        probar.set_fraction(new_val)
-        sleep(1)
-        probar.set_text("Installing GhostBSD ports update")
-        sleep(1)
-        installGBUpdate()
-        probar.set_text("GhostBSD update Complete")
-        new_val = probar.get_fraction() + (fraction / 4)
         probar.set_fraction(new_val)
         sleep(1)
     window.hide()
@@ -496,7 +389,6 @@ class Successful:
 class UpdateManager:
     TrayIcon().treadingupdate()
 
-# initialInstall()
 if socket.gethostname() != 'ghostbsd':
     UpdateManager()
     Gtk.main()
