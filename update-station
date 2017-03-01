@@ -317,7 +317,7 @@ rtxt = "In order to complete the update of your system it needs to restart."
 
 class RestartSystem():
     def on_reboot(self, widget):
-        Popen('shutdown -r now', shell=True)
+        Popen('doas shutdown -r now', shell=True)
         Gtk.main_quit()
 
     def on_close(self, widget, window):
