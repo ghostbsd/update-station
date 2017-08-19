@@ -24,11 +24,14 @@ insingal = True
 threadBreak = False
 GObject.threads_init()
 uwinstatue = True
+iconStopRefrech = False
 
 
 class UpdateWindow:
     def hidewindow(self, widget):
         self.window.hide()
+        global iconStopRefrech
+        iconStopRefrech = False
 
     def delete_event(self, widget):
         # don't delete; hide instead
@@ -47,7 +50,7 @@ class UpdateWindow:
         table = Gtk.Table(1, 5, True)
         button = Gtk.Button("Install update")
         table.attach(button, 0, 1, 0, 1)
-        button.connect("clicked", self.startupdate, )
+        button.connect("clicked", self.startupdate)
         button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
         table.attach(button, 4, 5, 0, 1)
         button.connect("clicked", self.hidewindow)
@@ -150,33 +153,39 @@ class TrayIcon:
         self.menu.show_all()
         self.statusIcon.connect("activate", self.leftclick)
         self.statusIcon.connect('popup-menu', self.icon_clicked)
+        self.statusIcon.set_visible(False)
+        self.statusIcon.set_from_file(updateImage)
 
     def nm_menu(self):
         # right click menue
         self.menu = Gtk.Menu()
+        open_update = Gtk.MenuItem("Open Update")
+        open_update.connect("activate", self.leftclick)
         close_item = Gtk.MenuItem("Close")
         close_item.connect("activate", self.close_application)
+        self.menu.append(open_update)
         self.menu.append(close_item)
         self.menu.show_all()
         return self.menu
 
     def leftclick(self, status_icon):
-        if checkforupdate() is True:
-            UpdateWindow()
-            self.destroy()
+        #if checkforupdate() is True:
+        global iconStopRefrech
+        iconStopRefrech = True
+        UpdateWindow()
+        self.hide_icon()
 
     def icon_clicked(self, status_icon, button, time):
         position = Gtk.status_icon_position_menu
         self.nm_menu()
         self.menu.popup(None, None, position, button, time, status_icon)
 
-    def destroy(self):
+    def hide_icon(self):
         self.statusIcon.set_visible(False)
 
     def updatetray(self):
         if checkforupdate() is True:
             self.statusIcon.set_visible(True)
-            self.statusIcon.set_from_file(updateImage)
             # self.statusIcon.set_from_icon_name("update-manager")
             var = ""
             if checkversionupdate() is True:
@@ -201,8 +210,10 @@ class TrayIcon:
     def check(self):
         while True:
             sleep(1200)
-            runcheckupdate()
-            self.updatetray()
+            global iconStopRefrech
+            if iconStopRefrech is False:
+                runcheckupdate()
+                self.updatetray()
         return True
 
 
@@ -270,6 +281,8 @@ def read_output(window, probar, installupdate, window1):
         sleep(1)
     window.hide()
     window1.hide()
+    global iconStopRefrech
+    iconStopRefrech = False
     if "FreeBSD Update" in installupdate:
         RestartSystem()
     else:
