@@ -283,10 +283,7 @@ def read_output(window, probar, installupdate, window1):
     window1.hide()
     global iconStopRefrech
     iconStopRefrech = False
-    if "FreeBSD Update" in installupdate:
-        RestartSystem()
-    else:
-        Successful()
+    RestartSystem()
 
 
 class InstallUpdate:
@@ -399,11 +396,68 @@ class Successful:
         window.show_all()
 
 
-class UpdateManager:
-    TrayIcon().treadingupdate()
+class noUpdateAvailable(object):
+    """docstring for noUpdateAvailable"""
+    def on_close(self, widget, window):
+        Gtk.main_quit()
 
-if socket.gethostname() != 'ghostbsd':
-    UpdateManager()
-    Gtk.main()
+    def __init__(self):
+        window = Gtk.Window()
+        window.set_position(Gtk.WIN_POS_CENTER)
+        window.set_border_width(8)
+        window.connect("destroy", self.on_close)
+        window.set_title("No Update Available")
+        box1 = Gtk.VBox(False, 0)
+        window.add(box1)
+        box1.show()
+        box2 = Gtk.VBox(False, 10)
+        box2.set_border_width(10)
+        box1.pack_start(box2, True, True, 0)
+        box2.show()
+        label = Gtk.Label("No update available the system is up to date")
+        box2.pack_start(label)
+        box2 = Gtk.HBox(False, 10)
+        box2.set_border_width(5)
+        box1.pack_start(box2, False, True, 0)
+        box2.show()
+        table = Gtk.Table(1, 2, True)
+        restart = Gtk.Button("Close")
+        restart.connect("clicked", self.on_close, window)
+        table.attach(restart, 1, 2, 0, 1)
+        box2.pack_start(table)
+        window.show_all()
+
+
+class startCheckUpdate:
+    """docstring for startCheckUpdate"""
+    def __init__(self):
+        runcheckupdate()
+        if checkforupdate() is True:
+            UpdateWindow()
+        else:
+            noUpdateAvailable()
+
+arg = sys.argv
+UsageMSG = """
+Usage for %s:
+
+Available Commands:
+
+check-now       - Lock for update now
+
+""" % arg[0]
+
+if len(arg) > 2 :
+    print(UsageMSG)
+    sys.exit(0)
+elif len(arg) == 1:
+    if socket.gethostname() != 'ghostbsd':
+        TrayIcon().treadingupdate()
+        Gtk.main()
+    else:
+        exit()
+elif len(arg) == 2 and arg[1] == "check-now":
+    startCheckUpdate()
 else:
-    exit()
+    print(UsageMSG)
+    sys.exit(0)
