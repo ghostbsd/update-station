@@ -32,7 +32,7 @@ def datafilelist(installbase, sourcebase):
 # '{prefix}/share/man/man1'.format(prefix=sys.prefix), glob('data/*.1')),
 data_files = [
     ('{prefix}/etc/xdg/autostart'.format(prefix=sys.prefix), ['src/update-station.desktop']),
-    ('{prefix}/share/applications'.format(prefix=sys.prefix), ['src/update-station.desktop']),
+    ('{prefix}/share/applications'.format(prefix=sys.prefix), ['src/update-manager.desktop']),
     ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/cleandesktop.sh']),
     ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/updateHandler.py']),
     ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/system-software-update.png'])

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Update Station
+Comment=Update manager for system and software
+Exec=update-station check-now
+Icon=/usr/local/lib/update-station/system-software-update.png
+Terminal=false
+Type=Application
+Categories=System;Settings;
+StartupNotify=true

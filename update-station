@@ -29,9 +29,12 @@ iconStopRefrech = False
 
 class UpdateWindow:
     def hidewindow(self, widget):
-        self.window.hide()
-        global iconStopRefrech
-        iconStopRefrech = False
+        if close_session is True:
+            Gtk.main_quit()
+        else:
+            self.window.hide()
+            global iconStopRefrech
+            iconStopRefrech = False
 
     def delete_event(self, widget):
         # don't delete; hide instead
@@ -322,7 +325,7 @@ class InstallUpdate:
         thr.start()
 
 
-rtxt = "In order to complete the update of your system it needs to restart."
+rtxt = """The computer needs to restart to use the updated software."""
 
 
 class RestartSystem():
@@ -331,7 +334,10 @@ class RestartSystem():
         Gtk.main_quit()
 
     def on_close(self, widget, window):
-        window.hide()
+        if close_session is True:
+            Gtk.main_quit()
+        else:
+            window.hide()
 
     def __init__(self):
         window = Gtk.Window()
@@ -353,44 +359,11 @@ class RestartSystem():
         box1.pack_start(box2, False, True, 0)
         box2.show()
         table = Gtk.Table(1, 2, True)
-        restart = Gtk.Button("Restart")
+        restart = Gtk.Button("Restart Now")
         restart.connect("clicked", self.on_reboot)
-        continuebtn = Gtk.Button("Continue")
+        continuebtn = Gtk.Button("Restart Later")
         continuebtn.connect("clicked", self.on_close, window)
         table.attach(continuebtn, 0, 1, 0, 1)
-        table.attach(restart, 1, 2, 0, 1)
-        box2.pack_start(table)
-        window.show_all()
-
-stxt = """Update successfully completed."""
-
-
-class Successful:
-    def on_close(self, widget, window):
-        window.hide()
-
-    def __init__(self):
-        window = Gtk.Window()
-        window.set_position(Gtk.WIN_POS_CENTER)
-        window.set_border_width(8)
-        window.connect("destroy", self.on_close)
-        window.set_title("Update Completed")
-        box1 = Gtk.VBox(False, 0)
-        window.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(False, 10)
-        box2.set_border_width(10)
-        box1.pack_start(box2, True, True, 0)
-        box2.show()
-        label = Gtk.Label(stxt)
-        box2.pack_start(label)
-        box2 = Gtk.HBox(False, 10)
-        box2.set_border_width(5)
-        box1.pack_start(box2, False, True, 0)
-        box2.show()
-        table = Gtk.Table(1, 2, True)
-        restart = Gtk.Button("Close")
-        restart.connect("clicked", self.on_close, window)
         table.attach(restart, 1, 2, 0, 1)
         box2.pack_start(table)
         window.show_all()
@@ -447,17 +420,22 @@ check-now       - Lock for update now
 
 """ % arg[0]
 
+global close_session
+
 if len(arg) > 2 :
     print(UsageMSG)
     sys.exit(0)
 elif len(arg) == 1:
     if socket.gethostname() != 'ghostbsd':
+        close_session = False
         TrayIcon().treadingupdate()
         Gtk.main()
     else:
         exit()
 elif len(arg) == 2 and arg[1] == "check-now":
+    close_session = True
     startCheckUpdate()
+    Gtk.main()
 else:
     print(UsageMSG)
     sys.exit(0)
