@@ -387,7 +387,7 @@ class noUpdateAvailable(object):
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
         box2.show()
-        label = Gtk.Label("No update available the system is up to date")
+        label = Gtk.Label("No update available, this system is up to date.")
         box2.pack_start(label)
         box2 = Gtk.HBox(False, 10)
         box2.set_border_width(5)
