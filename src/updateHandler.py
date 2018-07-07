@@ -8,7 +8,6 @@ from subprocess import Popen, PIPE, STDOUT, call
 import platform
 
 ustation_db = '/var/db/update-station/'
-distroDesktop = "/usr/local/etc/default/distro"
 pkglockfile = '%slock-pkgs' % ustation_db
 pkglist = '/var/db/pkg-update-check/pkg-update-list'
 fbsduf = '/var/db/freebsd-update-check/'
@@ -18,7 +17,6 @@ fblist = '%stag' % fbsduf
 fbvcmd = "freebsd-version"
 fblist = '%stag' % fbsduf
 arch = platform.uname()[4]
-desktop = open(distroDesktop, "r").readlines()[0].rstrip().partition("=")[2]
 checkfbsdupdate = 'doas fbsdupdatecheck check'
 fetchfbsdupdate = 'doas fbsdupdatecheck fetch'
 installfbsdupdate = 'doas fbsdupdatecheck install'
