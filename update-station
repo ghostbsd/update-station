@@ -172,7 +172,7 @@ class TrayIcon:
         return self.menu
 
     def leftclick(self, status_icon):
-        #if checkforupdate() is True:
+        # if checkforupdate() is True:
         global iconStopRefrech
         iconStopRefrech = True
         UpdateWindow()
@@ -276,12 +276,7 @@ def read_output(window, probar, installupdate, window1):
         new_val = probar.get_fraction() + (fraction / 3)
         probar.set_fraction(new_val)
         sleep(1)
-        probar.set_text("Cleaning Desktop Icon")
-        cleandesktop()
-        probar.set_text("Cleaning Done")
-        new_val = probar.get_fraction() + (fraction / 3)
-        probar.set_fraction(new_val)
-        sleep(1)
+        # to adding sanaty check here.
     window.hide()
     window1.hide()
     global iconStopRefrech
@@ -422,7 +417,7 @@ check-now       - Lock for update now
 
 global close_session
 
-if len(arg) > 2 :
+if len(arg) > 2:
     print(UsageMSG)
     sys.exit(0)
 elif len(arg) == 1:
