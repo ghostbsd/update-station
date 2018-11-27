@@ -28,26 +28,16 @@ unlockallpkg = 'doas pkg unlock -ay'
 unlockpkg = 'doas pkg unlock -y '
 
 release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
-                stderr=STDOUT, close_fds=True).stdout.readlines()[0].rstrip()
+                stderr=STDOUT, close_fds=True
+                ).stdout.readlines()[0].rstrip()
+
 if not path.isdir(ustation_db):
     Popen('doas mkdir -p ' + ustation_db, shell=True, close_fds=True)
     Popen('doas chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
+
 fbftp = "ftp://ftp.freebsd.org/pub/"
-
 fbsrcurl = fbftp + "FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
-extractsrc = "doas tar Jxvf src.txz -C /"
 cleandotdesktop = "doas sh /usr/local/lib/update-station/cleandesktop.sh"
-
-
-def dowloadsrc():
-    fetch = Popen('fetch %s' % fbsrcurl, shell=True, stdout=PIPE,
-                  close_fds=True)
-    return fetch.stdout
-
-
-def installsrc():
-    extract = Popen(extractsrc, shell=True, stdout=PIPE, close_fds=True)
-    return extract.stdout
 
 
 def listofinstal():
@@ -57,33 +47,6 @@ def listofinstal():
             uptag = open(fbsduf + line + '/INDEX-NEW', 'r')
             info = uptag.readlines()
             return info
-
-
-def checkfreebsdupdate():
-    fbsdinstall = Popen(checkfbsdupdate, shell=True, stdin=PIPE, stdout=PIPE,
-                        stderr=STDOUT, close_fds=True)
-    if "updating to" in fbsdinstall.stdout.read():
-        return True
-    else:
-        return False
-
-
-def checkversionupdate():
-    if path.exists(fbtag):
-        uptag = open(fbtag, 'r')
-        tag = uptag.readlines()[0].rstrip().split('|')
-        upversion = tag[2] + "-p" + tag[3]
-        fbv = Popen(fbvcmd, shell=True, stdin=PIPE, stdout=PIPE,
-                    stderr=STDOUT, close_fds=True)
-        fbsdversion = fbv.stdout.readlines()[0].rstrip()
-        if "p0" in upversion:
-            return False
-        elif fbsdversion == upversion:
-            return False
-        else:
-            return True
-    else:
-        return False
 
 
 def lookfbsdupdate():
@@ -106,25 +69,13 @@ def updatetext():
     return text
 
 
-def fetchfreebsdupdate():
-    fbsddownload = Popen(fetchfbsdupdate, shell=True, stdout=PIPE,
-                         close_fds=True)
-    return fbsddownload.stdout
-
-
-def installfreebsdupdate():
-    fbsdinstall = Popen(installfbsdupdate, shell=True, stdout=PIPE,
-                        close_fds=True)
-    return fbsdinstall.stdout
-
-
 def checkpkgupdate():
-    call(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    call(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True,
+         universal_newlines=True)
     return True
 
 
 def runcheckupdate():
-    checkfreebsdupdate()
     checkpkgupdate()
     return True
 
@@ -159,22 +110,19 @@ def unlockpkg():
 
 
 def fetchpkgupdate():
-    fetch = Popen(fetchpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    fetch = Popen(fetchpkgupgrade, shell=True, stdout=PIPE, close_fds=True,
+                  universal_newlines=True)
     return fetch.stdout
 
 
 def installpkgupdate():
-    install = Popen(isntallpkgupgrade, shell=True, stdout=PIPE, close_fds=True)
+    install = Popen(isntallpkgupgrade, shell=True, stdout=PIPE, close_fds=True,
+                    universal_newlines=True)
     return install.stdout
 
 
 def checkforupdate():
-    if checkversionupdate() is True or checkpkgupdatefromfile() is True:
+    if checkpkgupdatefromfile() is True:
         return True
     else:
         return False
-
-
-def cleandesktop():
-    call(cleandotdesktop, shell=True)
-    return True

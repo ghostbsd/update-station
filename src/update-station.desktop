@@ -2,7 +2,7 @@
 Name=Update Station
 Comment=Update system and software
 Exec=update-station
-Icon=/usr/local/lib/update-station/system-software-update.png
+Icon=system-software-update
 Terminal=false
 Type=Application
 Categories=System;Settings;
