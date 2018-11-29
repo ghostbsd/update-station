@@ -44,7 +44,7 @@ class UpdateWindow:
             pass
         if len(updateToInstall) != 0:
             if self.insingal is True:
-                InstallUpdate(updateToInstall, self.window)
+                InstallUpdate(updateToInstall)
                 self.insingal = False
                 self.window.hide()
 
@@ -202,57 +202,12 @@ class TrayIcon:
         return True
 
 
-def update_progress(progress, fraction, text):
-    progress.set_fraction(fraction)
-    progress.set_text(text)
-
-
-def read_output(window, progress, installupdate, window1):
-    howmany = len(installupdate)
-    fraction = 1.0 / int(howmany)
-    txt = "Fetching packages updates"
-    GLib.idle_add(update_progress, progress, 0.1, txt)
-    print(txt)
-    sleep(1)
-    fpu = fetchpkgupdate()
-    while 1:
-        line = fpu.readline()
-        if not line:
-            break
-        text = line.rstrip()
-        GLib.idle_add(update_progress, progress, 0.2, text)
-    new_val = progress.get_fraction() + (fraction / 2)
-    txt = "Packages updates downloaded"
-    GLib.idle_add(update_progress, progress, new_val, text)
-    sleep(1)
-    txt = "Installing packages updates"
-    GLib.idle_add(update_progress, progress, new_val, txt)
-    sleep(1)
-    ipu = installpkgupdate()
-    while 1:
-        line = ipu.readline()
-        if not line:
-            break
-        text = line.rstrip()
-        GLib.idle_add(update_progress, progress, new_val, text)
-    new_val = progress.get_fraction() + (fraction / 2)
-    txt = "Packages updates installed"
-    GLib.idle_add(update_progress, progress, new_val, txt)
-    sleep(1)
-    # to adding sanaty check here.
-    window.hide()
-    window1.hide()
-    global iconStopRefrech
-    iconStopRefrech = False
-    RestartSystem()
-
-
 class InstallUpdate:
 
     def close_application(self, widget):
         Gtk.main_quit()
 
-    def __init__(self, installupdate, window):
+    def __init__(self, installupdate):
         self.win = Gtk.Window()
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(500, 75)
@@ -273,22 +228,69 @@ class InstallUpdate:
         # self.pbar.set_size_request(-1, 20)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
-        thr = threading.Thread(target=read_output,
-                               args=(self.win, self.pbar, installupdate,
-                                     window))
-        thr.setDaemon(True)
-        thr.start()
+        self.thr = threading.Thread(target=self.read_output,
+                                    args=(self.pbar, installupdate))
+        self.thr.setDaemon(True)
+        self.thr.start()
+
+    def update_progress(self, progress, fraction, text):
+        progress.set_fraction(fraction)
+        progress.set_text(text)
+
+    def read_output(self, progress, installupdate):
+        howmany = len(installupdate)
+        fraction = 1.0 / int(howmany)
+        txt = "Fetching packages updates"
+        GLib.idle_add(self.update_progress, progress, 0.1, txt)
+        print(txt)
+        sleep(1)
+        fpu = fetchpkgupdate()
+        while 1:
+            line = fpu.readline()
+            if not line:
+                break
+            text = line.rstrip()
+            GLib.idle_add(self.update_progress, progress, 0.2, text)
+        new_val = progress.get_fraction() + (fraction / 2)
+        txt = "Packages updates downloaded"
+        GLib.idle_add(self.update_progress, progress, new_val, text)
+        sleep(1)
+        txt = "Installing packages updates"
+        GLib.idle_add(self.update_progress, progress, new_val, txt)
+        sleep(1)
+        ipu = installpkgupdate()
+        while 1:
+            line = ipu.readline()
+            if not line:
+                break
+            text = line.rstrip()
+            GLib.idle_add(self.update_progress, progress, new_val, text)
+        new_val = progress.get_fraction() + (fraction / 2)
+        txt = "Packages updates installed"
+        GLib.idle_add(self.update_progress, progress, new_val, txt)
+        sleep(1)
+        # to adding sanity check here.
+        self.win.hide()
+        global iconStopRefrech
+        iconStopRefrech = False
+        # RestartSystem()
+        GObject.idle_add(self.stop_tread)
+
+    def stop_tread(self):
+        self.thr.join()
+        RestartSystem()
 
 
 rtxt = """The computer needs to restart to use the updated software."""
 
 
 class RestartSystem():
+
     def on_reboot(self, widget):
         Popen('doas shutdown -r now', shell=True)
         Gtk.main_quit()
 
-    def on_close(self, widget,):
+    def on_close(self, widget):
         if close_session is True:
             Gtk.main_quit()
         else:
@@ -303,16 +305,12 @@ class RestartSystem():
         box1 = Gtk.VBox(False, 0)
         self.window.add(box1)
         box1.show()
-        box2 = Gtk.VBox(False, 10)
-        box2.set_border_width(10)
-        box1.pack_start(box2, True, True, 0)
-        box2.show()
         label = Gtk.Label(rtxt)
-        box2.pack_start(label, False, False, 0)
-        box2 = Gtk.HBox(False, 10)
-        box2.set_border_width(5)
-        box1.pack_start(box2, False, True, 0)
-        box2.show()
+        box1.pack_start(label, False, False, 0)
+        hBox = Gtk.HBox(False, 10)
+        hBox.set_border_width(5)
+        box1.pack_start(hBox, False, True, 0)
+        hBox.show()
         table = Gtk.Table(1, 2, True)
         restart = Gtk.Button("Restart Now")
         restart.connect("clicked", self.on_reboot)
@@ -320,8 +318,8 @@ class RestartSystem():
         continuebtn.connect("clicked", self.on_close)
         table.attach(continuebtn, 0, 1, 0, 1)
         table.attach(restart, 1, 2, 0, 1)
-        box2.pack_start(table, False, False, 0)
-        window.show_all()
+        hBox.pack_end(table, False, False, 0)
+        self.window.show_all()
 
 
 class noUpdateAvailable(object):
