@@ -301,7 +301,7 @@ class RestartSystem():
         self.window.connect("destroy", self.on_close)
         self.window.set_title("Update Completed")
         box1 = Gtk.VBox(False, 0)
-        window.add(box1)
+        self.window.add(box1)
         box1.show()
         box2 = Gtk.VBox(False, 10)
         box2.set_border_width(10)
