@@ -19,7 +19,7 @@ __VERSION__ = '1.0'
 #    if (line.startswith('__VERSION__')):
 #        exec(line.strip())
 PROGRAM_VERSION = __VERSION__
-
+prefix = sys.prefix
 
 def datafilelist(installbase, sourcebase):
     datafileList = []
@@ -29,15 +29,19 @@ def datafilelist(installbase, sourcebase):
             fileList.append(os.path.join(root, f))
         datafileList.append((root.replace(sourcebase, installbase), fileList))
     return datafileList
-# '{prefix}/share/man/man1'.format(prefix=sys.prefix), glob('data/*.1')),
+
+# ('{prefix}/share/man/man1'.format(prefix=sys.prefix), glob('data/*.1')),
+
+
 data_files = [
-    ('{prefix}/etc/xdg/autostart'.format(prefix=sys.prefix), ['src/update-station.desktop']),
-    ('{prefix}/share/applications'.format(prefix=sys.prefix), ['src/update-manager.desktop']),
-    ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/cleandesktop.sh']),
-    ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/updateHandler.py']),
-    ('{prefix}/lib/update-station'.format(prefix=sys.prefix), ['src/system-software-update.png'])
+    (f'{prefix}/etc/xdg/autostart', ['src/update-station.desktop']),
+    (f'{prefix}/share/applications', ['src/update-manager.desktop']),
+    (f'{prefix}/lib/update-station', ['src/cleandesktop.sh']),
+    (f'{prefix}/lib/update-station', ['src/updateHandler.py']),
+    (f'{prefix}/lib/update-station', ['src/system-software-update.png'])
 ]
-data_files.extend(datafilelist('{prefix}/share/locale'.format(prefix=sys.prefix), 'build/mo'))
+
+data_files.extend(datafilelist(f'{prefix}/share/locale', 'build/mo'))
 
 # cmdclass ={
 #             "build" : DistUtilsExtra.command.build_extra.build_extra,
