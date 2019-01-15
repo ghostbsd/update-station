@@ -1,6 +1,8 @@
 [Desktop Entry]
 Name=Update Station
+Name[da]=Opdateringsstation
 Comment=Update manager for system and software
+Comment[da]=Opdateringshåndtering til system og software
 Exec=update-station check-now
 Icon=system-software-update.png
 Terminal=false
