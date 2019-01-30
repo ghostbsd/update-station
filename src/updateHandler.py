@@ -17,27 +17,27 @@ fblist = '%stag' % fbsduf
 fbvcmd = "freebsd-version"
 fblist = '%stag' % fbsduf
 arch = platform.uname()[4]
-checkfbsdupdate = 'doas fbsdupdatecheck check'
-fetchfbsdupdate = 'doas fbsdupdatecheck fetch'
-installfbsdupdate = 'doas fbsdupdatecheck install'
-checkpkgupgrade = 'doas fbsdpkgupdate check'
-fetchpkgupgrade = 'doas pkg upgrade -Fy'
-isntallpkgupgrade = 'doas pkg upgrade -y'
-lockpkg = 'doas pkg lock -y '
-unlockallpkg = 'doas pkg unlock -ay'
-unlockpkg = 'doas pkg unlock -y '
+checkfbsdupdate = 'fbsdupdatecheck check'
+fetchfbsdupdate = 'fbsdupdatecheck fetch'
+installfbsdupdate = 'fbsdupdatecheck install'
+checkpkgupgrade = 'fbsdpkgupdate check'
+fetchpkgupgrade = 'pkg upgrade -Fy'
+isntallpkgupgrade = 'pkg upgrade -y'
+lockpkg = 'pkg lock -y '
+unlockallpkg = 'pkg unlock -ay'
+unlockpkg = 'pkg unlock -y '
 
 release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
                 stderr=STDOUT, close_fds=True
                 ).stdout.readlines()[0].rstrip()
 
 if not path.isdir(ustation_db):
-    Popen('doas mkdir -p ' + ustation_db, shell=True, close_fds=True)
-    Popen('doas chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
+    Popen('mkdir -p ' + ustation_db, shell=True, close_fds=True)
+    Popen('chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
 
 fbftp = "ftp://ftp.freebsd.org/pub/"
 fbsrcurl = fbftp + "FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
-cleandotdesktop = "doas sh /usr/local/lib/update-station/cleandesktop.sh"
+cleandotdesktop = "sh /usr/local/lib/update-station/cleandesktop.sh"
 
 
 def listofinstal():

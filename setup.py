@@ -21,6 +21,7 @@ __VERSION__ = '1.0'
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
 
+
 def datafilelist(installbase, sourcebase):
     datafileList = []
     for root, subFolders, files in os.walk(sourcebase):
@@ -38,7 +39,8 @@ data_files = [
     (f'{prefix}/share/applications', ['src/update-manager.desktop']),
     (f'{prefix}/lib/update-station', ['src/cleandesktop.sh']),
     (f'{prefix}/lib/update-station', ['src/updateHandler.py']),
-    (f'{prefix}/lib/update-station', ['src/system-software-update.png'])
+    (f'{prefix}/etc/sudoers.d', ['src/sudoers.d/update-station'])
+
 ]
 
 data_files.extend(datafilelist(f'{prefix}/share/locale', 'build/mo'))
