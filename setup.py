@@ -37,7 +37,6 @@ def datafilelist(installbase, sourcebase):
 data_files = [
     (f'{prefix}/etc/xdg/autostart', ['src/update-station.desktop']),
     (f'{prefix}/share/applications', ['src/update-manager.desktop']),
-    (f'{prefix}/lib/update-station', ['src/cleandesktop.sh']),
     (f'{prefix}/lib/update-station', ['src/updateHandler.py']),
     (f'{prefix}/etc/sudoers.d', ['src/sudoers.d/update-station'])
 
