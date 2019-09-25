@@ -287,7 +287,7 @@ rtxt = """The computer needs to restart to use the updated software."""
 class RestartSystem():
 
     def on_reboot(self, widget):
-        Popen('doas shutdown -r now', shell=True)
+        Popen('shutdown -r now', shell=True)
         Gtk.main_quit()
 
     def on_close(self, widget):
@@ -309,7 +309,7 @@ class RestartSystem():
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
         hBox = Gtk.HBox(False, 0)
-        #hBox.set_border_width(5)
+        # hBox.set_border_width(5)
         vBox.pack_start(hBox, False, True, 5)
         hBox.show()
         restart = Gtk.Button("Restart Now")
