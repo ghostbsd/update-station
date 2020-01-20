@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 
-"""All fuction to handle various update for GhostBSD."""
+"""All function to handle various update for GhostBSD."""
 
 from os import listdir, path
 from subprocess import Popen, PIPE, STDOUT, call
@@ -82,11 +82,7 @@ def runcheckupdate():
 
 def checkpkgupdatefromfile():
     uptag = open(pkglist, 'r')
-    if 'UPGRADED:' in uptag.read():
-        return True
-    else:
-        return False
-
+    return 'UPGRADED:' in uptag.read()
 
 def pkgupdatelist():
     uppkg = open(pkglist, 'r')
@@ -122,7 +118,4 @@ def installpkgupdate():
 
 
 def checkforupdate():
-    if checkpkgupdatefromfile() is True:
-        return True
-    else:
-        return False
+    return checkpkgupdatefromfile()
