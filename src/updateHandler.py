@@ -8,14 +8,14 @@ from subprocess import Popen, PIPE, STDOUT, call
 import platform
 
 ustation_db = '/var/db/update-station/'
-pkglockfile = '%slock-pkgs' % ustation_db
+pkglockfile = f'{ustation_db}lock-pkgs'
 pkglist = '/var/db/pkg-update-check/pkg-update-list'
 fbsduf = '/var/db/freebsd-update-check/'
-pkgupdatefile = ustation_db + 'pkg-to-upgrade'
-fbtag = '%stag' % fbsduf
-fblist = '%stag' % fbsduf
-fbvcmd = "freebsd-version"
-fblist = '%stag' % fbsduf
+pkgupdatefile = f'{ustation_db}pkg-to-upgrade'
+fbtag = f'{fbsduf}tag'
+fblist = f'{fbsduf}tag'
+fbvcmd = 'freebsd-version'
+fblist = f'{fbsduf}tag'
 arch = platform.uname()[4]
 checkfbsdupdate = 'fbsdupdatecheck check'
 fetchfbsdupdate = 'fbsdupdatecheck fetch'
@@ -32,19 +32,19 @@ release = Popen('uname -r', shell=True, stdin=PIPE, stdout=PIPE,
                 ).stdout.readlines()[0].rstrip()
 
 if not path.isdir(ustation_db):
-    Popen('mkdir -p ' + ustation_db, shell=True, close_fds=True)
-    Popen('chmod -R 665 ' + ustation_db, shell=True, close_fds=True)
+    Popen(f'mkdir -p {ustation_db}', shell=True, close_fds=True)
+    Popen(f'chmod -R 665 {ustation_db}', shell=True, close_fds=True)
 
-fbftp = "ftp://ftp.freebsd.org/pub/"
-fbsrcurl = fbftp + "FreeBSD/releases/%s/%s/%s/src.txz" % (arch, arch, release)
-cleandotdesktop = "sh /usr/local/lib/update-station/cleandesktop.sh"
+fbftp = 'ftp://ftp.freebsd.org/pub/'
+fbsrcurl = f'{fbftp}FreeBSD/releases/{arch}/{arch}/{release}/src.txz'
+cleandotdesktop = 'sh /usr/local/lib/update-station/cleandesktop.sh'
 
 
 def listofinstal():
     ls = listdir(fbsduf)
     for line in ls:
         if 'install.' in line:
-            uptag = open(fbsduf + line + '/INDEX-NEW', 'r')
+            uptag = open(f'{fbsduf}{line}/INDEX-NEW', 'r')
             info = uptag.readlines()
             return info
 
@@ -53,19 +53,19 @@ def lookfbsdupdate():
     if path.exists(fbtag):
         uptag = open(fbtag, 'r')
         tag = uptag.readlines()[0].rstrip().split('|')
-        return "FreeBSD Update: " + tag[2] + "-p" + tag[3]
+        return f'FreeBSD Update: {tag[2]}-p{tag[3]}'
     else:
         return None
 
 
 def updatetext():
     udatetitle = lookfbsdupdate()
-    text = "Update Details:\n"
-    text += "%s\n\n" % udatetitle
-    text += "The following files will be update:\n"
+    text = 'Update Details:\n'
+    text += f'{udatetitle}\n\n'
+    text += 'The following files will be update:\n'
     for line in listofinstal():
         txtlist = line.split('|')
-        text += "%s" % txtlist[0] + "\n"
+        text += f'{txtlist[0]}\n'
     return text
 
 
@@ -82,7 +82,7 @@ def runcheckupdate():
 
 def checkpkgupdatefromfile():
     uptag = open(pkglist, 'r')
-    if "UPGRADED:" in uptag.read():
+    if 'UPGRADED:' in uptag.read():
         return True
     else:
         return False
@@ -92,14 +92,14 @@ def pkgupdatelist():
     uppkg = open(pkglist, 'r')
     pkgarr = []
     for line in uppkg.readlines():
-        if "->" in line:
+        if '->' in line:
             pkgarr.append(line.rstrip()[1:])
     return pkgarr
 
 
 def lockpkg(pkglist):
     for line in pkglist:
-        call(pkglist + line.rstrip(), shell=True)
+        call(f'{pkglist}{line.rstrip()}', shell=True)
     return True
 
 
