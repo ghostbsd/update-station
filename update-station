@@ -10,8 +10,7 @@ from time import sleep
 from subprocess import Popen
 ustationfile = '/usr/local/lib/update-station/'
 sys.path.append(ustationfile)
-from updateHandler import fetchpkgupdate, installpkgupdate, checkforupdate
-from updateHandler import runcheckupdate, checkpkgupdatefromfile, pkgupdatelist
+from updateHandler import fetchpkgupdate, installpkgupdate, checkforupdate, runcheckupdate, pkgupdatelist
 
 updateToInstall = []
 lockPkg = []
@@ -102,7 +101,7 @@ class UpdateWindow:
 
     def store(self):
         self.tree_store.clear()
-        if checkpkgupdatefromfile() is True:
+        if checkforupdate():
             for line in pkgupdatelist():
                 self.tree_store.append(None, (line, True))
             if "Software Update Available" not in updateToInstall:
