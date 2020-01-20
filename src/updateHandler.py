@@ -68,21 +68,10 @@ def updatetext():
         text += f'{txtlist[0]}\n'
     return text
 
-
-def checkpkgupdate():
-    call(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True,
-         universal_newlines=True)
-    return True
-
-
 def runcheckupdate():
-    checkpkgupdate()
+    call(checkpkgupgrade, shell=True, stdout=PIPE, close_fds=True,
+    universal_newlines=True)
     return True
-
-
-def checkpkgupdatefromfile():
-    uptag = open(pkglist, 'r')
-    return 'UPGRADED:' in uptag.read()
 
 def pkgupdatelist():
     uppkg = open(pkglist, 'r')
@@ -110,12 +99,13 @@ def fetchpkgupdate():
                   universal_newlines=True)
     return fetch.stdout
 
-
+  
 def installpkgupdate():
     install = Popen(isntallpkgupgrade, shell=True, stdout=PIPE, close_fds=True,
                     universal_newlines=True)
     return install.stdout
 
-
+  
 def checkforupdate():
-    return checkpkgupdatefromfile()
+    uptag = open(pkglist, 'r')
+    return 'UPGRADED:' in uptag.read()
