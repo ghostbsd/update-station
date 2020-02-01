@@ -8,9 +8,8 @@ pkg_lock_file = f'{ustation_db}/lock-pkgs'
 
 
 def get_pkg_upgrade():
-    get_pkg_upgrade = 'pkg install -nf vscode'
     pkg_upgrade = Popen(
-        get_pkg_upgrade,
+        'pkg upgrade -n',
         shell=True,
         stdout=PIPE,
         close_fds=True,
