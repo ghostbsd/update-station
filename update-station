@@ -10,8 +10,8 @@ from time import sleep
 from subprocess import Popen
 ustationfile = '/usr/local/lib/update-station/'
 sys.path.append(ustationfile)
-from updateHandler import fetchpkgupdate, installpkgupdate, checkforupdate
-from updateHandler import runcheckupdate, checkpkgupdatefromfile, pkgupdatelist
+from updateHandler import fetch_pkg_update, install_pkg_update
+from updateHandler import get_pkg_upgrade_data, check_for_update
 
 updateToInstall = []
 lockPkg = []
@@ -102,11 +102,33 @@ class UpdateWindow:
 
     def store(self):
         self.tree_store.clear()
-        if checkpkgupdatefromfile() is True:
-            for line in pkgupdatelist():
-                self.tree_store.append(None, (line, True))
-            if "Software Update Available" not in updateToInstall:
-                updateToInstall.extend(["Software Update Available"])
+        packages_dictionary = get_pkg_upgrade_data()
+        if bool(packages_dictionary['remove']):
+            num = len(packages_dictionary['remove'])
+            message = f'Installed packages to be REMOVED: {num}'
+            r_pinter = self.tree_store.append(None, (message, True))
+            for line in packages_dictionary['remove']:
+                self.tree_store.append(r_pinter, (line, True))
+        if bool(packages_dictionary['upgrade']):
+            num = len(packages_dictionary['upgrade'])
+            message = f'Installed packages to be UPGRADED: {num}'
+            u_pinter = self.tree_store.append(None, (message, True))
+            for line in packages_dictionary['upgrade']:
+                self.tree_store.append(u_pinter, (line, True))
+        if bool(packages_dictionary['install']):
+            num = len(packages_dictionary['install'])
+            message = f'New packages to be INSTALED: {num}'
+            i_pinter = self.tree_store.append(None, (message, True))
+            for line in packages_dictionary['install']:
+                self.tree_store.append(i_pinter, (line, True))
+        if bool(packages_dictionary['reinstall']):
+            num = len(packages_dictionary['reinstall'])
+            message = f'Installed packages to be REINSTALL: {num}'
+            ri_pinter = self.tree_store.append(None, (message, True))
+            for line in packages_dictionary['reinstall']:
+                self.tree_store.append(ri_pinter, (line, True))
+        if "Software Update Available" not in updateToInstall:
+            updateToInstall.extend(["Software Update Available"])
         return self.tree_store
 
     def display(self, model):
@@ -182,7 +204,7 @@ class TrayIcon:
         self.statusIcon.set_visible(False)
 
     def updatetray(self):
-        if checkforupdate() is True:
+        if check_for_update() is True:
             self.statusIcon.set_visible(True)
             msg = "system and software upgrade are now available"
             notify = f'notify-send "Update available" "{msg}"'
@@ -202,7 +224,6 @@ class TrayIcon:
             sleep(1200)
             global iconStopRefrech
             if iconStopRefrech is False:
-                runcheckupdate()
                 GLib.idle_add(self.updatetray)
         return True
 
@@ -249,7 +270,7 @@ class InstallUpdate:
         GLib.idle_add(self.update_progress, progress, 0.1, txt)
         print(txt)
         sleep(1)
-        fpu = fetchpkgupdate()
+        fpu = fetch_pkg_update()
         while 1:
             line = fpu.readline()
             if not line:
@@ -263,7 +284,7 @@ class InstallUpdate:
         txt = "Installing packages updates"
         GLib.idle_add(self.update_progress, progress, new_val, txt)
         sleep(1)
-        ipu = installpkgupdate()
+        ipu = install_pkg_update()
         while 1:
             line = ipu.readline()
             if not line:
@@ -357,10 +378,8 @@ class noUpdateAvailable(object):
 
 
 class startCheckUpdate:
-
     def __init__(self):
-        runcheckupdate()
-        if checkforupdate() is True:
+        if check_for_update() is True:
             UpdateWindow()
         else:
             noUpdateAvailable()
