@@ -107,30 +107,36 @@ class UpdateWindow:
 
     def store(self):
         self.tree_store.clear()
+        global total_num
+        r_num = 0
+        u_num = 0
+        i_num = 0
+        ri_num = 0
         if bool(packages_dictionary['remove']):
-            num = len(packages_dictionary['remove'])
-            message = f'Installed packages to be REMOVED: {num}'
+            r_num = len(packages_dictionary['remove'])
+            message = f'Installed packages to be REMOVED: {r_num}'
             r_pinter = self.tree_store.append(None, (message, True))
             for line in packages_dictionary['remove']:
                 self.tree_store.append(r_pinter, (line, True))
         if bool(packages_dictionary['upgrade']):
-            num = len(packages_dictionary['upgrade'])
-            message = f'Installed packages to be UPGRADED: {num}'
+            u_num = len(packages_dictionary['upgrade'])
+            message = f'Installed packages to be UPGRADED: {u_num}'
             u_pinter = self.tree_store.append(None, (message, True))
             for line in packages_dictionary['upgrade']:
                 self.tree_store.append(u_pinter, (line, True))
         if bool(packages_dictionary['install']):
-            num = len(packages_dictionary['install'])
-            message = f'New packages to be INSTALED: {num}'
+            i_num = len(packages_dictionary['install'])
+            message = f'New packages to be INSTALED: {i_num}'
             i_pinter = self.tree_store.append(None, (message, True))
             for line in packages_dictionary['install']:
                 self.tree_store.append(i_pinter, (line, True))
         if bool(packages_dictionary['reinstall']):
-            num = len(packages_dictionary['reinstall'])
-            message = f'Installed packages to be REINSTALL: {num}'
+            ri_num = len(packages_dictionary['reinstall'])
+            message = f'Installed packages to be REINSTALL: {ri_num}'
             ri_pinter = self.tree_store.append(None, (message, True))
             for line in packages_dictionary['reinstall']:
                 self.tree_store.append(ri_pinter, (line, True))
+        total_num = r_num + u_num + i_num + ri_num
         if "Software Update Available" not in updateToInstall:
             updateToInstall.extend(["Software Update Available"])
         return self.tree_store
@@ -269,10 +275,10 @@ class InstallUpdate:
 
     def read_output(self, progress, installupdate):
         fail = False
-        howmany = len(installupdate)
-        fraction = 1.0 / int(howmany)
+        howmany = (total_num * 6) + 30
+        fraction = 1.0 / howmany
         txt = "Fetching packages updates"
-        GLib.idle_add(self.update_progress, progress, 0.1, txt)
+        GLib.idle_add(self.update_progress, progress, fraction, txt)
         sleep(1)
         fetch = Popen(
             'pkg upgrade -Fy',
@@ -287,17 +293,19 @@ class InstallUpdate:
             if fetch.poll() is not None:
                 break
             fetch_text += line
-            GLib.idle_add(self.update_progress, progress, 0.2, line.rstrip())
+            new_val = progress.get_fraction() + fraction
+            GLib.idle_add(self.update_progress, progress, new_val, line.rstrip())
         if fetch.returncode != 0:
             update_fail = open(f'{home}/update.failed', 'w')
             update_fail.writelines(fetch_text)
             update_fail.close()
             fail = True
         else:
-            new_val = progress.get_fraction() + (fraction / 2)
+            new_val = progress.get_fraction() + fraction
             txt = "Packages updates downloaded"
             GLib.idle_add(self.update_progress, progress, new_val, txt)
             sleep(1)
+            new_val = progress.get_fraction() + fraction
             txt = "Installing packages updates"
             GLib.idle_add(self.update_progress, progress, new_val, txt)
             sleep(1)
@@ -314,6 +322,7 @@ class InstallUpdate:
                 if install.poll() is not None:
                     break
                 install_text += line
+                new_val = progress.get_fraction() + fraction
                 GLib.idle_add(self.update_progress, progress, new_val, line.rstrip())
             if install.returncode != 0:
                 update_fail = open(f'{home}/update.failed', 'w')
@@ -321,12 +330,10 @@ class InstallUpdate:
                 update_fail.close()
                 fail = True
             else:
-                new_val = progress.get_fraction() + (fraction / 2)
-                txt = "Packages updates installed"
+                new_val = progress.get_fraction() + fraction
+                txt = "Packages updates completed"
                 GLib.idle_add(self.update_progress, progress, new_val, txt)
                 sleep(1)
-                # to adding sanity check here.
-
         self.win.hide()
         global iconStopRefrech
         iconStopRefrech = False
