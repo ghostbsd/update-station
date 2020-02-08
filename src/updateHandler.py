@@ -28,6 +28,7 @@ def get_pkg_upgrade_data():
     pkg_to_install = []
     pkg_to_reinstall = []
     stop = False
+    system_upgrade = False
     if 'REMOVED:' in update_pkg:
         for line in update_pkg_list:
             if 'REMOVED:' in line:
@@ -45,6 +46,8 @@ def get_pkg_upgrade_data():
                 stop = False
                 break
             elif stop is True:
+                if 'os-generic' in line and system_upgrade is False:
+                    system_upgrade = True
                 pkg_to_upgrade.append(line.strip())
     if ' INSTALLED:' in update_pkg:
         for line in update_pkg_list:
@@ -65,6 +68,7 @@ def get_pkg_upgrade_data():
             elif stop is True:
                 pkg_to_reinstall.append(line.strip())
     pkg_dictionaire = {
+        'system_upgrade': system_upgrade,
         'remove': pkg_to_remove,
         'upgrade': pkg_to_upgrade,
         'install': pkg_to_install,

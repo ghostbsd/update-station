@@ -275,13 +275,16 @@ class InstallUpdate:
 
     def read_output(self, progress, installupdate):
         fail = False
+        option = ''
+        if get_pkg_upgrade_data['system_upgrade'] is True:
+            option = 'f'
         howmany = (total_num * 6) + 30
         fraction = 1.0 / howmany
         txt = "Fetching packages updates"
         GLib.idle_add(self.update_progress, progress, fraction, txt)
         sleep(1)
         fetch = Popen(
-            'pkg upgrade -Fy',
+            f'pkg upgrade -Fy{option}',
             shell=True,
             stdout=PIPE,
             close_fds=True,
@@ -310,7 +313,7 @@ class InstallUpdate:
             GLib.idle_add(self.update_progress, progress, new_val, txt)
             sleep(1)
             install = Popen(
-                'pkg upgrade -y',
+                f'pkg upgrade -y{option}',
                 shell=True,
                 stdout=PIPE,
                 close_fds=True,
