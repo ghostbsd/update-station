@@ -4,14 +4,16 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib, GObject
 import threading
+import os
 import sys
 import socket
 from time import sleep
-from subprocess import Popen
+from subprocess import Popen, PIPE
 ustationfile = '/usr/local/lib/update-station/'
 sys.path.append(ustationfile)
-from updateHandler import fetch_pkg_update, install_pkg_update
 from updateHandler import get_pkg_upgrade_data, check_for_update
+username = socket.gethostname()
+home = os.path.expanduser('~')
 
 updateToInstall = []
 lockPkg = []
@@ -31,6 +33,7 @@ class UpdateWindow:
             self.window.hide()
             global iconStopRefrech
             iconStopRefrech = False
+            statusIcon.set_visible(True)
 
     def delete_event(self, widget):
         if close_session is True:
@@ -40,6 +43,7 @@ class UpdateWindow:
             self.window.hide_on_delete()
             global iconStopRefrech
             iconStopRefrech = False
+            statusIcon.set_visible(True)
 
     def startupdate(self, widget):
         if len(lockPkg) != 0:
@@ -165,15 +169,16 @@ class TrayIcon:
 
     def __init__(self):
         # Statue Tray Code
-        self.statusIcon = Gtk.StatusIcon()
-        self.statusIcon.set_tooltip_text('Update Available')
+        global statusIcon
+        statusIcon = Gtk.StatusIcon()
+        statusIcon.set_tooltip_text('Update Available')
         self.menu = Gtk.Menu()
         self.menu.show_all()
-        self.statusIcon.connect("activate", self.leftclick)
-        self.statusIcon.connect('popup-menu', self.icon_clicked)
-        self.statusIcon.set_visible(False)
+        statusIcon.connect("activate", self.leftclick)
+        statusIcon.connect('popup-menu', self.icon_clicked)
+        statusIcon.set_visible(False)
 
-        self.statusIcon.set_from_icon_name('system-software-update')
+        statusIcon.set_from_icon_name('system-software-update')
 
     def nm_menu(self):
         # right click menue
@@ -188,10 +193,10 @@ class TrayIcon:
         return self.menu
 
     def leftclick(self, status_icon):
-        global iconStopRefrech
+        global iconStopRefrech, statusIcon
         iconStopRefrech = True
         UpdateWindow()
-        self.hide_icon()
+        statusIcon.set_visible(False)
 
     def icon_clicked(self, status_icon, button, time):
         position = Gtk.StatusIcon.position_menu
@@ -199,20 +204,17 @@ class TrayIcon:
         #     return (Gtk.StatusIcon.position_menu(menu, icon))
         self.nm_menu().popup(None, None, position, status_icon, button, time)
 
-    def hide_icon(self):
-        self.statusIcon.set_visible(False)
-
     def updatetray(self):
         if check_for_update() is True:
             global packages_dictionary
             packages_dictionary = get_pkg_upgrade_data()
-            self.statusIcon.set_visible(True)
+            statusIcon.set_visible(True)
             msg = "system and software upgrade are now available"
             notify = f'notify-send "Update available" "{msg}"'
             notify += ' -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
         else:
-            self.statusIcon.set_visible(False)
+            statusIcon.set_visible(False)
         return
 
     def treadingupdate(self):
@@ -222,7 +224,7 @@ class TrayIcon:
 
     def check(self):
         while True:
-            sleep(1200)
+            sleep(60)
             global iconStopRefrech
             if iconStopRefrech is False:
                 GLib.idle_add(self.updatetray)
@@ -265,47 +267,117 @@ class InstallUpdate:
         progress.set_text(text)
 
     def read_output(self, progress, installupdate):
+        fail = False
         howmany = len(installupdate)
         fraction = 1.0 / int(howmany)
         txt = "Fetching packages updates"
         GLib.idle_add(self.update_progress, progress, 0.1, txt)
-        print(txt)
         sleep(1)
-        fpu = fetch_pkg_update()
+        fetch = Popen(
+            'pkg upgrade -Fy',
+            shell=True,
+            stdout=PIPE,
+            close_fds=True,
+            universal_newlines=True
+        )
+        fetch_text = ""
         while 1:
-            line = fpu.readline()
-            if not line:
+            line = fetch.stdout.readline()
+            if fetch.poll() is not None:
                 break
-            text = line.rstrip()
-            GLib.idle_add(self.update_progress, progress, 0.2, text)
-        new_val = progress.get_fraction() + (fraction / 2)
-        txt = "Packages updates downloaded"
-        GLib.idle_add(self.update_progress, progress, new_val, text)
-        sleep(1)
-        txt = "Installing packages updates"
-        GLib.idle_add(self.update_progress, progress, new_val, txt)
-        sleep(1)
-        ipu = install_pkg_update()
-        while 1:
-            line = ipu.readline()
-            if not line:
-                break
-            text = line.rstrip()
-            GLib.idle_add(self.update_progress, progress, new_val, text)
-        new_val = progress.get_fraction() + (fraction / 2)
-        txt = "Packages updates installed"
-        GLib.idle_add(self.update_progress, progress, new_val, txt)
-        sleep(1)
-        # to adding sanity check here.
+            fetch_text += line
+            GLib.idle_add(self.update_progress, progress, 0.2, line.rstrip())
+        if fetch.returncode != 0:
+            update_fail = open(f'{home}/update.failed', 'w')
+            update_fail.writelines(fetch_text)
+            update_fail.close()
+            fail = True
+        else:
+            new_val = progress.get_fraction() + (fraction / 2)
+            txt = "Packages updates downloaded"
+            GLib.idle_add(self.update_progress, progress, new_val, txt)
+            sleep(1)
+            txt = "Installing packages updates"
+            GLib.idle_add(self.update_progress, progress, new_val, txt)
+            sleep(1)
+            install = Popen(
+                'pkg upgrade -y',
+                shell=True,
+                stdout=PIPE,
+                close_fds=True,
+                universal_newlines=True
+            )
+            install_text = ""
+            while 1:
+                line = install.stdout.readline()
+                if install.poll() is not None:
+                    break
+                install_text += line
+                GLib.idle_add(self.update_progress, progress, new_val, line.rstrip())
+            if install.returncode != 0:
+                update_fail = open(f'{home}/update.failed', 'w')
+                update_fail.writelines(install_text)
+                update_fail.close()
+                fail = True
+            else:
+                new_val = progress.get_fraction() + (fraction / 2)
+                txt = "Packages updates installed"
+                GLib.idle_add(self.update_progress, progress, new_val, txt)
+                sleep(1)
+                # to adding sanity check here.
+
         self.win.hide()
         global iconStopRefrech
         iconStopRefrech = False
         # RestartSystem()
-        GObject.idle_add(self.stop_tread)
+        GObject.idle_add(self.stop_tread, fail)
 
-    def stop_tread(self):
+    def stop_tread(self, fail):
         self.thr.join()
-        RestartSystem()
+        if fail is True:
+            failed_update()
+        else:
+            RestartSystem()
+
+
+ftxt = """Press 'Detail' to get informations about the failure.
+Get help at https://forums.ghostbsd.org"""
+
+
+class failed_update():
+
+    def get_detail(self, widget):
+        Popen(f'sudo -u {username} xdg-open {home}/update.failed', shell=True)
+
+    def on_close(self, widget):
+        if close_session is True:
+            Gtk.main_quit()
+        else:
+            self.window.hide()
+
+    def __init__(self):
+        self.window = Gtk.Window()
+        self.window.set_position(Gtk.WindowPosition.CENTER)
+        # self.window.set_border_width(8)
+        self.window.connect("destroy", self.on_close)
+        self.window.set_title("Update Failed")
+        vBox = Gtk.VBox(homogeneous=False, spacing=0)
+        self.window.add(vBox)
+        vBox.show()
+        label = Gtk.Label(label=ftxt)
+        vBox.set_border_width(5)
+        vBox.pack_start(label, False, False, 5)
+        hBox = Gtk.HBox(homogeneous=False, spacing=0)
+        # hBox.set_border_width(5)
+        vBox.pack_start(hBox, False, True, 5)
+        hBox.show()
+        restart = Gtk.Button("Detail")
+        restart.connect("clicked", self.get_detail)
+        continuebtn = Gtk.Button("Close")
+        continuebtn.connect("clicked", self.on_close)
+        hBox.pack_end(continuebtn, False, False, 5)
+        hBox.pack_end(restart, False, False, 5)
+        self.window.show_all()
 
 
 rtxt = """The computer needs to restart to use the updated software."""

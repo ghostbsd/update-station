@@ -99,28 +99,6 @@ def unlock_pkg(Lock_pkg_list):
     return True
 
 
-def fetch_pkg_update():
-    fetch = Popen(
-        'pkg upgrade -Fy',
-        shell=True,
-        stdout=PIPE,
-        close_fds=True,
-        universal_newlines=True
-    )
-    return fetch.stdout
-
-
-def install_pkg_update():
-    install = Popen(
-        'pkg upgrade -y',
-        shell=True,
-        stdout=PIPE,
-        close_fds=True,
-        universal_newlines=True
-    )
-    return install.stdout
-
-
 def check_for_update():
     if 'Your packages are up to date' in get_pkg_upgrade():
         return False
