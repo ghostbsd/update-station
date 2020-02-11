@@ -276,7 +276,7 @@ class InstallUpdate:
     def read_output(self, progress, installupdate):
         fail = False
         option = ''
-        if get_pkg_upgrade_data['system_upgrade'] is True:
+        if packages_dictionary['system_upgrade'] is True:
             option = 'f'
         howmany = (total_num * 6) + 30
         fraction = 1.0 / howmany
