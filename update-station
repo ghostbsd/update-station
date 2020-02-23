@@ -21,7 +21,8 @@ lockPkg = []
 insingal = True
 threadBreak = False
 uwinstatue = True
-iconStopRefrech = False
+stop_pkg_refreshing = False
+stop_icon_refreshing = False
 
 
 class UpdateWindow:
@@ -31,8 +32,8 @@ class UpdateWindow:
             Gtk.main_quit()
         else:
             self.window.hide()
-            global iconStopRefrech
-            iconStopRefrech = False
+            global stop_pkg_refreshing
+            stop_pkg_refreshing = False
             statusIcon.set_visible(True)
 
     def delete_event(self, widget):
@@ -41,8 +42,8 @@ class UpdateWindow:
         else:
             # don't delete; hide instead
             self.window.hide_on_delete()
-            global iconStopRefrech
-            iconStopRefrech = False
+            global stop_pkg_refreshing
+            stop_pkg_refreshing = False
             statusIcon.set_visible(True)
 
     def startupdate(self, widget):
@@ -199,8 +200,8 @@ class TrayIcon:
         return self.menu
 
     def leftclick(self, status_icon):
-        global iconStopRefrech, statusIcon
-        iconStopRefrech = True
+        global stop_pkg_refreshing, statusIcon
+        stop_pkg_refreshing = True
         UpdateWindow()
         statusIcon.set_visible(False)
 
@@ -212,8 +213,8 @@ class TrayIcon:
 
     def updatetray(self):
         if check_for_update() is True:
-            global packages_dictionary
-            packages_dictionary = get_pkg_upgrade_data()
+            global stop_icon_refreshing
+            stop_icon_refreshing = True
             statusIcon.set_visible(True)
             msg = "system and software upgrade are now available"
             notify = f'notify-send "Update available" "{msg}"'
@@ -231,8 +232,10 @@ class TrayIcon:
     def check(self):
         while True:
             sleep(1200)
-            global iconStopRefrech
-            if iconStopRefrech is False:
+            global packages_dictionary
+            if stop_pkg_refreshing is False:
+                packages_dictionary = get_pkg_upgrade_data()
+            if stop_icon_refreshing is False:
                 GLib.idle_add(self.updatetray)
         return True
 
@@ -275,16 +278,21 @@ class InstallUpdate:
 
     def read_output(self, progress, installupdate):
         fail = False
+        update_pkg = False
         option = ''
+        packages = ''
+        if len(packages_dictionary['upgrade']) == 1 and 'pkg' in packages_dictionary['upgrade'][0]:
+            update_pkg = True
+            packages = ' pkg'
         if packages_dictionary['system_upgrade'] is True:
             option = 'f'
-        howmany = (total_num * 6) + 30
+        howmany = (total_num * 5) + 30
         fraction = 1.0 / howmany
         txt = "Fetching packages updates"
         GLib.idle_add(self.update_progress, progress, fraction, txt)
         sleep(1)
         fetch = Popen(
-            f'pkg upgrade -Fy{option}',
+            f'pkg upgrade -Fy{option}{packages}',
             shell=True,
             stdout=PIPE,
             close_fds=True,
@@ -313,7 +321,7 @@ class InstallUpdate:
             GLib.idle_add(self.update_progress, progress, new_val, txt)
             sleep(1)
             install = Popen(
-                f'pkg upgrade -y{option}',
+                f'pkg upgrade -y{option}{packages}',
                 shell=True,
                 stdout=PIPE,
                 close_fds=True,
@@ -338,16 +346,23 @@ class InstallUpdate:
                 GLib.idle_add(self.update_progress, progress, new_val, txt)
                 sleep(1)
         self.win.hide()
-        global iconStopRefrech
-        iconStopRefrech = False
-        GObject.idle_add(self.stop_tread, fail)
+        GObject.idle_add(self.stop_tread, fail, update_pkg)
 
-    def stop_tread(self, fail):
+    def stop_tread(self, fail, update_pkg):
+        global packages_dictionary, stop_icon_refreshing, stop_pkg_refreshing
         self.thr.join()
         if fail is True:
+            stop_icon_refreshing = False
+            stop_pkg_refreshing = False
             failed_update()
         else:
-            RestartSystem()
+            if update_pkg is True and check_for_update() is True:
+                packages_dictionary = get_pkg_upgrade_data()
+                UpdateWindow()
+            else:
+                stop_icon_refreshing = False
+                stop_pkg_refreshing = False
+                RestartSystem()
 
 
 ftxt = """Press 'Detail' to get informations about the failure.

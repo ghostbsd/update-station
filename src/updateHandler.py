@@ -7,9 +7,9 @@ ustation_db = '/var/db/update-station'
 pkg_lock_file = f'{ustation_db}/lock-pkgs'
 
 
-def get_pkg_upgrade():
+def get_pkg_upgrade(option):
     pkg_upgrade = Popen(
-        'pkg upgrade -n',
+        f'pkg upgrade -n{option}',
         shell=True,
         stdout=PIPE,
         close_fds=True,
@@ -21,14 +21,19 @@ def get_pkg_upgrade():
 
 
 def get_pkg_upgrade_data():
-    update_pkg = get_pkg_upgrade()
+    option = ''
+    system_upgrade = False
+    get_pkg_upgrade(option)
+    if 'os-generic' in get_pkg_upgrade(option):
+        system_upgrade = True
+        option = 'f'
+    update_pkg = get_pkg_upgrade(option)
     update_pkg_list = update_pkg.splitlines()
     pkg_to_remove = []
     pkg_to_upgrade = []
     pkg_to_install = []
     pkg_to_reinstall = []
     stop = False
-    system_upgrade = False
     if 'REMOVED:' in update_pkg:
         for line in update_pkg_list:
             if 'REMOVED:' in line:
@@ -46,8 +51,6 @@ def get_pkg_upgrade_data():
                 stop = False
                 break
             elif stop is True:
-                if 'os-generic' in line and system_upgrade is False:
-                    system_upgrade = True
                 pkg_to_upgrade.append(line.strip())
     if ' INSTALLED:' in update_pkg:
         for line in update_pkg_list:
@@ -104,7 +107,8 @@ def unlock_pkg(Lock_pkg_list):
 
 
 def check_for_update():
-    if 'Your packages are up to date' in get_pkg_upgrade():
+    option = ''
+    if 'Your packages are up to date' in get_pkg_upgrade(option):
         return False
     else:
         return True
