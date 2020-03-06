@@ -108,7 +108,16 @@ def unlock_pkg(Lock_pkg_list):
 
 def check_for_update():
     option = ''
-    if 'Your packages are up to date' in get_pkg_upgrade(option):
+    upgrade_text = get_pkg_upgrade(option)
+    if 'Your packages are up to date' in upgrade_text:
         return False
-    else:
+    elif 'UPGRADED:' in upgrade_text:
         return True
+    elif ' INSTALLED:' in upgrade_text:
+        return True
+    elif 'REINSTALLED:' in upgrade_text:
+        return True
+    elif 'REMOVED:' in upgrade_text:
+        return True
+    else:
+        return False
