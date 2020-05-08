@@ -22,7 +22,7 @@ insingal = True
 threadBreak = False
 uwinstatue = True
 stop_pkg_refreshing = False
-stop_icon_refreshing = False
+
 
 
 class UpdateWindow:
@@ -214,7 +214,6 @@ class TrayIcon:
     def updatetray(self):
         if check_for_update() is True:
             global stop_icon_refreshing
-            stop_icon_refreshing = True
             statusIcon.set_visible(True)
             msg = "system and software upgrade are now available"
             notify = f'notify-send "Update available" "{msg}"'
@@ -235,7 +234,6 @@ class TrayIcon:
             global packages_dictionary
             if stop_pkg_refreshing is False:
                 packages_dictionary = get_pkg_upgrade_data()
-            if stop_icon_refreshing is False:
                 GLib.idle_add(self.updatetray)
         return True
 
@@ -352,7 +350,6 @@ class InstallUpdate:
         global packages_dictionary, stop_icon_refreshing, stop_pkg_refreshing
         self.thr.join()
         if fail is True:
-            stop_icon_refreshing = False
             stop_pkg_refreshing = False
             failed_update()
         else:
@@ -360,7 +357,6 @@ class InstallUpdate:
                 packages_dictionary = get_pkg_upgrade_data()
                 UpdateWindow()
             else:
-                stop_icon_refreshing = False
                 stop_pkg_refreshing = False
                 RestartSystem()
 
