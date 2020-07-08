@@ -24,7 +24,6 @@ uwinstatue = True
 stop_pkg_refreshing = False
 
 
-
 class UpdateWindow:
 
     def hidewindow(self, widget):
@@ -279,7 +278,7 @@ class InstallUpdate:
         update_pkg = False
         option = ''
         packages = ''
-        if len(packages_dictionary['upgrade']) == 1 and 'pkg-' in packages_dictionary['upgrade'][0] and '-pkg-' not in packages_dictionary['upgrade'][0]:
+        if len(packages_dictionary['upgrade']) == 1 and 'pkg:' in packages_dictionary['upgrade'][0]:
             update_pkg = True
             packages = ' pkg'
         if packages_dictionary['system_upgrade'] is True:
