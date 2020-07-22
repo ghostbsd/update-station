@@ -7,12 +7,13 @@ import threading
 import os
 import sys
 import socket
+import getpass
 from time import sleep
 from subprocess import Popen, PIPE
 ustationfile = '/usr/local/lib/update-station/'
 sys.path.append(ustationfile)
 from updateHandler import get_pkg_upgrade_data, check_for_update
-username = socket.gethostname()
+username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
 
 updateToInstall = []
@@ -483,6 +484,30 @@ class startCheckUpdate:
             noUpdateAvailable()
 
 
+class not_root(Gtk.Window):
+    def __init__(self):
+        Gtk.Window.__init__(self)
+        self.set_title("Software Station")
+        self.connect("delete-event", Gtk.main_quit)
+        self.set_size_request(200, 80)
+        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        self.add(box1)
+        box1.show()
+        label = Gtk.Label(label='You need to be root')
+        box1.pack_start(label, True, True, 0)
+        hBox = Gtk.HBox(homogeneous=False, spacing=0)
+        hBox.show()
+        box1.pack_end(hBox, False, False, 5)
+        ok_button = Gtk.Button()
+        ok_button.set_label("OK")
+        apply_img = Gtk.Image()
+        apply_img.set_from_icon_name('gtk-ok', 1)
+        ok_button.set_image(apply_img)
+        ok_button.connect("clicked", Gtk.main_quit)
+        hBox.pack_end(ok_button, False, False, 5)
+        self.show_all()
+
+
 arg = sys.argv
 UsageMSG = """
 Usage for %s:
@@ -494,21 +519,24 @@ check-now       - Lock for update now
 """ % arg[0]
 
 global close_session
-
-if len(arg) > 2:
-    print(UsageMSG)
-    sys.exit(0)
-elif len(arg) == 1:
-    if socket.gethostname() != 'ghostbsd':
-        close_session = False
-        TrayIcon().treadingupdate()
+if os.geteuid() == 0:
+    if len(arg) > 2:
+        print(UsageMSG)
+        sys.exit(0)
+    elif len(arg) == 1:
+        if socket.gethostname() != 'livecd':
+            close_session = False
+            TrayIcon().treadingupdate()
+            Gtk.main()
+        else:
+            exit()
+    elif len(arg) == 2 and arg[1] == "check-now":
+        close_session = True
+        startCheckUpdate()
         Gtk.main()
     else:
-        exit()
-elif len(arg) == 2 and arg[1] == "check-now":
-    close_session = True
-    startCheckUpdate()
-    Gtk.main()
+        print(UsageMSG)
+        sys.exit(0)
 else:
-    print(UsageMSG)
-    sys.exit(0)
+    not_root()
+    Gtk.main()
