@@ -2,12 +2,14 @@
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GLib, GObject
+from gi.repository import Gtk, GLib
+import datetime
 import threading
 import os
 import sys
 import socket
 import getpass
+import bectl
 from time import sleep
 from subprocess import Popen, PIPE
 ustationfile = '/usr/local/lib/update-station/'
@@ -18,7 +20,8 @@ home = os.path.expanduser('~')
 
 updateToInstall = []
 lockPkg = []
-
+global backup
+backup = False
 insingal = True
 threadBreak = False
 uwinstatue = True
@@ -55,17 +58,31 @@ class UpdateWindow:
                 self.insingal = False
                 self.window.hide()
 
+    def if_backup(self, widget):
+        global backup
+        backup = widget.get_active()
+
     def create_bbox(self):
-        table = Gtk.Table(n_rows=1, n_columns=5, homogeneous=True)
-        button = Gtk.Button(label="Install update")
-        table.attach(button, 0, 1, 0, 1)
-        button.connect("clicked", self.startupdate)
-        # button = Gtk.Button(stock=Gtk.STOCK_CLOSE)
+        table = Gtk.Table(n_rows=1, n_columns=5, homogeneous=False, column_spacing=5)
+        backup_checkbox = Gtk.CheckButton(label="Create boot environment backup")
+        table.attach(backup_checkbox, 0, 1, 0, 1)
+        backup_checkbox.connect("toggled", self.if_backup)
+        if len(bectl.get_be_list()) >= 2:
+            backup_checkbox.set_active(True)
+            backup_checkbox.set_sensitive(True)
+        else:
+            backup_checkbox.set_active(False)
+            backup_checkbox.set_sensitive(False)
+        global backup
+        backup = backup_checkbox.get_active()
         img = Gtk.Image(icon_name='window-close')
-        button = Gtk.Button(label="Close")
-        button.set_image(img)
-        table.attach(button, 4, 5, 0, 1)
-        button.connect("clicked", self.hidewindow)
+        Close_button = Gtk.Button(label="Close")
+        Close_button.set_image(img)
+        table.attach(Close_button, 3, 4, 0, 1)
+        Close_button.connect("clicked", self.hidewindow)
+        install_button = Gtk.Button(label="Install update")
+        table.attach(install_button, 4, 5, 0, 1)
+        install_button.connect("clicked", self.startupdate)
         return table
 
     def __init__(self):
@@ -73,7 +90,7 @@ class UpdateWindow:
         # window
         self.window = Gtk.Window()
         self.window.connect("destroy", self.delete_event)
-        self.window.set_size_request(600, 400)
+        self.window.set_size_request(700, 400)
         self.window.set_resizable(False)
         self.window.set_title("Update Manager")
         self.window.set_border_width(0)
@@ -100,10 +117,10 @@ class UpdateWindow:
         box2.pack_start(sw, True, True, 10)
         box2 = Gtk.HBox(homogeneous=False, spacing=10)
         box2.set_border_width(5)
-        box1.pack_start(box2, False, False, 0)
+        box1.pack_start(box2, False, False, 5)
         box2.show()
         # Add button
-        box2.pack_start(self.create_bbox(), True, True, 5)
+        box2.pack_start(self.create_bbox(), True, True, 10)
         self.window.show_all()
 
     def store(self):
@@ -286,8 +303,15 @@ class InstallUpdate:
             option = 'f'
         howmany = (total_num * 5) + 30
         fraction = 1.0 / howmany
+        if backup:
+            backup_name = datetime.datetime.now().strftime("backup-%Y-%m-%d-%H-%M")
+            txt = f"Creating boot environment {backup_name}"
+            GLib.idle_add(self.update_progress, progress, fraction, txt)
+            bectl.create_be(newBeName=backup_name)
+            sleep(1)
         txt = "Fetching packages updates"
-        GLib.idle_add(self.update_progress, progress, fraction, txt)
+        new_val = progress.get_fraction() + fraction
+        GLib.idle_add(self.update_progress, progress, new_val, txt)
         sleep(1)
         fetch = Popen(
             f'pkg upgrade -Fy{option}{packages}',
@@ -344,7 +368,7 @@ class InstallUpdate:
                 GLib.idle_add(self.update_progress, progress, new_val, txt)
                 sleep(1)
         self.win.hide()
-        GObject.idle_add(self.stop_tread, fail, update_pkg)
+        GLib.idle_add(self.stop_tread, fail, update_pkg)
 
     def stop_tread(self, fail, update_pkg):
         global packages_dictionary, stop_icon_refreshing, stop_pkg_refreshing
@@ -435,9 +459,9 @@ class RestartSystem():
         # hBox.set_border_width(5)
         vBox.pack_start(hBox, False, True, 5)
         hBox.show()
-        restart = Gtk.Button("Restart Now")
+        restart = Gtk.Button(label="Restart Now")
         restart.connect("clicked", self.on_reboot)
-        continuebtn = Gtk.Button("Restart Later")
+        continuebtn = Gtk.Button(label="Restart Later")
         continuebtn.connect("clicked", self.on_close)
         hBox.pack_end(continuebtn, False, False, 5)
         hBox.pack_end(restart, False, False, 5)
@@ -517,6 +541,7 @@ Available Commands:
 check-now       - Lock for update now
 
 """ % arg[0]
+
 
 global close_session
 if os.geteuid() == 0:
