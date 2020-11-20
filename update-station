@@ -20,8 +20,9 @@ home = os.path.expanduser('~')
 
 updateToInstall = []
 lockPkg = []
-global backup
+global backup, second, insingal, threadBreak, uwinstatue, stop_pkg_refreshing
 backup = False
+second = False
 insingal = True
 threadBreak = False
 uwinstatue = True
@@ -67,7 +68,7 @@ class UpdateWindow:
         backup_checkbox = Gtk.CheckButton(label="Create boot environment backup")
         table.attach(backup_checkbox, 0, 1, 0, 1)
         backup_checkbox.connect("toggled", self.if_backup)
-        if len(bectl.get_be_list()) >= 2:
+        if len(bectl.get_be_list()) >= 2 and second is False:
             backup_checkbox.set_active(True)
             backup_checkbox.set_sensitive(True)
         else:
@@ -296,9 +297,13 @@ class InstallUpdate:
         update_pkg = False
         option = ''
         packages = ''
+        global second
         if len(packages_dictionary['upgrade']) == 1 and 'pkg:' in packages_dictionary['upgrade'][0]:
             update_pkg = True
             packages = ' pkg'
+            second = True
+        else:
+            second = False
         if packages_dictionary['system_upgrade'] is True:
             option = 'f'
         howmany = (total_num * 5) + 30
