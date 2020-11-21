@@ -1,23 +1,23 @@
 #!/usr/local/bin/python
-
+import bectl
+import datetime
+import getpass
 import gi
+import json
+import os
+import re
+import socket
+import sys
+import threading
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
-import datetime
-import threading
-import os
-import sys
-import socket
-import getpass
-import bectl
-from time import sleep
 from subprocess import Popen, PIPE
-ustationfile = '/usr/local/lib/update-station/'
-sys.path.append(ustationfile)
+from time import sleep
+lib_path = f'{sys.prefix}/lib/update-station'
+sys.path.append(lib_path)
 from updateHandler import get_pkg_upgrade_data, check_for_update
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
-
 updateToInstall = []
 lockPkg = []
 global backup, second, insingal, threadBreak, uwinstatue, stop_pkg_refreshing
@@ -298,6 +298,9 @@ class InstallUpdate:
         option = ''
         packages = ''
         global second
+        need_reboot_packages = set(json.loads(open(f'{lib_path}/need_reboot.json').read()))
+        upgrade_packages = set(re.split(": | ", " ".join(packages_dictionary['upgrade'])))
+        reboot = bool(need_reboot_packages.intersection(upgrade_packages))
         if len(packages_dictionary['upgrade']) == 1 and 'pkg:' in packages_dictionary['upgrade'][0]:
             update_pkg = True
             packages = ' pkg'
@@ -373,9 +376,9 @@ class InstallUpdate:
                 GLib.idle_add(self.update_progress, progress, new_val, txt)
                 sleep(1)
         self.win.hide()
-        GLib.idle_add(self.stop_tread, fail, update_pkg)
+        GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
 
-    def stop_tread(self, fail, update_pkg):
+    def stop_tread(self, fail, update_pkg, reboot):
         global packages_dictionary, stop_icon_refreshing, stop_pkg_refreshing
         self.thr.join()
         if fail is True:
@@ -387,7 +390,8 @@ class InstallUpdate:
                 UpdateWindow()
             else:
                 stop_pkg_refreshing = False
-                RestartSystem()
+                if reboot is True:
+                    RestartSystem()
 
 
 ftxt = """Press 'Detail' to get informations about the failure.
