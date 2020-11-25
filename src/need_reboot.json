@@ -49,6 +49,7 @@
     "os-generic-userland-rescue",
     "os-generic-userland-sbin",
     "os-generic-userland-tests",
+    "update-staion",
     "wayland",
     "wayland-logout",
     "wayland-protocols",
