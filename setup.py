@@ -14,7 +14,7 @@ from setuptools import setup
 # ,,python setup.py build_i18n -m''
 
 # silence pyflakes, __VERSION__ is properly assigned below...
-__VERSION__ = '1.0'
+__VERSION__ = '3.4'
 # for line in file('networkmgr').readlines():
 #    if (line.startswith('__VERSION__')):
 #        exec(line.strip())
@@ -38,6 +38,7 @@ data_files = [
     (f'{prefix}/etc/xdg/autostart', ['src/update-station.desktop']),
     (f'{prefix}/share/applications', ['src/update-manager.desktop']),
     (f'{prefix}/lib/update-station', ['src/updateHandler.py']),
+    (f'{prefix}/lib/update-station', ['src/need_reboot.json']),
     (f'{prefix}/etc/sudoers.d', ['src/sudoers.d/update-station'])
 
 ]

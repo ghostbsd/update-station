@@ -1,23 +1,23 @@
 #!/usr/local/bin/python
-
+import bectl
+import datetime
+import getpass
 import gi
+import json
+import os
+import re
+import socket
+import sys
+import threading
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
-import datetime
-import threading
-import os
-import sys
-import socket
-import getpass
-import bectl
-from time import sleep
 from subprocess import Popen, PIPE
-ustationfile = '/usr/local/lib/update-station/'
-sys.path.append(ustationfile)
+from time import sleep
+lib_path = f'{sys.prefix}/lib/update-station'
+sys.path.append(lib_path)
 from updateHandler import get_pkg_upgrade_data, check_for_update
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
-
 updateToInstall = []
 lockPkg = []
 global backup, second, insingal, threadBreak, uwinstatue, stop_pkg_refreshing
@@ -298,6 +298,9 @@ class InstallUpdate:
         option = ''
         packages = ''
         global second
+        need_reboot_packages = set(json.loads(open(f'{lib_path}/need_reboot.json').read()))
+        upgrade_packages = set(re.split(": | ", " ".join(packages_dictionary['upgrade'])))
+        reboot = bool(need_reboot_packages.intersection(upgrade_packages))
         if len(packages_dictionary['upgrade']) == 1 and 'pkg:' in packages_dictionary['upgrade'][0]:
             update_pkg = True
             packages = ' pkg'
@@ -373,9 +376,9 @@ class InstallUpdate:
                 GLib.idle_add(self.update_progress, progress, new_val, txt)
                 sleep(1)
         self.win.hide()
-        GLib.idle_add(self.stop_tread, fail, update_pkg)
+        GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
 
-    def stop_tread(self, fail, update_pkg):
+    def stop_tread(self, fail, update_pkg, reboot):
         global packages_dictionary, stop_icon_refreshing, stop_pkg_refreshing
         self.thr.join()
         if fail is True:
@@ -387,7 +390,10 @@ class InstallUpdate:
                 UpdateWindow()
             else:
                 stop_pkg_refreshing = False
-                RestartSystem()
+                if reboot is True:
+                    RestartSystem()
+                else:
+                    UpdateCompleted()
 
 
 ftxt = """Press 'Detail' to get informations about the failure.
@@ -432,9 +438,6 @@ class failed_update():
         self.window.show_all()
 
 
-rtxt = """The computer needs to restart to use the updated software."""
-
-
 class RestartSystem():
 
     def on_reboot(self, widget):
@@ -457,6 +460,7 @@ class RestartSystem():
         vBox = Gtk.VBox(homogeneous=False, spacing=0)
         self.window.add(vBox)
         vBox.show()
+        rtxt = """The computer needs to restart to use the updated software."""
         label = Gtk.Label(label=rtxt)
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
@@ -470,6 +474,37 @@ class RestartSystem():
         continuebtn.connect("clicked", self.on_close)
         hBox.pack_end(continuebtn, False, False, 5)
         hBox.pack_end(restart, False, False, 5)
+        self.window.show_all()
+
+
+class UpdateCompleted():
+
+    def on_close(self, widget):
+        if close_session is True:
+            Gtk.main_quit()
+        else:
+            self.window.hide()
+
+    def __init__(self):
+        self.window = Gtk.Window()
+        self.window.set_position(Gtk.WindowPosition.CENTER)
+        self.window.connect("destroy", self.on_close)
+        self.window.set_title("Update Completed")
+        self.window.set_default_icon_name('system-software-update')
+        vBox = Gtk.VBox(homogeneous=False, spacing=0)
+        self.window.add(vBox)
+        vBox.show()
+        rtxt = """All software on this computer are up to date."""
+        label = Gtk.Label(label=rtxt)
+        vBox.set_border_width(5)
+        vBox.pack_start(label, False, False, 5)
+        hBox = Gtk.HBox(homogeneous=False, spacing=0)
+        # hBox.set_border_width(5)
+        vBox.pack_start(hBox, False, True, 5)
+        hBox.show()
+        close_button = Gtk.Button(label="Close")
+        close_button.connect("clicked", self.on_close)
+        hBox.pack_end(close_button, False, False, 5)
         self.window.show_all()
 
 
@@ -491,7 +526,7 @@ class noUpdateAvailable(object):
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
         box2.show()
-        label = Gtk.Label(label="No update available, this system is up to date.")
+        label = Gtk.Label(label="No update available, this computer is up to date.")
         box2.pack_start(label, False, False, 0)
         box2 = Gtk.HBox(homogeneous=False, spacing=10)
         box2.set_border_width(5)
