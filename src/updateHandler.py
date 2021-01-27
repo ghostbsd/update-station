@@ -1,5 +1,5 @@
 #!/usr/local/bin/python
-"""All fuction to handle various update for GhostBSD."""
+"""All functions to handle various updates for GhostBSD."""
 
 from subprocess import Popen, PIPE, call
 
