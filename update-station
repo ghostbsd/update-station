@@ -396,7 +396,7 @@ class InstallUpdate:
                     UpdateCompleted()
 
 
-ftxt = """Press \"Detail\" to get information about the failure.
+ftxt = """Press "Detail" to get information about the failure.
 Get help at https://forums.ghostbsd.org."""
 
 
