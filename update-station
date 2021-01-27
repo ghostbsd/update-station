@@ -145,13 +145,13 @@ class UpdateWindow:
                 self.tree_store.append(u_pinter, (line, True))
         if bool(packages_dictionary['install']):
             i_num = len(packages_dictionary['install'])
-            message = f'New packages to be INSTALED: {i_num}'
+            message = f'New packages to be INSTALLED: {i_num}'
             i_pinter = self.tree_store.append(None, (message, True))
             for line in packages_dictionary['install']:
                 self.tree_store.append(i_pinter, (line, True))
         if bool(packages_dictionary['reinstall']):
             ri_num = len(packages_dictionary['reinstall'])
-            message = f'Installed packages to be REINSTALL: {ri_num}'
+            message = f'Installed packages to be REINSTALLED: {ri_num}'
             ri_pinter = self.tree_store.append(None, (message, True))
             for line in packages_dictionary['reinstall']:
                 self.tree_store.append(ri_pinter, (line, True))
@@ -233,7 +233,7 @@ class TrayIcon:
         if check_for_update() is True:
             global stop_icon_refreshing
             statusIcon.set_visible(True)
-            msg = "system and software upgrade are now available"
+            msg = "System and software upgrades are now available"
             notify = f'notify-send "Update available" "{msg}"'
             notify += ' -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
@@ -266,7 +266,7 @@ class InstallUpdate:
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.set_size_request(500, 75)
         self.win.set_resizable(False)
-        self.win.set_title("installing Update")
+        self.win.set_title("Installing Update")
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WindowPosition.CENTER)
         self.win.set_default_icon_name('system-software-update')
@@ -317,7 +317,7 @@ class InstallUpdate:
             GLib.idle_add(self.update_progress, progress, fraction, txt)
             bectl.create_be(newBeName=backup_name)
             sleep(1)
-        txt = "Fetching packages updates"
+        txt = "Fetching package updates"
         new_val = progress.get_fraction() + fraction
         GLib.idle_add(self.update_progress, progress, new_val, txt)
         sleep(1)
@@ -343,11 +343,11 @@ class InstallUpdate:
             fail = True
         else:
             new_val = progress.get_fraction() + fraction
-            txt = "Packages updates downloaded"
+            txt = "Package updates downloaded"
             GLib.idle_add(self.update_progress, progress, new_val, txt)
             sleep(1)
             new_val = progress.get_fraction() + fraction
-            txt = "Installing packages updates"
+            txt = "Installing package updates"
             GLib.idle_add(self.update_progress, progress, new_val, txt)
             sleep(1)
             install = Popen(
@@ -372,7 +372,7 @@ class InstallUpdate:
                 fail = True
             else:
                 new_val = progress.get_fraction() + fraction
-                txt = "Packages updates completed"
+                txt = "Package updates completed"
                 GLib.idle_add(self.update_progress, progress, new_val, txt)
                 sleep(1)
         self.win.hide()
@@ -396,8 +396,8 @@ class InstallUpdate:
                     UpdateCompleted()
 
 
-ftxt = """Press 'Detail' to get informations about the failure.
-Get help at https://forums.ghostbsd.org"""
+ftxt = """Press \"Detail\" to get information about the failure.
+Get help at https://forums.ghostbsd.org."""
 
 
 class failed_update():
@@ -494,7 +494,7 @@ class UpdateCompleted():
         vBox = Gtk.VBox(homogeneous=False, spacing=0)
         self.window.add(vBox)
         vBox.show()
-        rtxt = """All software on this computer are up to date."""
+        rtxt = """All software on this computer is up to date."""
         label = Gtk.Label(label=rtxt)
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
@@ -526,7 +526,7 @@ class noUpdateAvailable(object):
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
         box2.show()
-        label = Gtk.Label(label="No update available, this computer is up to date.")
+        label = Gtk.Label(label="No update available. This computer is up to date.")
         box2.pack_start(label, False, False, 0)
         box2 = Gtk.HBox(homogeneous=False, spacing=10)
         box2.set_border_width(5)
@@ -578,7 +578,7 @@ Usage for %s:
 
 Available Commands:
 
-check-now       - Lock for update now
+check-now       - Look for update now
 
 """ % arg[0]
 
