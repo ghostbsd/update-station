@@ -312,6 +312,12 @@ class InstallUpdate:
         howmany = (total_num * 5) + 30
         fraction = 1.0 / howmany
         if backup:
+            today = datetime.datetime.now().strftime("%Y-%m-%d")
+            txt = "Cleaning old boot environment"
+            GLib.idle_add(self.update_progress, progress, fraction, txt)
+            for be in bectl.get_be_list():
+                if 'backup' in be and today not in be and 'NR' not in be:
+                    bectl.destroy_be(be.split()[0])
             backup_name = datetime.datetime.now().strftime("backup-%Y-%m-%d-%H-%M")
             txt = f"Creating boot environment {backup_name}"
             GLib.idle_add(self.update_progress, progress, fraction, txt)
