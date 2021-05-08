@@ -1,4 +1,4 @@
-updatemgr
+Software Station
 =========
 
-GhostBSD update manager
+GhostBSD system update manager
