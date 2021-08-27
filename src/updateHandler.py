@@ -22,7 +22,7 @@ def get_pkg_upgrade(option):
 
 def kerenel_verstion_change():
     pkg_update = Popen(
-        f'yes | pkg update -f',
+        'yes | pkg update -f',
         shell=True,
         stdout=PIPE,
         close_fds=True,
@@ -122,6 +122,8 @@ def unlock_pkg(Lock_pkg_list):
 
 def check_for_update():
     option = ''
+    # make sure to update database first with kerenel_verstion_change
+    kerenel_verstion_change()
     upgrade_text = get_pkg_upgrade(option)
     if 'Your packages are up to date' in upgrade_text:
         return False
