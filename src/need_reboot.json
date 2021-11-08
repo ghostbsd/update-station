@@ -1,5 +1,5 @@
 [
-    "drm-fbsd12.0-kmod",
+    "drm-fbsd13-kmod",
     "drm-kmod",
     "drm-legacy-kmod",
     "ghostbsd-update-scripts",

@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 """All functions to handle various updates for GhostBSD."""
 
+import urllib.request
 from subprocess import Popen, PIPE, call
 
 ustation_db = '/var/db/update-station'
@@ -137,3 +138,25 @@ def check_for_update():
         return True
     else:
         return False
+
+
+def get_and_update_version():
+    raw_url = Popen(
+        'pkg -vv | grep -B 1 "enabled.*yes" | grep url',
+        shell=True,
+        stdout=PIPE,
+        close_fds=True,
+        universal_newlines=True,
+        encoding='utf-8'
+    )
+    pkg_url = raw_url.stdout.read().strip().split('"')[1]
+    version_url = f'{pkg_url}/version'
+    raw_version = urllib.request.urlopen(version_url)
+    version = raw_version.read().decode('utf-8').strip()
+    print('Update version:', version)
+    version_file = open('/etc/version', 'w')
+    version_file.writelines(version)
+    version_file.close()
+
+
+get_and_update_version()

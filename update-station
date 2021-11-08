@@ -15,7 +15,11 @@ from subprocess import Popen, PIPE
 from time import sleep
 lib_path = f'{sys.prefix}/lib/update-station'
 sys.path.append(lib_path)
-from updateHandler import get_pkg_upgrade_data, check_for_update
+from updateHandler import (
+    get_pkg_upgrade_data,
+    check_for_update,
+    get_and_update_version
+)
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
 updateToInstall = []
@@ -378,7 +382,11 @@ class InstallUpdate:
                 fail = True
             else:
                 new_val = progress.get_fraction() + fraction
-                txt = "Package updates completed"
+                txt = "Update GhostBSD version"
+                GLib.idle_add(self.update_progress, progress, new_val, txt)
+                get_and_update_version()
+                new_val = progress.get_fraction() + fraction
+                txt = "Software packages upgrade completed"
                 GLib.idle_add(self.update_progress, progress, new_val, txt)
                 sleep(1)
         self.win.hide()
