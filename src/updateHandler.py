@@ -157,6 +157,3 @@ def get_and_update_version():
     version_file = open('/etc/version', 'w')
     version_file.writelines(version)
     version_file.close()
-
-
-get_and_update_version()
