@@ -1,4 +1,5 @@
 #!/usr/local/bin/python
+
 import bectl
 import datetime
 import getpass
@@ -474,7 +475,7 @@ class RestartSystem():
         vBox = Gtk.VBox(homogeneous=False, spacing=0)
         self.window.add(vBox)
         vBox.show()
-        rtxt = """The computer needs to restart to use the updated software."""
+        rtxt = "The computer needs to restart to run on the updated software."
         label = Gtk.Label(label=rtxt)
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
@@ -486,8 +487,8 @@ class RestartSystem():
         restart.connect("clicked", self.on_reboot)
         continuebtn = Gtk.Button(label="Restart Later")
         continuebtn.connect("clicked", self.on_close)
-        hBox.pack_end(continuebtn, False, False, 5)
         hBox.pack_end(restart, False, False, 5)
+        hBox.pack_end(continuebtn, False, False, 5)
         self.window.show_all()
 
 
