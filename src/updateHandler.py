@@ -2,10 +2,39 @@
 """All functions to handle various updates for GhostBSD."""
 
 import urllib.request
-from subprocess import Popen, PIPE, call
+import socket
+from subprocess import Popen, PIPE, call, run
 
 ustation_db = '/var/db/update-station'
 pkg_lock_file = f'{ustation_db}/lock-pkgs'
+
+
+def network_stat():
+    cmd = "netstat -rn | grep default"
+    netstat = run(cmd, shell=True)
+    return "UP" if netstat.returncode == 0 else 'DOWN'
+
+
+def repo_online():
+    cmd = "pkg -vv | grep -B 1 'enabled.*yes' | grep url"
+    raw_url = Popen(
+        cmd,
+        shell=True,
+        stdout=PIPE,
+        close_fds=True,
+        universal_newlines=True,
+        encoding='utf-8'
+    )
+    server = list(filter(None, raw_url.stdout.read().split('/')))[1]
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(5)
+        s.connect((server, 80))
+    except OSError:
+        return False
+    else:
+        s.close()
+        return True
 
 
 def get_pkg_upgrade(option):
@@ -137,7 +166,7 @@ def check_for_update():
     elif 'REMOVED:' in upgrade_text:
         return True
     else:
-        return False
+        return None
 
 
 def get_and_update_version():
