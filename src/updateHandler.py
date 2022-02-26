@@ -1,12 +1,14 @@
 #!/usr/local/bin/python
 """All functions to handle various updates for GhostBSD."""
 
-import urllib.request
+import os
 import socket
+import urllib.request
 from subprocess import Popen, PIPE, call, run
 
 ustation_db = '/var/db/update-station'
 pkg_lock_file = f'{ustation_db}/lock-pkgs'
+updates_run = '/tmp/update-station'
 
 
 def network_stat():
@@ -186,3 +188,20 @@ def get_and_update_version():
     version_file = open('/etc/version', 'w')
     version_file.writelines(version)
     version_file.close()
+
+
+def updating():
+    if os.path.exists(f'{updates_run}/updating'):
+        return True
+    else:
+        return False
+
+
+def look_update_station():
+    if not os.path.exists(updates_run):
+        os.mkdir(updates_run)
+    open(f'{updates_run}/updating', 'w').close()
+
+
+def unlook_update_station():
+    os.remove(f'{updates_run}/updating')
