@@ -260,9 +260,11 @@ class TrayIcon:
             sleep(120)
             global packages_dictionary
             if stop_pkg_refreshing is False:
-                packages_dictionary = get_pkg_upgrade_data()
                 if not updating():
+                    packages_dictionary = get_pkg_upgrade_data()
                     GLib.idle_add(self.updatetray)
+                else:
+                    statusIcon.set_visible(False)
             sleep(1080)
         return True
 
