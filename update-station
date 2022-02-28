@@ -33,32 +33,40 @@ home = os.path.expanduser('~')
 updateToInstall = []
 lockPkg = []
 global backup, second, insingal, threadBreak, uwinstatue, stop_pkg_refreshing
+global update_started
 backup = False
 second = False
 insingal = True
 threadBreak = False
 uwinstatue = True
 stop_pkg_refreshing = False
+update_started = False
 
 
 class UpdateWindow:
 
     def delete_event(self, widget):
-        if updating():
-            unlook_update_station()
         if close_session is True:
+            if updating():
+                unlook_update_station()
             Gtk.main_quit()
         else:
             self.window.destroy()
-            global stop_pkg_refreshing
-            stop_pkg_refreshing = False
-            statusIcon.set_visible(True)
+            global stop_pkg_refreshing, update_started
+            if update_started is False:
+                stop_pkg_refreshing = False
+                if updating():
+                    unlook_update_station()
+                print('True')
+                statusIcon.set_visible(True)
 
     def startupdate(self, widget):
         if len(lockPkg) != 0:
             pass
         if len(updateToInstall) != 0:
             if self.insingal is True:
+                global update_started
+                update_started = True
                 InstallUpdate(updateToInstall)
                 self.insingal = False
                 self.window.destroy()
@@ -223,10 +231,10 @@ class TrayIcon:
 
     def leftclick(self, status_icon):
         global stop_pkg_refreshing, statusIcon
-        stop_pkg_refreshing = True
         if updating():
             update_station_open()
         else:
+            stop_pkg_refreshing = True
             look_update_station()
             UpdateWindow()
         statusIcon.set_visible(False)
@@ -399,10 +407,12 @@ class InstallUpdate:
 
     def stop_tread(self, fail, update_pkg, reboot):
         global packages_dictionary, stop_icon_refreshing, stop_pkg_refreshing
+        global update_started
         self.thr.join()
         if updating():
             unlook_update_station()
         if fail is True:
+            update_started = False
             stop_pkg_refreshing = False
             failed_update()
         else:
@@ -410,6 +420,7 @@ class InstallUpdate:
                 packages_dictionary = get_pkg_upgrade_data()
                 UpdateWindow()
             else:
+                update_started = False
                 stop_pkg_refreshing = False
                 if reboot is True:
                     RestartSystem()
