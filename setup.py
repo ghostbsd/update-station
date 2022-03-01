@@ -13,11 +13,13 @@ from setuptools import setup
 # to update i18n .mo files (and merge .pot file into .po files) run on Linux:
 # ,,python setup.py build_i18n -m''
 
-# silence pyflakes, __VERSION__ is properly assigned below...
-__VERSION__ = '4.1'
-# for line in file('networkmgr').readlines():
-#    if (line.startswith('__VERSION__')):
-#        exec(line.strip())
+for line in open('update-station').readlines():
+    if (line.startswith('__VERSION__')):
+        exec(line.strip())
+# Silence flake8, __VERSION__ is properly assigned below
+else:
+    __VERSION__ = '4.2'
+
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
 
