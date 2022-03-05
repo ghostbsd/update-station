@@ -4,6 +4,7 @@
 import os
 import socket
 import urllib.request
+import requests
 from subprocess import Popen, PIPE, call, run
 
 ustation_db = '/var/db/update-station'
@@ -205,3 +206,17 @@ def look_update_station():
 
 def unlook_update_station():
     os.remove(f'{updates_run}/updating')
+
+
+def repository_is_syncing():
+    raw_url = Popen(
+        'pkg -vv | grep -B 1 "enabled.*yes" | grep url',
+        shell=True,
+        stdout=PIPE,
+        close_fds=True,
+        universal_newlines=True,
+        encoding='utf-8'
+    )
+    pkg_url = raw_url.stdout.read().strip().split('"')[1]
+    syncing_url = f'{pkg_url}/.syncing'
+    return True if requests.get(syncing_url).status_code == 200 else False

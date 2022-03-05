@@ -23,10 +23,11 @@ from updateHandler import (
     repo_online,
     look_update_station,
     unlook_update_station,
-    updating
+    updating,
+    repository_is_syncing
 )
 
-__VERSION__ = '4.2'
+__VERSION__ = '4.3'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
@@ -267,12 +268,13 @@ class TrayIcon:
         while True:
             sleep(120)
             global packages_dictionary
-            if stop_pkg_refreshing is False:
-                if not updating():
-                    packages_dictionary = get_pkg_upgrade_data()
-                    GLib.idle_add(self.updatetray)
-                else:
-                    statusIcon.set_visible(False)
+            if repository_is_syncing() is False:
+                if stop_pkg_refreshing is False:
+                    if not updating():
+                        packages_dictionary = get_pkg_upgrade_data()
+                        GLib.idle_add(self.updatetray)
+                    else:
+                        statusIcon.set_visible(False)
             sleep(1080)
         return True
 
@@ -574,19 +576,22 @@ class noUpdateAvailable(object):
 class startCheckUpdate:
     def __init__(self):
         if network_stat() == 'UP' and repo_online() is True:
-            if updating():
-                update_station_open()
+            if repository_is_syncing() is True:
+                mirrorSyncing()
             else:
-                update_available = check_for_update()
-                if update_available:
-                    global packages_dictionary
-                    packages_dictionary = get_pkg_upgrade_data()
-                    look_update_station()
-                    UpdateWindow()
-                elif update_available is False and update_available is not None:
-                    noUpdateAvailable()
+                if updating():
+                    update_station_open()
                 else:
-                    somethingIsWrong()
+                    update_available = check_for_update()
+                    if update_available:
+                        global packages_dictionary
+                        packages_dictionary = get_pkg_upgrade_data()
+                        look_update_station()
+                        UpdateWindow()
+                    elif not update_available and update_available is not None:
+                        noUpdateAvailable()
+                    else:
+                        somethingIsWrong()
         else:
             serverUnreachable()
 
@@ -622,6 +627,37 @@ class update_station_open(object):
         ok_buton.connect("clicked", self.on_close)
         box2.pack_end(ok_buton, False, False, 0)
         self.window.show_all()
+
+
+class mirrorSyncing(object):
+
+    def on_close(self, widget):
+        Gtk.main_quit()
+
+    def __init__(self):
+        window = Gtk.Window()
+        window.set_position(Gtk.WindowPosition.CENTER)
+        window.set_border_width(8)
+        window.connect("destroy", self.on_close)
+        window.set_title("Server Unreachable")
+        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        window.add(box1)
+        box1.show()
+        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2.set_border_width(10)
+        box1.pack_start(box2, True, True, 0)
+        box2.show()
+        label = Gtk.Label(label="Packages mirrors are syncing with new "
+                          "packages")
+        box2.pack_start(label, False, False, 0)
+        box2 = Gtk.HBox(homogeneous=False, spacing=10)
+        box2.set_border_width(5)
+        box1.pack_start(box2, False, True, 0)
+        box2.show()
+        ok_buton = Gtk.Button(label="Close")
+        ok_buton.connect("clicked", self.on_close)
+        box2.pack_end(ok_buton, False, False, 0)
+        window.show_all()
 
 
 class serverUnreachable(object):
