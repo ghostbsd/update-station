@@ -16,6 +16,7 @@ from setuptools import setup
 for line in open('update-station').readlines():
     if (line.startswith('__VERSION__')):
         exec(line.strip())
+        break
 # Silence flake8, __VERSION__ is properly assigned below
 else:
     __VERSION__ = '4.2'
