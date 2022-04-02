@@ -275,7 +275,8 @@ class TrayIcon:
                         GLib.idle_add(self.updatetray)
                     else:
                         GLib.idle_add(statusIcon.set_visible, False)
-            sleep(1080)
+            # Wait for an hour to look for update
+            sleep(3480)
         return True
 
 
