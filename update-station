@@ -27,7 +27,7 @@ from updateHandler import (
     repository_is_syncing
 )
 
-__VERSION__ = '4.3'
+__VERSION__ = '4.4'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
@@ -70,7 +70,7 @@ class UpdateWindow:
                 update_started = True
                 InstallUpdate(updateToInstall)
                 self.insingal = False
-                self.window.destroy()
+                self.window.hide()
 
     def if_backup(self, widget):
         global backup
@@ -274,7 +274,7 @@ class TrayIcon:
                         packages_dictionary = get_pkg_upgrade_data()
                         GLib.idle_add(self.updatetray)
                     else:
-                        statusIcon.set_visible(False)
+                        GLib.idle_add(statusIcon.set_visible, False)
             sleep(1080)
         return True
 
