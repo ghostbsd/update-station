@@ -27,12 +27,11 @@ from updateHandler import (
     repository_is_syncing
 )
 
-__VERSION__ = '4.4'
+__VERSION__ = '4.5'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
 updateToInstall = []
-lockPkg = []
 global backup, second, insingal, threadBreak, uwinstatue, stop_pkg_refreshing
 global update_started
 backup = False
@@ -62,8 +61,6 @@ class UpdateWindow:
                 statusIcon.set_visible(True)
 
     def startupdate(self, widget):
-        if len(lockPkg) != 0:
-            pass
         if len(updateToInstall) != 0:
             if self.insingal is True:
                 global update_started
@@ -176,30 +173,10 @@ class UpdateWindow:
     def display(self, model):
         self.view = Gtk.TreeView(model=model)
         self.renderer = Gtk.CellRendererText()
-        self.renderer1 = Gtk.CellRendererToggle()
-        self.renderer1.set_property('activatable', True)
-        self.renderer1.connect('toggled', self.col1_toggled_cb, model)
         self.column0 = Gtk.TreeViewColumn("Name", self.renderer, text=0)
-        self.column1 = Gtk.TreeViewColumn("Complete", self.renderer1)
-        self.column1.add_attribute(self.renderer1, "active", 1)
-        self.view.append_column(self.column1)
         self.view.append_column(self.column0)
         self.view.set_headers_visible(False)
         return self.view
-
-    def col1_toggled_cb(self, cell, path, model):
-        model[path][1] = not model[path][1]
-        if ":" in path:
-            if model[path][1] is False:
-                lockPkg.extend([model[path][0]])
-            else:
-                lockPkg.remove(model[path][0])
-        else:
-            if model[path][1] is False:
-                updateToInstall.remove(model[path][0].partition(':')[0])
-            else:
-                updateToInstall.extend([model[path][0].partition(':')[0]])
-        return
 
 
 class TrayIcon:
