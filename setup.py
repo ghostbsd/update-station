@@ -19,7 +19,7 @@ for line in open('update-station').readlines():
         break
 # Silence flake8, __VERSION__ is properly assigned below
 else:
-    __VERSION__ = '4.2'
+    __VERSION__ = '4.5'
 
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
