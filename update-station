@@ -12,7 +12,7 @@ import sys
 import threading
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, run
 from time import sleep
 lib_path = f'{sys.prefix}/lib/update-station'
 sys.path.append(lib_path)
@@ -27,11 +27,10 @@ from updateHandler import (
     repository_is_syncing
 )
 
-__VERSION__ = '4.5'
+__VERSION__ = '4.6'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
-updateToInstall = []
 global backup, second, insingal, threadBreak, uwinstatue, stop_pkg_refreshing
 global update_started
 backup = False
@@ -61,13 +60,12 @@ class UpdateWindow:
                 statusIcon.set_visible(True)
 
     def startupdate(self, widget):
-        if len(updateToInstall) != 0:
-            if self.insingal is True:
-                global update_started
-                update_started = True
-                InstallUpdate(updateToInstall)
-                self.insingal = False
-                self.window.hide()
+        if self.insingal is True:
+            global update_started
+            update_started = True
+            InstallUpdate()
+            self.insingal = False
+            self.window.hide()
 
     def if_backup(self, widget):
         global backup
@@ -166,8 +164,6 @@ class UpdateWindow:
             for line in packages_dictionary['reinstall']:
                 self.tree_store.append(ri_pinter, (line, True))
         total_num = r_num + u_num + i_num + ri_num
-        if "Software Update Available" not in updateToInstall:
-            updateToInstall.extend(["Software Update Available"])
         return self.tree_store
 
     def display(self, model):
@@ -259,12 +255,14 @@ class TrayIcon:
 
 class InstallUpdate:
 
-    def close_application(self, widget):
+    def close_application(self, widget, data):
+        if updating():
+            unlook_update_station()
         Gtk.main_quit()
 
-    def __init__(self, installupdate):
+    def __init__(self):
         self.win = Gtk.Window()
-        self.win.connect("delete-event", Gtk.main_quit)
+        self.win.connect("delete-event", self.close_application)
         self.win.set_size_request(500, 75)
         self.win.set_resizable(False)
         self.win.set_title("Installing Update")
@@ -284,8 +282,7 @@ class InstallUpdate:
         # self.pbar.set_size_request(-1, 20)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
-        self.thr = threading.Thread(target=self.read_output,
-                                    args=(self.pbar, installupdate))
+        self.thr = threading.Thread(target=self.read_output, args=[self.pbar])
         self.thr.setDaemon(True)
         self.thr.start()
 
@@ -293,7 +290,7 @@ class InstallUpdate:
         progress.set_fraction(fraction)
         progress.set_text(text)
 
-    def read_output(self, progress, installupdate):
+    def read_output(self, progress):
         fail = False
         update_pkg = False
         option = ''
@@ -332,18 +329,22 @@ class InstallUpdate:
             f'pkg upgrade -Fy{option}{packages}',
             shell=True,
             stdout=PIPE,
+            stderr=PIPE,
             close_fds=True,
             universal_newlines=True
         )
         fetch_text = ""
-        while 1:
-            line = fetch.stdout.readline()
+        while True:
+            stdout_line = fetch.stdout.readline()
             if fetch.poll() is not None:
                 break
-            fetch_text += line
+            fetch_text += stdout_line
             new_val = progress.get_fraction() + fraction
-            GLib.idle_add(self.update_progress, progress, new_val, line.rstrip())
+            GLib.idle_add(self.update_progress, progress, new_val,
+                          stdout_line.strip())
         if fetch.returncode != 0:
+            stderr_line = fetch.stderr.read()
+            fetch_text += stderr_line
             update_fail = open(f'{home}/update.failed', 'w')
             update_fail.writelines(fetch_text)
             update_fail.close()
@@ -361,28 +362,79 @@ class InstallUpdate:
                 f'pkg upgrade -y{option}{packages}',
                 shell=True,
                 stdout=PIPE,
+                stderr=PIPE,
                 close_fds=True,
                 universal_newlines=True
             )
             install_text = ""
-            while 1:
-                line = install.stdout.readline()
-                if install.poll() is not None:
+            while True:
+                while True:
+                    stdout_line = install.stdout.readline()
+                    if install.poll() is not None:
+                        break
+                    install_text += stdout_line
+                    new_val = progress.get_fraction() + fraction
+                    GLib.idle_add(self.update_progress, progress, new_val,
+                                  stdout_line.strip())
+                if install.returncode == 3:
+                    stderr_line = install.stderr.readline()
+                    if 'Fail to create temporary file' in stderr_line:
+                        raw_line = install_text.splitlines()[-2]
+                        failed_package = raw_line.split()[2].replace(':', '')
+                        pkg_rquery = run(
+                            f'pkg rquery -x "%n" "{failed_package}"',
+                            shell=True,
+                            stdout=PIPE,
+                            stderr=PIPE,
+                            universal_newlines=True
+                        )
+                        package_name = pkg_rquery.stdout.strip()
+                        reinstall = Popen(
+                            f'pkg delete -y {package_name} ;'
+                            f' pkg install -y {package_name}',
+                            shell=True,
+                            stdout=PIPE,
+                            stderr=PIPE,
+                            close_fds=True,
+                            universal_newlines=True
+                        )
+                        reinstall_text = ""
+                        while True:
+                            stdout_line = reinstall.stdout.readline()
+                            if reinstall.poll() is not None:
+                                break
+                            reinstall_text += stdout_line
+                            new_val = progress.get_fraction() + fraction
+                            GLib.idle_add(self.update_progress, progress,
+                                          new_val, stdout_line.strip())
+                        if reinstall.returncode != 0:
+                            reinstall_text += reinstall.stderr.readline()
+                            update_fail = open(f'{home}/update.failed', 'w')
+                            update_fail.writelines(reinstall_text)
+                            update_fail.close()
+                            fail = True
+                            break
+                        else:
+                            new_val = progress.get_fraction() + fraction
+                            txt = f"Reinstalling {failed_package} completed"
+                            GLib.idle_add(self.update_progress, progress, new_val, txt)
+                            sleep(1)
+                            continue
+                if install.returncode != 0:
+                    stderr_line = install.stderr.readline()
+                    install_text += stderr_line
+                    update_fail = open(f'{home}/update.failed', 'w')
+                    update_fail.writelines(install_text)
+                    update_fail.close()
+                    fail = True
                     break
-                install_text += line
-                new_val = progress.get_fraction() + fraction
-                GLib.idle_add(self.update_progress, progress, new_val, line.rstrip())
-            if install.returncode != 0:
-                update_fail = open(f'{home}/update.failed', 'w')
-                update_fail.writelines(install_text)
-                update_fail.close()
-                fail = True
-            else:
-                new_val = progress.get_fraction() + fraction
-                txt = "Software packages upgrade completed"
-                GLib.idle_add(self.update_progress, progress, new_val, txt)
-                sleep(1)
-        self.win.destroy()
+                else:
+                    new_val = progress.get_fraction() + fraction
+                    txt = "Software packages upgrade completed"
+                    GLib.idle_add(self.update_progress, progress, new_val, txt)
+                    sleep(1)
+                    break
+        GLib.idle_add(self.win.destroy)
         GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
 
     def stop_tread(self, fail, update_pkg, reboot):
