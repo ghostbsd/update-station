@@ -220,13 +220,14 @@ class TrayIcon:
     def updatetray(self):
         if check_for_update() is True:
             global stop_icon_refreshing
-            statusIcon.set_visible(True)
+            GLib.idle_add(statusIcon.set_visible, True)
             msg = "System and software upgrades are now available"
             notify = f'notify-send "Update available" "{msg}"'
             notify += ' -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
         else:
-            statusIcon.set_visible(False)
+            GLib.idle_add(statusIcon.set_visible, False)
+
         return
 
     def treadingupdate(self):
