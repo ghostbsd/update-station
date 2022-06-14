@@ -359,16 +359,16 @@ class InstallUpdate:
             txt = "Installing package updates"
             GLib.idle_add(self.update_progress, progress, new_val, txt)
             sleep(1)
-            install = Popen(
-                f'pkg upgrade -y{option}{packages}',
-                shell=True,
-                stdout=PIPE,
-                stderr=PIPE,
-                close_fds=True,
-                universal_newlines=True
-            )
-            install_text = ""
             while True:
+                install = Popen(
+                    f'pkg upgrade -y{option}{packages}',
+                    shell=True,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    close_fds=True,
+                    universal_newlines=True
+                )
+                install_text = ""
                 while True:
                     stdout_line = install.stdout.readline()
                     if install.poll() is not None:
