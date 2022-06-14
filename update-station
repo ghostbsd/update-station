@@ -420,8 +420,7 @@ class InstallUpdate:
                             txt = f"Reinstalling {failed_package} completed"
                             GLib.idle_add(self.update_progress, progress, new_val, txt)
                             sleep(1)
-                            continue
-                if install.returncode != 0:
+                elif install.returncode != 0:
                     stderr_line = install.stderr.readline()
                     install_text += stderr_line
                     update_fail = open(f'{home}/update.failed', 'w')
