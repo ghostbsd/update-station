@@ -142,7 +142,7 @@ msgstr "Нет доступных обновлений"
 
 #: update-station.py:606
 msgid "No update available. This system is up to date."
-msgstr "Нет доступных обновлений. Этот система уже обновлена."
+msgstr "Нет доступных обновлений. Эта система уже обновлена."
 
 #: update-station.py:655
 msgid "Update Station already started"
