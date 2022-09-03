@@ -24,6 +24,8 @@ else:
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
 
+# compiling translations
+os.system("sh compile_translations.sh")
 
 def datafilelist(installbase, sourcebase):
     datafileList = []
@@ -42,7 +44,8 @@ data_files = [
     (f'{prefix}/share/applications', ['src/update-manager.desktop']),
     (f'{prefix}/lib/update-station', ['src/updateHandler.py']),
     (f'{prefix}/lib/update-station', ['src/need_reboot.json']),
-    (f'{prefix}/etc/sudoers.d', ['src/sudoers.d/update-station'])
+    (f'{prefix}/etc/sudoers.d', ['src/sudoers.d/update-station']),
+    (f'{prefix}/share/locale/ru/LC_MESSAGES', ['src/locale/ru/update-station.mo']),
 
 ]
 

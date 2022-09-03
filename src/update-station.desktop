@@ -1,8 +1,10 @@
 [Desktop Entry]
 Name=Update Station
 Name[da]=Opdateringsstation
+Name[ru]=Центр обновлений
 Comment=Update system and software
 Comment[da]=Opdater system og software
+Comment[ru]=Обновление системы и приложений
 Exec=sudo update-station
 Icon=system-software-update
 Terminal=false
