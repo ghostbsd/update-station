@@ -1,0 +1,194 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-09-02 21:06+0300\n"
+"PO-Revision-Date: 2022-09-02 21:20+0300\n"
+"Last-Translator: Alexander Alexeev <alexax66@gmail.com>\n"
+"Language-Team: Language locale/ru\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: update-station.py:82
+msgid "Create boot environment backup"
+msgstr "Создать резервную копию загрузочной среды"
+
+#: update-station.py:94 update-station.py:209 update-station.py:511
+#: update-station.py:582 update-station.py:613 update-station.py:669
+#: update-station.py:700 update-station.py:731 update-station.py:763
+msgid "Close"
+msgstr "Закрыть"
+
+#: update-station.py:98
+msgid "Install update"
+msgstr "Установить обновление"
+
+#: update-station.py:110
+msgid "Update Manager"
+msgstr "Менеджер обновлений"
+
+#: update-station.py:122
+msgid "Updates available!"
+msgstr "Доступны обновления!"
+
+#: update-station.py:150
+msgid "Installed packages to be REMOVED:"
+msgstr "Ранее установленные пакеты будут УДАЛЕНЫ:"
+
+#: update-station.py:157
+msgid "Installed packages to be UPGRADED"
+msgstr "Ранее установленные пакеты будут ОБНОВЛЕНЫ:"
+
+#: update-station.py:164
+msgid "New packages to be INSTALLED:"
+msgstr "Новые пакеты будут УСТАНОВЛЕНЫ:"
+
+#: update-station.py:171
+msgid "Installed packages to be REINSTALLED:"
+msgstr "Ранее установленные пакеты будут ПЕРЕУСТАНОВЛЕНЫ:"
+
+#: update-station.py:207
+msgid "Open Update"
+msgstr "Открыть обновления"
+
+#: update-station.py:234
+msgid "System and software upgrades are now available"
+msgstr "Доступны обновления системы и программного обеспечения"
+
+#: update-station.py:279
+msgid "Installing Update"
+msgstr "Установить обновления"
+
+#: update-station.py:325
+msgid "Cleaning old boot environment"
+msgstr "Очистка старой загрузочной среды"
+
+#: update-station.py:331
+msgid "Creating boot environment"
+msgstr "Создание загрузочной среды"
+
+#: update-station.py:336
+msgid "Fetching package updates"
+msgstr "Получение обновлений"
+
+#: update-station.py:366
+msgid "Package updates downloaded"
+msgstr "Обновления загружены"
+
+#: update-station.py:370
+msgid "Installing package updates"
+msgstr "Установка обновлений"
+
+#: update-station.py:431
+msgid "Reinstalling"
+msgstr "Переустановка"
+
+#: update-station.py:433
+msgid "completed"
+msgstr "звершена"
+
+#: update-station.py:446
+msgid "Software packages upgrade completed"
+msgstr "Обновление программного обеспечения завершено"
+
+#: update-station.py:476
+msgid ""
+"Press \"Detail\" to get information about the failure.\n"
+"Get help at https://forums.ghostbsd.org."
+msgstr ""
+"Нажмите \"Подробности\" для получения информации об этой ошибке.\n"
+"Вы можете получить помощь на https://forums.ghostbsd.org."
+
+#: update-station.py:496
+msgid "Update Failed"
+msgstr "Ошибка обновления"
+
+#: update-station.py:509
+msgid "Detail"
+msgstr "Подробности"
+
+#: update-station.py:535 update-station.py:569
+msgid "Update Completed"
+msgstr "Обновление завершено"
+
+#: update-station.py:540
+msgid "The computer needs to restart to run on the updated software."
+msgstr ""
+"Чтобы запустить обновленное программное обеспечение,\n"
+"необходимо перезагрузить компьютер."
+
+#: update-station.py:548
+msgid "Restart Now"
+msgstr "Перезагрузить сейчас"
+
+#: update-station.py:550
+msgid "Restart Later"
+msgstr "Перезагрузить позже"
+
+#: update-station.py:574
+msgid "All software on this system is up to date."
+msgstr "Все программное обеспечение в этой системе уже обновлено."
+
+#: update-station.py:598
+msgid "No Update Available"
+msgstr "Нет доступных обновлений"
+
+#: update-station.py:606
+msgid "No update available. This system is up to date."
+msgstr "Нет доступных обновлений. Этот система уже обновлена."
+
+#: update-station.py:655
+msgid "Update Station already started"
+msgstr "Центр обновлений уже запущен"
+
+#: update-station.py:663
+msgid "Update Station already open."
+msgstr "Центр обновлений уже открыт"
+
+#: update-station.py:685 update-station.py:716
+msgid "Server Unreachable"
+msgstr "Сервер не доступен"
+
+#: update-station.py:693
+msgid "Packages mirrors are syncing with new packages"
+msgstr "Идет синхронизация с новыми пакетами на зеркальных серверах"
+
+#: update-station.py:724
+msgid ""
+"The server is unreachable. Your internet could\n"
+"be down or software package server is down."
+msgstr ""
+"Сервер не доступен. Возможно у Вас нас нет доступа в сеть Интернет или\n"
+"сервер пакетов программного обеспечения в настоящее время не работает."
+
+#: update-station.py:747
+msgid "Something Is Wrong"
+msgstr "Есть ошибки"
+
+#: update-station.py:755
+msgid ""
+"If you see this message it means that something is wrong.\n"
+" Please look at pkg upgrade output."
+msgstr ""
+"Если вы видете это сообщение, значит, что-то пошло не так.\n"
+"Пожалуйста, посмотрите на вывод о результах этого обновления\n"
+"с помощью утилиты pkg."
+
+#: update-station.py:772
+msgid "Software Station"
+msgstr "Центр приложений"
+
+#: update-station.py:778
+msgid "You need to be root"
+msgstr "У Вас должны быть права root"
+
+#: update-station.py:784
+msgid "OK"
+msgstr "ОК"

@@ -1,0 +1,186 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-09-02 21:15+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: update-station.py:82
+msgid "Create boot environment backup"
+msgstr ""
+
+#: update-station.py:94 update-station.py:209 update-station.py:511
+#: update-station.py:582 update-station.py:613 update-station.py:669
+#: update-station.py:700 update-station.py:731 update-station.py:763
+msgid "Close"
+msgstr ""
+
+#: update-station.py:98
+msgid "Install update"
+msgstr ""
+
+#: update-station.py:110
+msgid "Update Manager"
+msgstr ""
+
+#: update-station.py:122
+msgid "Updates available!"
+msgstr ""
+
+#: update-station.py:150
+msgid "Installed packages to be REMOVED:"
+msgstr ""
+
+#: update-station.py:157
+msgid "Installed packages to be UPGRADED"
+msgstr ""
+
+#: update-station.py:164
+msgid "New packages to be INSTALLED:"
+msgstr ""
+
+#: update-station.py:171
+msgid "Installed packages to be REINSTALLED:"
+msgstr ""
+
+#: update-station.py:207
+msgid "Open Update"
+msgstr ""
+
+#: update-station.py:234
+msgid "System and software upgrades are now available"
+msgstr ""
+
+#: update-station.py:279
+msgid "Installing Update"
+msgstr ""
+
+#: update-station.py:325
+msgid "Cleaning old boot environment"
+msgstr ""
+
+#: update-station.py:331
+msgid "Creating boot environment"
+msgstr ""
+
+#: update-station.py:336
+msgid "Fetching package updates"
+msgstr ""
+
+#: update-station.py:366
+msgid "Package updates downloaded"
+msgstr ""
+
+#: update-station.py:370
+msgid "Installing package updates"
+msgstr ""
+
+#: update-station.py:431
+msgid "Reinstalling"
+msgstr ""
+
+#: update-station.py:433
+msgid "completed"
+msgstr ""
+
+#: update-station.py:446
+msgid "Software packages upgrade completed"
+msgstr ""
+
+#: update-station.py:476
+msgid ""
+"Press \"Detail\" to get information about the failure.\n"
+"Get help at https://forums.ghostbsd.org."
+msgstr ""
+
+#: update-station.py:496
+msgid "Update Failed"
+msgstr ""
+
+#: update-station.py:509
+msgid "Detail"
+msgstr ""
+
+#: update-station.py:535 update-station.py:569
+msgid "Update Completed"
+msgstr ""
+
+#: update-station.py:540
+msgid "The computer needs to restart to run on the updated software."
+msgstr ""
+
+#: update-station.py:548
+msgid "Restart Now"
+msgstr ""
+
+#: update-station.py:550
+msgid "Restart Later"
+msgstr ""
+
+#: update-station.py:574
+msgid "All software on this system is up to date."
+msgstr ""
+
+#: update-station.py:598
+msgid "No Update Available"
+msgstr ""
+
+#: update-station.py:606
+msgid "No update available. This system is up to date."
+msgstr ""
+
+#: update-station.py:655
+msgid "Update Station already started"
+msgstr ""
+
+#: update-station.py:663
+msgid "Update Station already open."
+msgstr ""
+
+#: update-station.py:685 update-station.py:716
+msgid "Server Unreachable"
+msgstr ""
+
+#: update-station.py:693
+msgid "Packages mirrors are syncing with new packages"
+msgstr ""
+
+#: update-station.py:724
+msgid ""
+"The server is unreachable. Your internet could\n"
+"be down or software package server is down."
+msgstr ""
+
+#: update-station.py:747
+msgid "Something Is Wrong"
+msgstr ""
+
+#: update-station.py:755
+msgid ""
+"If you see this message it means that something is wrong.\n"
+" Please look at pkg upgrade output."
+msgstr ""
+
+#: update-station.py:772
+msgid "Software Station"
+msgstr ""
+
+#: update-station.py:778
+msgid "You need to be root"
+msgstr ""
+
+#: update-station.py:784
+msgid "OK"
+msgstr ""
