@@ -64,7 +64,7 @@ msgstr "Доступны обновления системы и программ
 
 #: update-station.py:279
 msgid "Installing Update"
-msgstr "Установить обновления"
+msgstr "Установка обновлений"
 
 #: update-station.py:325
 msgid "Cleaning old boot environment"
