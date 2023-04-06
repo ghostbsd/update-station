@@ -92,7 +92,7 @@ msgstr "Переустановка"
 
 #: update-station.py:433
 msgid "completed"
-msgstr "звершена"
+msgstr "Завершена"
 
 #: update-station.py:446
 msgid "Software packages upgrade completed"
