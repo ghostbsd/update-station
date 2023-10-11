@@ -33,7 +33,7 @@ from updateHandler import (
     repository_is_syncing
 )
 
-__VERSION__ = '4.6'
+__VERSION__ = '4.7'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
@@ -318,7 +318,7 @@ class InstallUpdate:
             second = False
         if packages_dictionary['system_upgrade'] is True:
             option = 'f'
-        howmany = (total_num * 5) + 20
+        howmany = (total_num * 5) + 10
         fraction = 1.0 / howmany
         if backup:
             today = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -617,26 +617,90 @@ class noUpdateAvailable(object):
 
 
 class startCheckUpdate:
+
+    def close_application(self, widget, data):
+        if updating():
+            unlook_update_station()
+        Gtk.main_quit()
+
     def __init__(self):
+        self.win = Gtk.Window()
+        self.win.connect("delete-event", self.close_application)
+        self.win.set_size_request(500, 75)
+        self.win.set_resizable(False)
+        self.win.set_title(_("Looking For Updates"))
+        self.win.set_border_width(0)
+        self.win.set_position(Gtk.WindowPosition.CENTER)
+        self.win.set_default_icon_name('system-software-update')
+        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        self.win.add(box1)
+        box1.show()
+        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2.set_border_width(10)
+        box1.pack_start(box2, True, True, 0)
+        box2.show()
+        self.pbar = Gtk.ProgressBar()
+        self.pbar.set_show_text(True)
+        self.pbar.set_fraction(0.0)
+        box2.pack_start(self.pbar, False, False, 0)
+        self.win.show_all()
+        self.thr = threading.Thread(
+            target=self.check_for_update,
+            args=[self.pbar]
+        )
+        self.thr.setDaemon(True)
+        self.thr.start()
+
+    def update_progress(self, progress, text):
+        progress.set_text(text)
+        fraction = progress.get_fraction() + 0.2
+        progress.set_fraction(fraction)
+
+    def check_for_update(self, progress):
+        GLib.idle_add(self.update_progress, progress,
+                      _('Checking if the repository is online'))
+        sleep(1)
         if network_stat() == 'UP' and repo_online() is True:
+            GLib.idle_add(self.update_progress, progress,
+                          _('The repository is online'))
+            sleep(1)
             if repository_is_syncing() is True:
-                mirrorSyncing()
+                GLib.idle_add(self.update_progress, progress,
+                              _('The mirror is Syncing'))
+                GLib.idle_add(self.stop_tread, mirrorSyncing)
             else:
                 if updating():
-                    update_station_open()
+                    GLib.idle_add(self.update_progress, progress,
+                                  _('Updates are already running'))
+                    GLib.idle_add(self.stop_tread, update_station_open)
                 else:
+                    GLib.idle_add(self.update_progress, progress,
+                                  'Checking for updates')
                     update_available = check_for_update()
                     if update_available:
+                        GLib.idle_add(self.update_progress, progress,
+                                      _('Getting the list of packages'))
                         global packages_dictionary
                         packages_dictionary = get_pkg_upgrade_data()
                         look_update_station()
-                        UpdateWindow()
+                        GLib.idle_add(self.update_progress, progress,
+                                      _('Open the update window'))
+                        GLib.idle_add(self.stop_tread, UpdateWindow)
                     elif not update_available and update_available is not None:
-                        noUpdateAvailable()
+                        GLib.idle_add(self.update_progress, progress,
+                                      _('No update found'))
+                        GLib.idle_add(self.stop_tread, noUpdateAvailable)
                     else:
-                        somethingIsWrong()
+                        GLib.idle_add(self.stop_tread, somethingIsWrong)
         else:
-            serverUnreachable()
+            GLib.idle_add(self.update_progress, progress,
+                          _('The Mirror is unreachable'))
+            GLib.idle_add(self.stop_tread, serverUnreachable)
+
+    def stop_tread(self, start_window):
+        start_window()
+        self.win.hide()
+        self.thr.join()
 
 
 class update_station_open(object):
@@ -752,7 +816,8 @@ class somethingIsWrong(object):
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
         box2.show()
-        label = Gtk.Label(label=_("If you see this message it means that "
+        label = Gtk.Label(label=_(
+                          "If you see this message it means that "
                           "something is wrong.\n Please look at pkg upgrade "
                           "output."))
         box2.pack_start(label, False, False, 0)
