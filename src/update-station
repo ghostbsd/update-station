@@ -1,9 +1,11 @@
 #!/usr/local/bin/python
+"""This is the main file for the update-station application"""
 
 import bectl
 import datetime
 import getpass
 import gi
+gi.require_version('Gtk', '3.0')
 import json
 import os
 import gettext
@@ -11,98 +13,125 @@ import re
 import socket
 import sys
 import threading
-gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
 from subprocess import Popen, PIPE, run
 from time import sleep
-
-gettext.bindtextdomain('update-station', '/usr/local/share/locale')
-gettext.textdomain('update-station')
-_ = gettext.gettext
-
-lib_path = f'{sys.prefix}/lib/update-station'
-sys.path.append(lib_path)
 from updateHandler import (
     get_pkg_upgrade_data,
     check_for_update,
     network_stat,
     repo_online,
     look_update_station,
-    unlook_update_station,
+    unlock_update_station,
     updating,
     repository_is_syncing
 )
+
+gettext.bindtextdomain('update-station', '/usr/local/share/locale')
+gettext.textdomain('update-station')
+_ = gettext.gettext
+
+lib_path: str = f'{sys.prefix}/lib/update-station'
 
 __VERSION__ = '4.7'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
-global backup, second, insingal, threadBreak, uwinstatue, stop_pkg_refreshing
-global update_started
-backup = False
-second = False
-insingal = True
-threadBreak = False
-uwinstatue = True
-stop_pkg_refreshing = False
-update_started = False
+
+
+class Data:
+    """
+    Cla
+    Attributes:
+        backup: Boolean that indicates if the update-station should back up the current boot environment.
+        packages_dictionary: Dictionary that contains all the packages that are installed on the system.
+        second_update: Boolean that indicates if the update-station should do 2 update.
+        stop_pkg_refreshing: Boolean that indicates if the update-station should stop refreshing the packages.
+        total_packages: Integer that indicates the total number of packages that are that will be updated.
+        update_started: Boolean that indicates if the application has started updating the system.
+    """
+    backup: bool = False
+    packages_dictionary: dict = {}
+    second_update: bool = False
+    stop_pkg_refreshing: bool = False
+    total_packages: int = 0
+    update_started: bool = False
 
 
 class UpdateWindow:
-
-    def delete_event(self, widget):
+    """
+    Class that creates the main window to see update list and start the update process.
+    """
+    def delete_event(self, widget: Gtk.Widget) -> None:
+        """
+        Function that handles the delete event when the window is closed.
+        :param widget: The widget that triggered the delete event.
+        """
         if close_session is True:
             if updating():
-                unlook_update_station()
+                unlock_update_station()
             Gtk.main_quit()
         else:
             self.window.destroy()
-            global stop_pkg_refreshing, update_started
-            if update_started is False:
-                stop_pkg_refreshing = False
+            if Data.update_started is False:
+                Data.stop_pkg_refreshing = False
                 if updating():
-                    unlook_update_station()
-                print('True')
-                statusIcon.set_visible(True)
+                    unlock_update_station()
+                tray.tray_icon().set_visible(True)
 
-    def startupdate(self, widget):
-        if self.insingal is True:
-            global update_started
-            update_started = True
-            InstallUpdate()
-            self.insingal = False
-            self.window.hide()
+    def start_update(self, widget):
+        """
+        Function that starts the update process.
+        :param widget: The widget that triggered the start update event.
+        """
+        Data.update_started = True
+        InstallUpdate()
+        self.window.hide()
 
     def if_backup(self, widget):
-        global backup
-        backup = widget.get_active()
+        """
+        Function that handles the backup checkbox.
+        :param widget: The widget that triggered the checkbox event.
+        """
+        Data.backup = widget.get_active()
 
     def create_bbox(self):
-        table = Gtk.Table(n_rows=1, n_columns=5, homogeneous=False, column_spacing=5)
-        backup_checkbox = Gtk.CheckButton(label=_("Create boot environment backup"))
+        """
+        Function that creates the button box.
+        :return: The button box.
+        """
+        table = Gtk.Table(
+            n_rows=1,
+            n_columns=5,
+            homogeneous=False,
+            column_spacing=5
+        )
+        backup_checkbox = Gtk.CheckButton(
+            label=_("Create boot environment backup")
+        )
         table.attach(backup_checkbox, 0, 1, 0, 1)
         backup_checkbox.connect("toggled", self.if_backup)
-        if len(bectl.get_be_list()) >= 2 and second is False:
+        if len(bectl.get_be_list()) >= 2 and Data.second_update is False:
             backup_checkbox.set_active(True)
             backup_checkbox.set_sensitive(True)
         else:
             backup_checkbox.set_active(False)
             backup_checkbox.set_sensitive(False)
-        global backup
-        backup = backup_checkbox.get_active()
+        Data.backup = backup_checkbox.get_active()
         img = Gtk.Image(icon_name='window-close')
-        Close_button = Gtk.Button(label=_("Close"))
-        Close_button.set_image(img)
-        table.attach(Close_button, 3, 4, 0, 1)
-        Close_button.connect("clicked", self.delete_event)
+        close_button = Gtk.Button(label=_("Close"))
+        close_button.set_image(img)
+        table.attach(close_button, 3, 4, 0, 1)
+        close_button.connect("clicked", self.delete_event)
         install_button = Gtk.Button(label=_("Install update"))
         table.attach(install_button, 4, 5, 0, 1)
-        install_button.connect("clicked", self.startupdate)
+        install_button.connect("clicked", self.start_update)
         return table
 
     def __init__(self):
-        self.insingal = True
-        # window
+        """
+        The constructor for the UpdateWindow class.
+        """
         self.window = Gtk.Window()
         self.window.connect("destroy", self.delete_event)
         self.window.set_size_request(700, 400)
@@ -119,15 +148,23 @@ class UpdateWindow:
         box1.pack_start(box2, True, True, 0)
         box2.show()
         # Title
-        titletext = _("Updates available!")
-        titlelabel = Gtk.Label(label=f"<b><span size='large'>{titletext}</span></b>")
-        titlelabel.set_use_markup(True)
-        box2.pack_start(titlelabel, False, False, 0)
+        title_text = _("Updates available!")
+
+        update_title_label = Gtk.Label(
+            label=f"<b><span size='large'>{title_text}</span></b>"
+        )
+        update_title_label.set_use_markup(True)
+        box2.pack_start(update_title_label, False, False, 0)
         self.tree_store = Gtk.TreeStore(str, bool)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        sw.add(self.display(self.store()))
+        self.view = Gtk.TreeView(model=self.store())
+        self.renderer = Gtk.CellRendererText()
+        self.column0 = Gtk.TreeViewColumn("Name", self.renderer, text=0)
+        self.view.append_column(self.column0)
+        self.view.set_headers_visible(False)
+        sw.add(self.view)
         sw.show()
         box2.pack_start(sw, True, True, 10)
         box2 = Gtk.HBox(homogeneous=False, spacing=10)
@@ -139,44 +176,53 @@ class UpdateWindow:
         self.window.show_all()
 
     def store(self):
+        """
+        Function that creates the store for the list of package in the treeview.
+        :return: The store for the list of package to be updated.
+        """
         self.tree_store.clear()
-        global total_num
         r_num = 0
         u_num = 0
         i_num = 0
         ri_num = 0
-        if bool(packages_dictionary['remove']):
-            r_num = len(packages_dictionary['remove'])
+        if bool(Data.packages_dictionary['remove']):
+            r_num = len(Data.packages_dictionary['remove'])
             message = _('Installed packages to be REMOVED:')
             message += f' {r_num}'
             r_pinter = self.tree_store.append(None, (message, True))
-            for line in packages_dictionary['remove']:
+            for line in Data.packages_dictionary['remove']:
                 self.tree_store.append(r_pinter, (line, True))
-        if bool(packages_dictionary['upgrade']):
-            u_num = len(packages_dictionary['upgrade'])
+        if bool(Data.packages_dictionary['upgrade']):
+            u_num = len(Data.packages_dictionary['upgrade'])
             message = _('Installed packages to be UPGRADED')
             message += f' {u_num}'
             u_pinter = self.tree_store.append(None, (message, True))
-            for line in packages_dictionary['upgrade']:
+            for line in Data.packages_dictionary['upgrade']:
                 self.tree_store.append(u_pinter, (line, True))
-        if bool(packages_dictionary['install']):
-            i_num = len(packages_dictionary['install'])
+        if bool(Data.packages_dictionary['install']):
+            i_num = len(Data.packages_dictionary['install'])
             message = _('New packages to be INSTALLED:')
             message += f' {i_num}'
             i_pinter = self.tree_store.append(None, (message, True))
-            for line in packages_dictionary['install']:
+            for line in Data.packages_dictionary['install']:
                 self.tree_store.append(i_pinter, (line, True))
-        if bool(packages_dictionary['reinstall']):
-            ri_num = len(packages_dictionary['reinstall'])
+        if bool(Data.packages_dictionary['reinstall']):
+            ri_num = len(Data.packages_dictionary['reinstall'])
             message = _('Installed packages to be REINSTALLED:')
             message += f' {ri_num}'
             ri_pinter = self.tree_store.append(None, (message, True))
-            for line in packages_dictionary['reinstall']:
+            for line in Data.packages_dictionary['reinstall']:
                 self.tree_store.append(ri_pinter, (line, True))
-        total_num = r_num + u_num + i_num + ri_num
+        Data.total_packages = r_num + u_num + i_num + ri_num
         return self.tree_store
 
-    def display(self, model):
+    def display(self, model: Gtk.TreeStore) -> Gtk.TreeView:
+        """
+        Function that creates the treeview.
+
+        :param model: The store for the list of package to be updated.
+        :return: The treeview.
+        """
         self.view = Gtk.TreeView(model=model)
         self.renderer = Gtk.CellRendererText()
         self.column0 = Gtk.TreeViewColumn("Name", self.renderer, text=0)
@@ -186,92 +232,117 @@ class UpdateWindow:
 
 
 class TrayIcon:
-    def close_application(self, widget):
-        quit()
+    """
+    The class for the tray icon.
+    """
+
+    def tray_icon(self):
+        return self.status_icon
 
     def __init__(self):
-        # Statue Tray Code
-        global statusIcon
-        statusIcon = Gtk.StatusIcon()
-        statusIcon.set_tooltip_text('Update Available')
+        """
+        The constructor for the TrayIcon class.
+        """
+        self.status_icon = Gtk.StatusIcon()
+        self.status_icon.set_tooltip_text('Update Available')
         self.menu = Gtk.Menu()
         self.menu.show_all()
-        statusIcon.connect("activate", self.leftclick)
-        statusIcon.connect('popup-menu', self.icon_clicked)
-        statusIcon.set_visible(False)
-        statusIcon.set_from_icon_name('system-software-update')
+        self.status_icon.connect("activate", self.left_click)
+        self.status_icon.connect('popup-menu', self.icon_clicked)
+        self.status_icon.set_visible(False)
+        self.status_icon.set_from_icon_name('system-software-update')
 
     def nm_menu(self):
-        # right click menue
+        """
+        Function that creates the menu for the tray icon.
+        :return: The menu.
+        """
         self.menu = Gtk.Menu()
         open_update = Gtk.MenuItem(_("Open Update"))
-        open_update.connect("activate", self.leftclick)
+        open_update.connect("activate", self.left_click)
         close_item = Gtk.MenuItem(_("Close"))
-        close_item.connect("activate", self.close_application)
+        close_item.connect("activate", Gtk.main_quit)
         self.menu.append(open_update)
         self.menu.append(close_item)
         self.menu.show_all()
         return self.menu
 
-    def leftclick(self, status_icon):
-        global stop_pkg_refreshing, statusIcon
+    def left_click(self, status_icon: Gtk.StatusIcon):
+        """
+        Function that is called when the user left-clicks on the tray icon.
+        :param status_icon: The status icon.
+        """
         if updating():
-            update_station_open()
+            UpdateStationOpen()
         else:
-            stop_pkg_refreshing = True
+            Data.stop_pkg_refreshing = True
             look_update_station()
             UpdateWindow()
-        statusIcon.set_visible(False)
+        status_icon.set_visible(False)
 
     def icon_clicked(self, status_icon, button, time):
+        """
+        Function that is called when the user right-clicks on the tray icon.
+        :param status_icon: The status icon.
+        :param button: The button.
+        :param time: The time.
+        """
         position = Gtk.StatusIcon.position_menu
         self.nm_menu().popup(None, None, position, status_icon, button, time)
 
-    def updatetray(self):
+    def update_tray(self):
+        """
+        Function that updates the tray icon.
+        """
         if check_for_update() is True:
-            global stop_icon_refreshing
-            GLib.idle_add(statusIcon.set_visible, True)
+            GLib.idle_add(self.status_icon.set_visible, True)
             msg = _("System and software upgrades are now available")
             notify = 'notify-send _("Update available") '
             notify += f'"{msg}" -i stock_view-details -t 10000'
             Popen(notify, shell=True, close_fds=True)
         else:
-            GLib.idle_add(statusIcon.set_visible, False)
+            GLib.idle_add(self.status_icon.set_visible, False)
 
-        return
-
-    def treadingupdate(self):
-        # make sure that the look is clear on start up.
+    def threading_update(self):
+        """
+        Function that creates a thread that checks for updates.
+        """
         if updating():
-            unlook_update_station()
+            unlock_update_station()
         thr = threading.Thread(target=self.check)
         thr.setDaemon(True)
         thr.start()
 
     def check(self):
+        """
+        Function that checks for updates.
+        """
         while True:
             sleep(120)
-            global packages_dictionary
             if repository_is_syncing() is False:
-                if stop_pkg_refreshing is False:
+                if Data.stop_pkg_refreshing is False:
                     if not updating():
-                        packages_dictionary = get_pkg_upgrade_data()
-                        GLib.idle_add(self.updatetray)
+                        Data.packages_dictionary = get_pkg_upgrade_data()
+                        GLib.idle_add(self.update_tray)
                     else:
-                        GLib.idle_add(statusIcon.set_visible, False)
+                        GLib.idle_add(self.status_icon.set_visible, False)
             # Wait for an hour to look for update
             sleep(3480)
-        return True
 
 
 class InstallUpdate:
-
+    """
+    The class for the window that is displayed the progress of the update.
+    """
     def close_application(self, widget, data):
         if updating():
-            unlook_update_station()
+            unlock_update_station()
         Gtk.main_quit()
 
     def __init__(self):
+        """
+        The constructor for the InstallUpdate class.
+        """
         self.win = Gtk.Window()
         self.win.connect("delete-event", self.close_application)
         self.win.set_size_request(500, 75)
@@ -298,29 +369,38 @@ class InstallUpdate:
         self.thr.start()
 
     def update_progress(self, progress, fraction, text):
+        """
+        Function that updates the progress bar.
+        :param progress: The progress bar.
+        :param fraction: The fraction to add.
+        :param text: The text to display.
+        """
         progress.set_fraction(fraction)
         progress.set_text(text)
 
     def read_output(self, progress):
+        """
+        Function that reads the output of the update to update the progress bar.
+        :param progress: The progress bar.
+        """
         fail = False
         update_pkg = False
         option = ''
         packages = ''
-        global second
         need_reboot_packages = set(json.loads(open(f'{lib_path}/need_reboot.json').read()))
-        upgrade_packages = set(re.split(": | ", " ".join(packages_dictionary['upgrade'])))
+        upgrade_packages = set(re.split(": | ", " ".join(Data.packages_dictionary['upgrade'])))
         reboot = bool(need_reboot_packages.intersection(upgrade_packages))
-        if len(packages_dictionary['upgrade']) == 1 and 'pkg:' in packages_dictionary['upgrade'][0]:
+        if len(Data.packages_dictionary['upgrade']) == 1 and 'pkg:' in Data.packages_dictionary['upgrade'][0]:
             update_pkg = True
             packages = ' pkg'
-            second = True
+            Data.second_update = True
         else:
-            second = False
-        if packages_dictionary['system_upgrade'] is True:
+            Data.second_update = False
+        if Data.packages_dictionary['system_upgrade'] is True:
             option = 'f'
-        howmany = (total_num * 5) + 10
+        howmany = (Data.total_packages * 5) + 10
         fraction = 1.0 / howmany
-        if backup:
+        if Data.backup:
             today = datetime.datetime.now().strftime("%Y-%m-%d")
             txt = _("Cleaning old boot environment")
             GLib.idle_add(self.update_progress, progress, fraction, txt)
@@ -450,45 +530,55 @@ class InstallUpdate:
         GLib.idle_add(self.win.destroy)
         GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
 
-    def stop_tread(self, fail, update_pkg, reboot):
-        global packages_dictionary, stop_icon_refreshing, stop_pkg_refreshing
-        global update_started
+    def stop_tread(self, fail: bool, update_pkg: bool, reboot:bool):
+        """
+        The function to stop the thread.
+        :param fail: True if update failed.
+        :param update_pkg: True if update pkg was updated first..
+        :param reboot: True if system needs to be rebooted after update completed.
+        """
         self.thr.join()
         if updating():
-            unlook_update_station()
+            unlock_update_station()
         if fail is True:
-            update_started = False
-            stop_pkg_refreshing = False
-            failed_update()
+            Data.update_started = False
+            Data.stop_pkg_refreshing = False
+            FailedUpdate()
         else:
             if update_pkg is True and check_for_update() is True:
-                packages_dictionary = get_pkg_upgrade_data()
+                Data.packages_dictionary = get_pkg_upgrade_data()
                 UpdateWindow()
             else:
-                update_started = False
-                stop_pkg_refreshing = False
+                Data.update_started = False
+                Data.stop_pkg_refreshing = False
                 if reboot is True:
                     RestartSystem()
                 else:
                     UpdateCompleted()
 
 
-ftxt = _("""Press "Detail" to get information about the failure.
-Get help at https://forums.ghostbsd.org.""")
-
-
-class failed_update():
+class FailedUpdate:
+    """
+    FailedUpdate class for failed update window.
+    """
 
     def get_detail(self, widget):
         Popen(f'sudo -u {username} xdg-open {home}/update.failed', shell=True)
 
     def on_close(self, widget):
+        """
+        The function to close the window.
+        :param widget: The window widget.
+        """
         if close_session is True:
             Gtk.main_quit()
         else:
             self.window.destroy()
 
     def __init__(self):
+        """
+        The constructor of the FailedUpdate class.
+        """
         self.window = Gtk.Window()
         self.window.set_position(Gtk.WindowPosition.CENTER)
         # self.window.set_border_width(8)
@@ -499,7 +589,9 @@ class failed_update():
         self.window.add(vBox)
         vBox.show()
         label = Gtk.Label()
-        label.set_markup(ftxt)
+        failed_text = _("""Press "Detail" to get information about the failure.
+        Get help at https://forums.ghostbsd.org.""")
+        label.set_markup(failed_text)
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
         hBox = Gtk.HBox(homogeneous=False, spacing=0)
@@ -508,26 +600,39 @@ class failed_update():
         hBox.show()
         restart = Gtk.Button(label=_("Detail"))
         restart.connect("clicked", self.get_detail)
-        continuebtn = Gtk.Button(label=_("Close"))
-        continuebtn.connect("clicked", self.on_close)
-        hBox.pack_end(continuebtn, False, False, 5)
+        continue_button = Gtk.Button(label=_("Close"))
+        continue_button.connect("clicked", self.on_close)
+        hBox.pack_end(continue_button, False, False, 5)
         hBox.pack_end(restart, False, False, 5)
         self.window.show_all()
 
 
-class RestartSystem():
-
+class RestartSystem:
+    """
+    RestartSystem class for restarting system window.
+    """
     def on_reboot(self, widget):
+        """
+        The function to reboot the system.
+        :param widget: The window widget.
+        """
         Popen('shutdown -r now', shell=True)
         Gtk.main_quit()
 
     def on_close(self, widget):
+        """
+        The function to close the window.
+        :param widget: The window widget.
+        """
         if close_session is True:
             Gtk.main_quit()
         else:
             self.window.destroy()
 
     def __init__(self):
+        """
+        The constructor of the RestartSystem class.
+        """
         self.window = Gtk.Window()
         self.window.set_position(Gtk.WindowPosition.CENTER)
         # self.window.set_border_width(8)
@@ -537,8 +642,8 @@ class RestartSystem():
         vBox = Gtk.VBox(homogeneous=False, spacing=0)
         self.window.add(vBox)
         vBox.show()
-        rtxt = _("The computer needs to restart to run on the updated software.")
-        label = Gtk.Label(label=rtxt)
+        reboot_text = _("The computer needs to restart to run on the updated software.")
+        label = Gtk.Label(label=reboot_text)
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
         hBox = Gtk.HBox(homogeneous=False, spacing=0)
@@ -547,22 +652,32 @@ class RestartSystem():
         hBox.show()
         restart = Gtk.Button(label=_("Restart Now"))
         restart.connect("clicked", self.on_reboot)
-        continuebtn = Gtk.Button(label=_("Restart Later"))
-        continuebtn.connect("clicked", self.on_close)
+        continue_button = Gtk.Button(label=_("Restart Later"))
+        continue_button.connect("clicked", self.on_close)
         hBox.pack_end(restart, False, False, 5)
-        hBox.pack_end(continuebtn, False, False, 5)
+        hBox.pack_end(continue_button, False, False, 5)
         self.window.show_all()
 
 
-class UpdateCompleted():
+class UpdateCompleted:
+    """
+    Class for update completed window.
+    """
 
-    def on_close(self, widget):
+    def on_close(self, widget: Gtk.Widget):
+        """
+        The function to close the window.
+        :param widget: The window widget.
+        """
         if close_session is True:
             Gtk.main_quit()
         else:
             self.window.destroy()
 
     def __init__(self):
+        """
+        The constructor of the UpdateCompleted class.
+        """
         self.window = Gtk.Window()
         self.window.set_position(Gtk.WindowPosition.CENTER)
         self.window.connect("destroy", self.on_close)
@@ -585,16 +700,19 @@ class UpdateCompleted():
         self.window.show_all()
 
 
-class noUpdateAvailable(object):
-
-    def on_close(self, widget):
-        Gtk.main_quit()
+class NoUpdateAvailable(object):
+    """
+    Class for no update available window.
+    """
 
     def __init__(self):
+        """
+        The constructor of the NoUpdateAvailable class.
+        """
         window = Gtk.Window()
         window.set_position(Gtk.WindowPosition.CENTER)
         window.set_border_width(8)
-        window.connect("destroy", self.on_close)
+        window.connect("destroy", Gtk.main_quit)
         window.set_title(_("No Update Available"))
         box1 = Gtk.VBox(homogeneous=False, spacing=0)
         window.add(box1)
@@ -610,20 +728,29 @@ class noUpdateAvailable(object):
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
         box2.show()
-        ok_buton = Gtk.Button(label=_("Close"))
-        ok_buton.connect("clicked", self.on_close)
-        box2.pack_end(ok_buton, False, False, 0)
+        ok_button = Gtk.Button(label=_("Close"))
+        ok_button.connect("clicked", Gtk.main_quit)
+        box2.pack_end(ok_button, False, False, 0)
         window.show_all()
 
 
-class startCheckUpdate:
-
-    def close_application(self, widget, data):
+class StartCheckUpdate:
+    """
+    Class for start check for update window.
+    """
+    def close_application(self, widget: Gtk.Widget):
+        """
+        The function to close the window.
+        :param widget: The window widget.
+        """
         if updating():
-            unlook_update_station()
+            unlock_update_station()
         Gtk.main_quit()
 
     def __init__(self):
+        """
+        The constructor of the StartCheckUpdate class.
+        """
         self.win = Gtk.Window()
         self.win.connect("delete-event", self.close_application)
         self.win.set_size_request(500, 75)
@@ -651,12 +778,21 @@ class startCheckUpdate:
         self.thr.setDaemon(True)
         self.thr.start()
 
-    def update_progress(self, progress, text):
+    def update_progress(self, progress: Gtk.ProgressBar, text: str):
+        """
+        The function to update the progress bar.
+        :param progress: The progress bar.
+        :param text: the text to be displayed on the progress bar.
+        """
         progress.set_text(text)
         fraction = progress.get_fraction() + 0.2
         progress.set_fraction(fraction)
 
-    def check_for_update(self, progress):
+    def check_for_update(self, progress: Gtk.ProgressBar):
+        """
+        The function to check for update and update the progress bar.
+        :param progress: The progress bar.
+        """
         GLib.idle_add(self.update_progress, progress,
                       _('Checking if the repository is online'))
         sleep(1)
@@ -667,12 +803,12 @@ class startCheckUpdate:
             if repository_is_syncing() is True:
                 GLib.idle_add(self.update_progress, progress,
                               _('The mirror is Syncing'))
-                GLib.idle_add(self.stop_tread, mirrorSyncing)
+                GLib.idle_add(self.stop_tread, MirrorSyncing)
             else:
                 if updating():
                     GLib.idle_add(self.update_progress, progress,
                                   _('Updates are already running'))
-                    GLib.idle_add(self.stop_tread, update_station_open)
+                    GLib.idle_add(self.stop_tread, UpdateStationOpen)
                 else:
                     GLib.idle_add(self.update_progress, progress,
                                   'Checking for updates')
@@ -680,8 +816,7 @@ class startCheckUpdate:
                     if update_available:
                         GLib.idle_add(self.update_progress, progress,
                                       _('Getting the list of packages'))
-                        global packages_dictionary
-                        packages_dictionary = get_pkg_upgrade_data()
+                        Data.packages_dictionary = get_pkg_upgrade_data()
                         look_update_station()
                         GLib.idle_add(self.update_progress, progress,
                                       _('Open the update window'))
@@ -689,29 +824,42 @@ class startCheckUpdate:
                     elif not update_available and update_available is not None:
                         GLib.idle_add(self.update_progress, progress,
                                       _('No update found'))
-                        GLib.idle_add(self.stop_tread, noUpdateAvailable)
+                        GLib.idle_add(self.stop_tread, NoUpdateAvailable)
                     else:
-                        GLib.idle_add(self.stop_tread, somethingIsWrong)
+                        GLib.idle_add(self.stop_tread, SomethingIsWrong)
         else:
             GLib.idle_add(self.update_progress, progress,
                           _('The Mirror is unreachable'))
-            GLib.idle_add(self.stop_tread, serverUnreachable)
+            GLib.idle_add(self.stop_tread, ServerUnreachable)
 
-    def stop_tread(self, start_window):
+    def stop_tread(self, start_window: object):
+        """
+        The function to stop the thread.
+        :param start_window: The start window object.
+        """
         start_window()
         self.win.hide()
         self.thr.join()
 
 
-class update_station_open(object):
-
+class UpdateStationOpen(object):
+    """
+    Class for update station already started window.
+    """
     def on_close(self, widget):
+        """
+        The function to close the window.
+        :param widget: The window widget.
+        """
         if close_session is True:
             Gtk.main_quit()
         else:
             self.window.destroy()
 
     def __init__(self):
+        """
+        The constructor of the UpdateStationOpen class.
+        """
         self.window = Gtk.Window()
         self.window.set_position(Gtk.WindowPosition.CENTER)
         self.window.set_border_width(8)
@@ -730,22 +878,25 @@ class update_station_open(object):
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
         box2.show()
-        ok_buton = Gtk.Button(label=_("Close"))
-        ok_buton.connect("clicked", self.on_close)
-        box2.pack_end(ok_buton, False, False, 0)
+        ok_button = Gtk.Button(label=_("Close"))
+        ok_button.connect("clicked", self.on_close)
+        box2.pack_end(ok_button, False, False, 0)
         self.window.show_all()
 
 
-class mirrorSyncing(object):
-
-    def on_close(self, widget):
-        Gtk.main_quit()
+class MirrorSyncing(object):
+    """
+    Class for the mirror is syncing warning window.
+    """
 
     def __init__(self):
+        """
+        The constructor of the MirrorSyncing class.
+        """
         window = Gtk.Window()
         window.set_position(Gtk.WindowPosition.CENTER)
         window.set_border_width(8)
-        window.connect("destroy", self.on_close)
+        window.connect("destroy", Gtk.main_quit)
         window.set_title(_("Server Unreachable"))
         box1 = Gtk.VBox(homogeneous=False, spacing=0)
         window.add(box1)
@@ -761,22 +912,25 @@ class mirrorSyncing(object):
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
         box2.show()
-        ok_buton = Gtk.Button(label=_("Close"))
-        ok_buton.connect("clicked", self.on_close)
-        box2.pack_end(ok_buton, False, False, 0)
+        ok_button = Gtk.Button(label=_("Close"))
+        ok_button.connect("clicked", Gtk.main_quit)
+        box2.pack_end(ok_button, False, False, 0)
         window.show_all()
 
 
-class serverUnreachable(object):
-
-    def on_close(self, widget):
-        Gtk.main_quit()
+class ServerUnreachable(object):
+    """
+    Class for the server unreachable warning window.
+    """
 
     def __init__(self):
+        """
+        The constructor of the ServerUnreachable class.
+        """
         window = Gtk.Window()
         window.set_position(Gtk.WindowPosition.CENTER)
         window.set_border_width(8)
-        window.connect("destroy", self.on_close)
+        window.connect("destroy", Gtk.main_quit)
         window.set_title(_("Server Unreachable"))
         box1 = Gtk.VBox(homogeneous=False, spacing=0)
         window.add(box1)
@@ -792,22 +946,25 @@ class serverUnreachable(object):
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
         box2.show()
-        ok_buton = Gtk.Button(label=_("Close"))
-        ok_buton.connect("clicked", self.on_close)
-        box2.pack_end(ok_buton, False, False, 0)
+        ok_button = Gtk.Button(label=_("Close"))
+        ok_button.connect("clicked", Gtk.main_quit)
+        box2.pack_end(ok_button, False, False, 0)
         window.show_all()
 
 
-class somethingIsWrong(object):
-
-    def on_close(self, widget):
-        Gtk.main_quit()
+class SomethingIsWrong(object):
+    """
+    Class for the something is wrong warning window.
+    """
 
     def __init__(self):
+        """
+        The constructor of the SomethingIsWrong class.
+        """
         window = Gtk.Window()
         window.set_position(Gtk.WindowPosition.CENTER)
         window.set_border_width(8)
-        window.connect("destroy", self.on_close)
+        window.connect("destroy", Gtk.main_quit)
         window.set_title(_("Something Is Wrong"))
         box1 = Gtk.VBox(homogeneous=False, spacing=0)
         window.add(box1)
@@ -825,14 +982,20 @@ class somethingIsWrong(object):
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
         box2.show()
-        ok_buton = Gtk.Button(label=_("Close"))
-        ok_buton.connect("clicked", self.on_close)
-        box2.pack_end(ok_buton, False, False, 0)
+        ok_button = Gtk.Button(label=_("Close"))
+        ok_button.connect("clicked", Gtk.main_quit)
+        box2.pack_end(ok_button, False, False, 0)
         window.show_all()
 
 
-class not_root(Gtk.Window):
+class NotRoot(Gtk.Window):
+    """
+    Class for the user is not root warning window.
+    """
     def __init__(self):
+        """
+        The constructor of the NotRoot class.
+        """
         Gtk.Window.__init__(self)
         self.set_title(_("Software Station"))
         self.connect("delete-event", Gtk.main_quit)
@@ -848,7 +1011,7 @@ class not_root(Gtk.Window):
         ok_button = Gtk.Button()
         ok_button.set_label(_("OK"))
         apply_img = Gtk.Image()
-        apply_img.set_from_icon_name('gtk-ok', 1)
+        apply_img.set_from_icon_name('gtk-ok')
         ok_button.set_image(apply_img)
         ok_button.connect("clicked", Gtk.main_quit)
         hBox.pack_end(ok_button, False, False, 5)
@@ -856,35 +1019,30 @@ class not_root(Gtk.Window):
 
 
 arg = sys.argv
-UsageMSG = """
-Usage for %s:
+UsageMSG = f"""
+Usage for {arg[0]}:
 
 Available Commands:
 
 check-now       - Look for update now
 
-""" % arg[0]
+"""
 
 
-global close_session
 if os.geteuid() == 0:
-    if len(arg) > 2:
-        print(UsageMSG)
-        sys.exit(0)
-    elif len(arg) == 1:
+    if len(arg) == 1:
         if socket.gethostname() != 'livecd':
             close_session = False
-            TrayIcon().treadingupdate()
-            Gtk.main()
+            tray = TrayIcon()
+            tray.threading_update()
         else:
             exit()
     elif len(arg) == 2 and arg[1] == "check-now":
         close_session = True
-        startCheckUpdate()
-        Gtk.main()
+        StartCheckUpdate()
     else:
         print(UsageMSG)
         sys.exit(0)
 else:
-    not_root()
-    Gtk.main()
+    NotRoot()
+Gtk.main()

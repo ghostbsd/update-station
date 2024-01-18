@@ -13,7 +13,7 @@ from setuptools import setup
 # to update i18n .mo files (and merge .pot file into .po files) run on Linux:
 # ,,python setup.py build_i18n -m''
 
-for line in open('update-station').readlines():
+for line in open('src/update-station').readlines():
     if (line.startswith('__VERSION__')):
         exec(line.strip())
         break
@@ -27,6 +27,7 @@ prefix = sys.prefix
 # compiling translations
 os.system("sh compile_translations.sh")
 
+
 def datafilelist(installbase, sourcebase):
     datafileList = []
     for root, subFolders, files in os.walk(sourcebase):
@@ -36,13 +37,10 @@ def datafilelist(installbase, sourcebase):
         datafileList.append((root.replace(sourcebase, installbase), fileList))
     return datafileList
 
-# ('{prefix}/share/man/man1'.format(prefix=sys.prefix), glob('data/*.1')),
-
 
 data_files = [
     (f'{prefix}/etc/xdg/autostart', ['src/update-station.desktop']),
     (f'{prefix}/share/applications', ['src/update-manager.desktop']),
-    (f'{prefix}/lib/update-station', ['src/updateHandler.py']),
     (f'{prefix}/lib/update-station', ['src/need_reboot.json']),
     (f'{prefix}/etc/sudoers.d', ['src/sudoers.d/update-station']),
     (f'{prefix}/share/locale/ru/LC_MESSAGES', ['src/locale/ru/update-station.mo']),
@@ -51,12 +49,6 @@ data_files = [
 
 data_files.extend(datafilelist(f'{prefix}/share/locale', 'build/mo'))
 
-# cmdclass ={
-#             "build" : DistUtilsExtra.command.build_extra.build_extra,
-#             "build_i18n" :  DistUtilsExtra.command.build_i18n.build_i18n,
-#             "clean": DistUtilsExtra.command.clean_i18n.clean_i18n,
-# }
-
 setup(
     name="update-station",
     version=PROGRAM_VERSION,
@@ -64,9 +56,9 @@ setup(
     license='BSD',
     author='Eric Turgeon',
     url='https://github/GhostBSD/update-station/',
-    package_dir={'': '.'},
+    package_dir={'': 'src'},
     data_files=data_files,
     install_requires=['setuptools'],
+    py_modules=['updateHandler'],
     scripts=['update-station']
 )
-# cmdclass = cmdclass,

@@ -3,7 +3,6 @@
 
 import os
 import socket
-import urllib.request
 import requests
 from subprocess import Popen, PIPE, call, run
 
@@ -12,13 +11,20 @@ pkg_lock_file = f'{ustation_db}/lock-pkgs'
 updates_run = '/tmp/update-station'
 
 
-def network_stat():
+def network_stat() -> str:
+    """
+    Check if the network is up.
+    :return: UP if the network is up else DOWN.
+    """
     cmd = "netstat -rn | grep default"
     netstat = run(cmd, shell=True)
     return "UP" if netstat.returncode == 0 else 'DOWN'
 
 
-def repo_online():
+def repo_online() -> bool:
+    """
+    Check if the repository is online.
+    """
     cmd = "pkg -vv | grep -B 1 'enabled.*yes' | grep url"
     raw_url = Popen(
         cmd,
@@ -40,7 +46,12 @@ def repo_online():
         return True
 
 
-def get_pkg_upgrade(option):
+def get_pkg_upgrade(option: str) -> str:
+    """
+    Get the upgrade data from pkg.
+    :param option: f to get full upgrade data, n to get only the new packages data.
+    :return:  The upgrade data.
+    """
     pkg_upgrade = Popen(
         f'pkg upgrade -n{option}',
         shell=True,
@@ -53,7 +64,11 @@ def get_pkg_upgrade(option):
     return upgrade_verbose
 
 
-def kerenel_verstion_change():
+def kernel_version_change() -> bool:
+    """
+    Check if the kernel version has changed.
+    :return: True if the kernel version has changed else False.
+    """
     pkg_update = Popen(
         'yes | pkg update -f',
         shell=True,
@@ -68,10 +83,14 @@ def kerenel_verstion_change():
         return False
 
 
-def get_pkg_upgrade_data():
+def get_pkg_upgrade_data() -> dict:
+    """
+    Get the upgrade data from pkg.
+    :return: The upgrade data.
+    """
     option = ''
     system_upgrade = False
-    if kerenel_verstion_change():
+    if kernel_version_change():
         system_upgrade = True
         option = 'f'
     update_pkg = get_pkg_upgrade(option)
@@ -113,51 +132,60 @@ def get_pkg_upgrade_data():
             if 'REINSTALLED:' in line:
                 stop = True
             elif stop is True and line == '':
-                stop = False
                 break
             elif stop is True:
                 pkg_to_reinstall.append(line.strip())
-    pkg_dictionaire = {
+    pkg_dictionary = {
         'system_upgrade': system_upgrade,
         'remove': pkg_to_remove,
         'upgrade': pkg_to_upgrade,
         'install': pkg_to_install,
         'reinstall': pkg_to_reinstall
     }
-    return pkg_dictionaire
+    return pkg_dictionary
 
 
-def lock_pkg(Lock_pkg_list):
-    for line in Lock_pkg_list:
+def lock_pkg(lock_pkg_list: list) -> None:
+    """
+    Lock all packages in the list.
+    :param lock_pkg_list: The list of pkg to lock.
+    """
+    for line in lock_pkg_list:
         call(
             f'pkg lock -y {line.strip()}',
             shell=True
         )
-    return True
 
 
-def unlock_all_pkg():
+def unlock_all_pkg() -> None:
+    """
+    Unlock all locked packages.
+    """
     call(
         'pkg unlock -ay',
         shell=True
     )
-    return True
 
 
-def unlock_pkg(Lock_pkg_list):
-    for line in Lock_pkg_list:
+def unlock_pkg(lock_pkg_list: list) -> None:
+    """
+    Unlock all packages in the list.
+    :param lock_pkg_list: The list of pkg to unlock.
+    """
+    for line in lock_pkg_list:
         call(
             f'pkg unlock -y {line.strip()}',
             shell=True
         )
-    return True
 
 
-def check_for_update():
-    option = ''
-    # make sure to update database first with kerenel_verstion_change
-    kerenel_verstion_change()
-    upgrade_text = get_pkg_upgrade(option)
+def check_for_update() -> bool:
+    """
+    Check if there is an update.
+    :return: True if there is an update else False.
+    """
+    kernel_version_change()
+    upgrade_text = get_pkg_upgrade('')
     if 'Your packages are up to date' in upgrade_text:
         return False
     elif 'UPGRADED:' in upgrade_text:
@@ -169,10 +197,14 @@ def check_for_update():
     elif 'REMOVED:' in upgrade_text:
         return True
     else:
-        return None
+        return False
 
 
-def get_and_update_version():
+def get_default_repo_url() -> str:
+    """
+    Get the default pkg repository url.
+    :return: The default pkg repository url.
+    """
     raw_url = Popen(
         'pkg -vv | grep -B 1 "enabled.*yes" | grep url',
         shell=True,
@@ -182,33 +214,41 @@ def get_and_update_version():
         encoding='utf-8'
     )
     pkg_url = raw_url.stdout.read().strip().split('"')[1]
-    version_url = f'{pkg_url}/version'
-    raw_version = urllib.request.urlopen(version_url)
-    version = raw_version.read().decode('utf-8').strip()
-    print('Update version:', version)
-    version_file = open('/etc/version', 'w')
-    version_file.writelines(version)
-    version_file.close()
+    return pkg_url
 
 
-def updating():
+def updating() -> bool:
+    """
+    Check if the system is updating.
+    :return: True if the system is updating else False.
+    """
     if os.path.exists(f'{updates_run}/updating'):
         return True
     else:
         return False
 
 
-def look_update_station():
+def look_update_station() -> None:
+    """
+    Create a lock file to prevent multiple update at the same time.
+    """
     if not os.path.exists(updates_run):
         os.mkdir(updates_run)
     open(f'{updates_run}/updating', 'w').close()
 
 
-def unlook_update_station():
+def unlock_update_station() -> None:
+    """
+    Remove the lock file.
+    """
     os.remove(f'{updates_run}/updating')
 
 
-def repository_is_syncing():
+def repository_is_syncing() -> bool:
+    """
+    Check if the repository is syncing.
+    :return: True if the repository is syncing else False.
+    """
     raw_url = Popen(
         'pkg -vv | grep -B 1 "enabled.*yes" | grep url',
         shell=True,
@@ -220,3 +260,5 @@ def repository_is_syncing():
     pkg_url = raw_url.stdout.read().strip().split('"')[1]
     syncing_url = f'{pkg_url}/.syncing'
     return True if requests.get(syncing_url).status_code == 200 else False
+
+
