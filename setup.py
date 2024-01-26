@@ -19,7 +19,7 @@ for line in open('src/update-station').readlines():
         break
 # Silence flake8, __VERSION__ is properly assigned below
 else:
-    __VERSION__ = '4.5'
+    __VERSION__ = '4.8'
 
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
@@ -60,5 +60,5 @@ setup(
     data_files=data_files,
     install_requires=['setuptools'],
     py_modules=['updateHandler'],
-    scripts=['update-station']
+    scripts=['src/update-station']
 )
