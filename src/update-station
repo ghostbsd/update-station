@@ -6,7 +6,7 @@ import datetime
 import getpass
 import gi
 gi.require_version('Gtk', '3.0')
-gi.require_version('Gio', '2.0')
+gi.require_version('Notify', '0.7')
 import json
 import os
 import gettext
@@ -14,7 +14,7 @@ import re
 import socket
 import sys
 import threading
-from gi.repository import Gtk, GLib, Gio
+from gi.repository import Gtk, GLib, Notify
 from subprocess import Popen, PIPE, run
 from time import sleep
 from updateHandler import (
@@ -237,22 +237,32 @@ class UpdateWindow:
 class UpdateNotifier:
 
     def __init__(self):
+        self.notification = None
+        Notify.init('Test')
         self.msg = _("System and software upgrades are now available")
         self.timeout = 10000 # 10 seconds
 
     def notify(self):
-        notify = Gio.Notification()
-        notify.set_title(_("Update Available"))
-        notify.set_body(self.msg)
-        notify.set_urgent(True)
+        self.notification = Notify.Notification.new(
+            summary='Update Available',
+            body=self.msg
+        )
+        self.notification.add_action('clicked', 'Start Upgrade', self.on_activated)
+        self.notification.show()
+        # notify = Gio.Notification()
+        # notify.set_title(_("Update Available"))
+        # notify.set_body(self.msg)
+        # notify.set_urgent(True)
         # notify.connect('closed', self.on_activated)
         #notify.set_default_action(self.on_activated)
 
         # GLib.timeout_add_seconds(self.timeout, notify.close)
         # GLib.idle_add(notify.show)
 
-    def on_activated(self, notification):
+    def on_activated(self, notification, action_name, data=None):
+        print(action_name)
         StartCheckUpdate()
+        notification.close()
 
 
 class TrayIcon:
