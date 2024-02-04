@@ -239,7 +239,7 @@ class UpdateNotifier:
         elif Data.kernel_upgrade is True:
             self.msg = _("System and software updates are now available.")
         self.notification = Notify.Notification.new(
-            summary='Update Available',
+            summary=_('Update Available'),
             body=self.msg,
             icon='system-software-update'
         )
@@ -269,14 +269,16 @@ class MajorUpgradeWindow(Gtk.Window):
         """
         The constructor for the MajorUpgradeWindow class.
         """
-        Gtk.Window.__init__(self, title="Upgrade?")
+        Gtk.Window.__init__(self, title=_("Major version upgrade"))
         self.connect("destroy", Gtk.main_quit)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
         vbox.set_border_width(10)
         self.add(vbox)
 
-        label = Gtk.Label(label=f"Would you like to upgrade from {Data.current_abi} to {Data.new_abi}?"
-                          "\nIf you select No, the upgrade will be skipped until the next boot.")
+        label = Gtk.Label(
+            label=_(f"Would you like to upgrade from {Data.current_abi} to {Data.new_abi}?"
+                    "\n\nIf you select No, the upgrade will be skipped until the next boot.")
+        )
         vbox.pack_start(label, True, True, 5)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         vbox.pack_start(hbox, False, False, 0)
@@ -526,7 +528,7 @@ class InstallUpdate:
         GLib.idle_add(self.update_progress, progress, new_val, txt)
         sleep(1)
         fetch = Popen(
-            f'{env}pkg upgrade -Fy{option}{packages}',
+            f'{env}pkg-static upgrade -Fy{option}{packages}',
             shell=True,
             stdout=PIPE,
             stderr=PIPE,
@@ -560,7 +562,7 @@ class InstallUpdate:
             sleep(1)
             while True:
                 install = Popen(
-                    f'{env}pkg upgrade -y{option}{packages}',
+                    f'{env}pkg-static upgrade -y{option}{packages}',
                     shell=True,
                     stdout=PIPE,
                     stderr=PIPE,
@@ -582,7 +584,7 @@ class InstallUpdate:
                         raw_line = install_text.splitlines()[-2]
                         failed_package = raw_line.split()[2].replace(':', '')
                         pkg_rquery = run(
-                            f'pkg rquery -x "%n" "{failed_package}"',
+                            f'{env}pkg-static rquery -x "%n" "{failed_package}"',
                             shell=True,
                             stdout=PIPE,
                             stderr=PIPE,
@@ -590,8 +592,8 @@ class InstallUpdate:
                         )
                         package_name = pkg_rquery.stdout.strip()
                         reinstall = Popen(
-                            f'pkg delete -y {package_name} ;'
-                            f' pkg install -y {package_name}',
+                            f'{env}pkg-static delete -y {package_name} ;'
+                            f'{env}pkg-static install -y {package_name}',
                             shell=True,
                             stdout=PIPE,
                             stderr=PIPE,
