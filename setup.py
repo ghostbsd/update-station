@@ -59,6 +59,6 @@ setup(
     package_dir={'': 'src'},
     data_files=data_files,
     install_requires=['setuptools'],
-    py_modules=['updateHandler'],
+    py_modules=['updateHandler', 'update_data'],
     scripts=['src/update-station']
 )

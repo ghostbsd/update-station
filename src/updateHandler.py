@@ -4,6 +4,7 @@
 import os
 import socket
 import requests
+from update_data import Data
 from subprocess import Popen, PIPE, call, run
 
 ustation_db = '/var/db/update-station'
@@ -17,7 +18,7 @@ def check_for_update() -> bool:
     :return: True if there is an update else False.
     """
     kernel_version_change()
-    upgrade_text = get_pkg_upgrade('')
+    upgrade_text = get_pkg_upgrade()
     if 'Your packages are up to date' in upgrade_text:
         return False
     elif 'UPGRADED:' in upgrade_text:
@@ -49,7 +50,7 @@ def get_default_repo_url() -> str:
     return pkg_url
 
 
-def get_major_upgrade_version() -> str:
+def get_abi_upgrade() -> str:
     """
     Get the major upgrade version.
     :return: The major upgrade version.
@@ -59,17 +60,36 @@ def get_major_upgrade_version() -> str:
         - FreeBSD:15:amd64
     """
     next_version = f'{get_default_repo_url()}/.next_version'
-    return requests.get(next_version).json()
+    return requests.get(next_version).text.strip()
 
 
-def get_pkg_upgrade(option: str) -> str:
+def get_current_abi():
+    """
+    Get the current ABI of the system.
+    :return: The current ABI of the system.
+    """
+    pkg_abi = Popen(
+        'pkg -vv | grep ABI | grep -v ALTABI | cut -d\'"\' -f2',
+        shell=True,
+        stdout=PIPE,
+        close_fds=True,
+        universal_newlines=True,
+        encoding='utf-8'
+    )
+    return pkg_abi.stdout.read().strip()
+
+
+def get_pkg_upgrade(option: str = '') -> str:
     """
     Get the upgrade data from pkg.
     :param option: f to get full upgrade data, n to get only the new packages data.
     :return:  The upgrade data.
     """
+
+    env = f'env ABI={Data.new_abi} ' if Data.major_upgrade else ''
+    print(f'{env}pkg upgrade -n{option}')
     pkg_upgrade = Popen(
-        f'pkg upgrade -n{option}',
+        f'{env}pkg upgrade -n{option}',
         shell=True,
         stdout=PIPE,
         close_fds=True,
@@ -87,7 +107,8 @@ def get_pkg_upgrade_data() -> dict:
     """
     option = ''
     system_upgrade = False
-    if kernel_version_change():
+    if kernel_version_change() or Data.major_upgrade:
+        Data.kernel_upgrade = True
         system_upgrade = True
         option = 'f'
     update_pkg = get_pkg_upgrade(option)
@@ -150,13 +171,16 @@ def is_major_upgrade_available() -> bool:
     next_version = f'{get_default_repo_url()}/.next_version'
     return True if requests.get(next_version).status_code == 200 else False
 
+
 def kernel_version_change() -> bool:
     """
     Check if the kernel version has changed.
     :return: True if the kernel version has changed else False.
     """
+    env = f'env ABI={Data.new_abi} ' if Data.major_upgrade else ''
+    print(f'yes | {env}pkg update -f')
     pkg_update = Popen(
-        'yes | pkg update -f',
+        f'yes | {env}pkg update -f',
         shell=True,
         stdout=PIPE,
         close_fds=True,

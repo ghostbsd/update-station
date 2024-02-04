@@ -5,8 +5,6 @@ import bectl
 import datetime
 import getpass
 import gi
-gi.require_version('Gtk', '3.0')
-gi.require_version('Notify', '0.7')
 import json
 import os
 import gettext
@@ -14,20 +12,26 @@ import re
 import socket
 import sys
 import threading
+import distro
+gi.require_version('Gtk', '3.0')
+gi.require_version('Notify', '0.7')
 from gi.repository import Gtk, GLib, Notify
 from subprocess import Popen, PIPE, run
 from time import sleep
+from update_data import Data
 from updateHandler import (
-    get_pkg_upgrade_data,
     check_for_update,
+    get_pkg_upgrade_data,
     network_stat,
     repo_online,
     look_update_station,
     unlock_update_station,
     updating,
-    repository_is_syncing
+    repository_is_syncing,
+    is_major_upgrade_available,
+    get_abi_upgrade,
+    get_current_abi
 )
-
 gettext.bindtextdomain('update-station', '/usr/local/share/locale')
 gettext.textdomain('update-station')
 _ = gettext.gettext
@@ -38,28 +42,6 @@ __VERSION__ = '4.8'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
-
-
-class Data:
-    """
-    Cla
-    Attributes:
-        backup: Boolean that indicates if the update-station should back up the current boot environment.
-        close_session: Boolean that indicates if the update-station should close the session.
-        packages_dictionary: Dictionary that contains all the packages that are installed on the system.
-        second_update: Boolean that indicates if the update-station should do 2 update.
-        stop_pkg_refreshing: Boolean that indicates if the update-station should stop refreshing the packages.
-        total_packages: Integer that indicates the total number of packages that are that will be updated.
-        update_started: Boolean that indicates if the application has started updating the system.
-    """
-    backup: bool = False
-    close_session: bool = False
-    packages_dictionary: dict = {}
-    second_update: bool = False
-    stop_pkg_refreshing: bool = False
-    total_packages: int = 0
-    update_started: bool = False
-
 
 class UpdateWindow:
     """
@@ -235,14 +217,27 @@ class UpdateWindow:
 
 
 class UpdateNotifier:
+    """
+    Class that creates the notification for the update.
+    """
 
     def __init__(self):
+        """
+        The constructor for the UpdateNotifier class.
+        """
         self.notification = None
         Notify.init('Test')
-        self.msg = _("System and software upgrades are now available")
+        self.msg = _("Software updates are now available.")
         self.timeout = 10000 # 10 seconds
 
     def notify(self):
+        """
+        Function that creates the notification for the update.
+        """
+        if Data.major_upgrade is True:
+            self.msg = _("Major system version upgrade is now available.")
+        elif Data.kernel_upgrade is True:
+            self.msg = _("System and software updates are now available.")
         self.notification = Notify.Notification.new(
             summary='Update Available',
             body=self.msg,
@@ -250,11 +245,63 @@ class UpdateNotifier:
         )
         self.notification.add_action('clicked', 'Start Upgrade', self.on_activated)
         self.notification.show()
-        # GLib.idle_add(notification.show)
 
-    def on_activated(self, notification, action_name, data=None):
-        StartCheckUpdate()
+    def on_activated(self, notification, action_name):
+        """
+        Function that starts the upgrade.
+        :param notification: The notification widget.
+        :param action_name: The name of the action.
+        """
+        if Data.major_upgrade is True:
+            MajorUpgradeWindow()
+        else:
+            StartCheckUpdate()
         notification.close()
+        GLib.idle_add(tray.tray_icon().set_visible, False)
+
+
+class MajorUpgradeWindow(Gtk.Window):
+    """
+    Class that creates the window for the major upgrade.
+    """
+
+    def __init__(self):
+        """
+        The constructor for the MajorUpgradeWindow class.
+        """
+        Gtk.Window.__init__(self, title="Upgrade?")
+        self.connect("destroy", Gtk.main_quit)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        vbox.set_border_width(10)
+        self.add(vbox)
+
+        label = Gtk.Label(label=f"Would you like to upgrade from {Data.current_abi} to {Data.new_abi}?"
+                          "\nIf you select No, the upgrade will be skipped until the next boot.")
+        vbox.pack_start(label, True, True, 5)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        vbox.pack_start(hbox, False, False, 0)
+        button1 = Gtk.Button(label="Yes")
+        button1.connect("clicked", self.on_clicked)
+        hbox.pack_end(button1, True, True, 0)
+
+        button2 = Gtk.Button(label="No")
+        button2.connect("clicked", self.on_clicked)
+        hbox.pack_end(button2, True, True, 0)
+        self.show_all()
+
+    def on_clicked(self, widget):
+        """
+        Function that starts the upgrade.
+        :param widget: The widget that was clicked.
+        """
+        if widget.get_label() == "Yes":
+            Data.major_upgrade = True
+            Data.do_not_upgrade = False
+            StartCheckUpdate()
+        else:
+            Data.major_upgrade = False
+            Data.do_not_upgrade = True
+        self.hide()
 
 
 class TrayIcon:
@@ -302,7 +349,10 @@ class TrayIcon:
             UpdateStationOpen()
         else:
             Data.stop_pkg_refreshing = True
-            StartCheckUpdate()
+            if Data.major_upgrade is True:
+                MajorUpgradeWindow()
+            else:
+                StartCheckUpdate()
         status_icon.set_visible(False)
 
     def icon_clicked(self, status_icon, button, time):
@@ -319,8 +369,15 @@ class TrayIcon:
         """
         Function that updates the tray icon.
         """
-        if check_for_update() is True:
+        if check_for_update():
             GLib.idle_add(self.status_icon.set_visible, True)
+            notifier = UpdateNotifier()
+            notifier.notify()
+        elif is_major_upgrade_available() and  Data.do_not_upgrade is False:
+            Data.major_upgrade = True
+            GLib.idle_add(self.status_icon.set_visible, True)
+            Data.current_abi = get_current_abi()
+            Data.new_abi = get_abi_upgrade()
             notifier = UpdateNotifier()
             notifier.notify()
         else:
@@ -341,7 +398,7 @@ class TrayIcon:
         Function that checks for updates.
         """
         while True:
-            sleep(5)
+            sleep(120)
             if repository_is_syncing() is False:
                 if Data.stop_pkg_refreshing is False:
                     if not updating():
@@ -349,8 +406,7 @@ class TrayIcon:
                     else:
                         GLib.idle_add(self.status_icon.set_visible, False)
             # Wait for an hour to look for update
-            # sleep(3480)
-            sleep(120)
+            sleep(600)
 
 
 class InstallUpdate:
@@ -410,6 +466,7 @@ class InstallUpdate:
         update_pkg = False
         option = ''
         packages = ''
+        env = f'env ABI={Data.new_abi} ' if Data.major_upgrade else ''
         need_reboot_packages = set(json.loads(open(f'{lib_path}/need_reboot.json').read()))
         upgrade_packages = set(re.split(": | ", " ".join(Data.packages_dictionary['upgrade'])))
         reboot = bool(need_reboot_packages.intersection(upgrade_packages))
@@ -419,7 +476,7 @@ class InstallUpdate:
             Data.second_update = True
         else:
             Data.second_update = False
-        if Data.packages_dictionary['system_upgrade'] is True:
+        if Data.kernel_upgrade:
             option = 'f'
         howmany = (Data.total_packages * 5) + 10
         fraction = 1.0 / howmany
@@ -430,18 +487,46 @@ class InstallUpdate:
             for be in bectl.get_be_list():
                 if 'backup' in be and today not in be and 'NR' not in be:
                     bectl.destroy_be(be.split()[0])
-            backup_name = datetime.datetime.now().strftime("backup-%Y-%m-%d-%H-%M")
+            backup_name = datetime.datetime.now().strftime(f"{distro.version()}-backup-%Y-%m-%d-%H-%M")
             txt = _("Creating boot environment")
             txt += f" {backup_name}"
             GLib.idle_add(self.update_progress, progress, fraction, txt)
             bectl.create_be(newBeName=backup_name)
             sleep(1)
+        if Data.major_upgrade:
+            txt = _("Fetching package updates")
+            new_val = progress.get_fraction() + fraction
+            GLib.idle_add(self.update_progress, progress, new_val, txt)
+            fetch = Popen(
+                f'{env}env IGNORE_OSVERSION=yes pkg bootstrap -f',
+                shell=True,
+                stdout=PIPE,
+                stderr=PIPE,
+                close_fds=True,
+                universal_newlines=True
+            )
+            fetch_text = ""
+            while True:
+                stdout_line = fetch.stdout.readline()
+                if fetch.poll() is not None:
+                    break
+                fetch_text += stdout_line
+                new_val = progress.get_fraction() + fraction
+                GLib.idle_add(self.update_progress, progress, new_val,
+                              stdout_line.strip())
+            if fetch.returncode != 0:
+                stderr_line = fetch.stderr.read()
+                fetch_text += stderr_line
+                update_fail = open(f'{home}/update.failed', 'w')
+                update_fail.writelines(fetch_text)
+                update_fail.close()
+                fail = True
         txt = _("Fetching package updates")
         new_val = progress.get_fraction() + fraction
         GLib.idle_add(self.update_progress, progress, new_val, txt)
         sleep(1)
         fetch = Popen(
-            f'pkg upgrade -Fy{option}{packages}',
+            f'{env}pkg upgrade -Fy{option}{packages}',
             shell=True,
             stdout=PIPE,
             stderr=PIPE,
@@ -475,7 +560,7 @@ class InstallUpdate:
             sleep(1)
             while True:
                 install = Popen(
-                    f'pkg upgrade -y{option}{packages}',
+                    f'{env}pkg upgrade -y{option}{packages}',
                     shell=True,
                     stdout=PIPE,
                     stderr=PIPE,
