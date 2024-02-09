@@ -500,7 +500,7 @@ class InstallUpdate:
             new_val = progress.get_fraction() + fraction
             GLib.idle_add(self.update_progress, progress, new_val, txt)
             fetch = Popen(
-                f'{env}env IGNORE_OSVERSION=yes pkg bootstrap -f',
+                f'{env}env IGNORE_OSVERSION=yes ASSUME_ALWAYS_YES=yes pkg bootstrap -f',
                 shell=True,
                 stdout=PIPE,
                 stderr=PIPE,
@@ -523,6 +523,9 @@ class InstallUpdate:
                 update_fail.writelines(fetch_text)
                 update_fail.close()
                 fail = True
+                GLib.idle_add(self.win.destroy)
+                GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
+                return
         txt = _("Fetching package updates")
         new_val = progress.get_fraction() + fraction
         GLib.idle_add(self.update_progress, progress, new_val, txt)
