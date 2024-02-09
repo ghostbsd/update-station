@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-02 21:15+0300\n"
+"POT-Creation-Date: 2024-02-08 22:53+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,170 +17,232 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: update-station.py:82
+#: src/update-station.py:95
 msgid "Create boot environment backup"
 msgstr ""
 
-#: update-station.py:94 update-station.py:209 update-station.py:511
-#: update-station.py:582 update-station.py:613 update-station.py:669
-#: update-station.py:700 update-station.py:731 update-station.py:763
+#: src/update-station.py:107 src/update-station.py:338
+#: src/update-station.py:713 src/update-station.py:807
+#: src/update-station.py:841 src/update-station.py:991
+#: src/update-station.py:1025 src/update-station.py:1059
+#: src/update-station.py:1095
 msgid "Close"
 msgstr ""
 
-#: update-station.py:98
+#: src/update-station.py:111
 msgid "Install update"
 msgstr ""
 
-#: update-station.py:110
+#: src/update-station.py:124
 msgid "Update Manager"
 msgstr ""
 
-#: update-station.py:122
+#: src/update-station.py:136
 msgid "Updates available!"
 msgstr ""
 
-#: update-station.py:150
+#: src/update-station.py:175
 msgid "Installed packages to be REMOVED:"
 msgstr ""
 
-#: update-station.py:157
+#: src/update-station.py:182
 msgid "Installed packages to be UPGRADED"
 msgstr ""
 
-#: update-station.py:164
+#: src/update-station.py:189
 msgid "New packages to be INSTALLED:"
 msgstr ""
 
-#: update-station.py:171
+#: src/update-station.py:196
 msgid "Installed packages to be REINSTALLED:"
 msgstr ""
 
-#: update-station.py:207
+#: src/update-station.py:230
+msgid "Software updates are now available."
+msgstr ""
+
+#: src/update-station.py:238
+msgid "Major system version upgrade is now available."
+msgstr ""
+
+#: src/update-station.py:240
+msgid "System and software updates are now available."
+msgstr ""
+
+#: src/update-station.py:242
+msgid "Update Available"
+msgstr ""
+
+#: src/update-station.py:272
+msgid "Major version upgrade"
+msgstr ""
+
+#: src/update-station.py:279
+#, python-brace-format
+msgid ""
+"Would you like to upgrade from {Data.current_abi} to {Data.new_abi}?\n"
+"\n"
+"If you select No, the upgrade will be skipped until the next boot."
+msgstr ""
+
+#: src/update-station.py:336
 msgid "Open Update"
 msgstr ""
 
-#: update-station.py:234
-msgid "System and software upgrades are now available"
-msgstr ""
-
-#: update-station.py:279
+#: src/update-station.py:431
 msgid "Installing Update"
 msgstr ""
 
-#: update-station.py:325
+#: src/update-station.py:487
 msgid "Cleaning old boot environment"
 msgstr ""
 
-#: update-station.py:331
+#: src/update-station.py:493
 msgid "Creating boot environment"
 msgstr ""
 
-#: update-station.py:336
+#: src/update-station.py:499 src/update-station.py:526
 msgid "Fetching package updates"
 msgstr ""
 
-#: update-station.py:366
+#: src/update-station.py:556
 msgid "Package updates downloaded"
 msgstr ""
 
-#: update-station.py:370
+#: src/update-station.py:560
 msgid "Installing package updates"
 msgstr ""
 
-#: update-station.py:431
+#: src/update-station.py:621
 msgid "Reinstalling"
 msgstr ""
 
-#: update-station.py:433
+#: src/update-station.py:623
 msgid "completed"
 msgstr ""
 
-#: update-station.py:446
+#: src/update-station.py:636
 msgid "Software packages upgrade completed"
 msgstr ""
 
-#: update-station.py:476
-msgid ""
-"Press \"Detail\" to get information about the failure.\n"
-"Get help at https://forums.ghostbsd.org."
-msgstr ""
-
-#: update-station.py:496
+#: src/update-station.py:696
 msgid "Update Failed"
 msgstr ""
 
-#: update-station.py:509
+#: src/update-station.py:702
+msgid ""
+"Press \"Detail\" to get information about the failure.\n"
+"        Get help at https://forums.ghostbsd.org."
+msgstr ""
+
+#: src/update-station.py:711
 msgid "Detail"
 msgstr ""
 
-#: update-station.py:535 update-station.py:569
+#: src/update-station.py:750 src/update-station.py:794
 msgid "Update Completed"
 msgstr ""
 
-#: update-station.py:540
+#: src/update-station.py:755
 msgid "The computer needs to restart to run on the updated software."
 msgstr ""
 
-#: update-station.py:548
+#: src/update-station.py:763
 msgid "Restart Now"
 msgstr ""
 
-#: update-station.py:550
+#: src/update-station.py:765
 msgid "Restart Later"
 msgstr ""
 
-#: update-station.py:574
+#: src/update-station.py:799
 msgid "All software on this system is up to date."
 msgstr ""
 
-#: update-station.py:598
+#: src/update-station.py:826
 msgid "No Update Available"
 msgstr ""
 
-#: update-station.py:606
+#: src/update-station.py:834
 msgid "No update available. This system is up to date."
 msgstr ""
 
-#: update-station.py:655
+#: src/update-station.py:868
+msgid "Looking For Updates"
+msgstr ""
+
+#: src/update-station.py:907
+msgid "Checking if the repository is online"
+msgstr ""
+
+#: src/update-station.py:911
+msgid "The repository is online"
+msgstr ""
+
+#: src/update-station.py:915
+msgid "The mirror is Syncing"
+msgstr ""
+
+#: src/update-station.py:920
+msgid "Updates are already running"
+msgstr ""
+
+#: src/update-station.py:928
+msgid "Getting the list of packages"
+msgstr ""
+
+#: src/update-station.py:932
+msgid "Open the update window"
+msgstr ""
+
+#: src/update-station.py:936
+msgid "No update found"
+msgstr ""
+
+#: src/update-station.py:942
+msgid "The Mirror is unreachable"
+msgstr ""
+
+#: src/update-station.py:977
 msgid "Update Station already started"
 msgstr ""
 
-#: update-station.py:663
+#: src/update-station.py:985
 msgid "Update Station already open."
 msgstr ""
 
-#: update-station.py:685 update-station.py:716
+#: src/update-station.py:1010 src/update-station.py:1044
 msgid "Server Unreachable"
 msgstr ""
 
-#: update-station.py:693
+#: src/update-station.py:1018
 msgid "Packages mirrors are syncing with new packages"
 msgstr ""
 
-#: update-station.py:724
+#: src/update-station.py:1052
 msgid ""
 "The server is unreachable. Your internet could\n"
 "be down or software package server is down."
 msgstr ""
 
-#: update-station.py:747
+#: src/update-station.py:1078
 msgid "Something Is Wrong"
 msgstr ""
 
-#: update-station.py:755
+#: src/update-station.py:1087
 msgid ""
 "If you see this message it means that something is wrong.\n"
 " Please look at pkg upgrade output."
 msgstr ""
 
-#: update-station.py:772
+#: src/update-station.py:1110
 msgid "Software Station"
 msgstr ""
 
-#: update-station.py:778
+#: src/update-station.py:1116
 msgid "You need to be root"
 msgstr ""
 
-#: update-station.py:784
+#: src/update-station.py:1122
 msgid "OK"
 msgstr ""
