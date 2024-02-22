@@ -70,7 +70,7 @@ msgstr "Доступны обновления системы и программ
 
 #: src/update-station.py:242
 msgid "Update Available"
-msgstr "Нет доступных обновлений"
+msgstr "Доступно обновление"
 
 #: src/update-station.py:272
 msgid "Major version upgrade"
