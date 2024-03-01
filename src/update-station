@@ -924,7 +924,7 @@ class StartCheckUpdate:
                     GLib.idle_add(self.stop_tread, UpdateStationOpen)
                 else:
                     GLib.idle_add(self.update_progress, progress,
-                                  'Checking for updates')
+                                  _('Checking for updates'))
                     update_available = check_for_update()
                     if update_available:
                         GLib.idle_add(self.update_progress, progress,
