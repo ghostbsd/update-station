@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-08 22:53+0300\n"
+"POT-Creation-Date: 2024-02-28 10:25+0300\n"
 "PO-Revision-Date: 2024-02-08 22:53+0300\n"
 "Last-Translator: Alexander Alexeev <alexax66@gmail.com>\n"
 "Language-Team: Language locale/ru\n"
@@ -21,10 +21,10 @@ msgid "Create boot environment backup"
 msgstr "Создать резервную копию загрузочной среды"
 
 #: src/update-station.py:107 src/update-station.py:338
-#: src/update-station.py:713 src/update-station.py:807
-#: src/update-station.py:841 src/update-station.py:991
-#: src/update-station.py:1025 src/update-station.py:1059
-#: src/update-station.py:1095
+#: src/update-station.py:716 src/update-station.py:810
+#: src/update-station.py:844 src/update-station.py:994
+#: src/update-station.py:1028 src/update-station.py:1062
+#: src/update-station.py:1098
 msgid "Close"
 msgstr "Закрыть"
 
@@ -103,35 +103,35 @@ msgstr "Очистка старой загрузочной среды"
 msgid "Creating boot environment"
 msgstr "Создание загрузочной среды"
 
-#: src/update-station.py:499 src/update-station.py:526
+#: src/update-station.py:499 src/update-station.py:529
 msgid "Fetching package updates"
 msgstr "Получение обновлений"
 
-#: src/update-station.py:556
+#: src/update-station.py:559
 msgid "Package updates downloaded"
 msgstr "Обновления загружены"
 
-#: src/update-station.py:560
+#: src/update-station.py:563
 msgid "Installing package updates"
 msgstr "Установка обновлений"
 
-#: src/update-station.py:621
+#: src/update-station.py:624
 msgid "Reinstalling"
 msgstr "Переустановка"
 
-#: src/update-station.py:623
+#: src/update-station.py:626
 msgid "completed"
 msgstr "Завершена"
 
-#: src/update-station.py:636
+#: src/update-station.py:639
 msgid "Software packages upgrade completed"
 msgstr "Обновление программного обеспечения завершено"
 
-#: src/update-station.py:696
+#: src/update-station.py:699
 msgid "Update Failed"
 msgstr "Ошибка обновления"
 
-#: src/update-station.py:702
+#: src/update-station.py:705
 msgid ""
 "Press \"Detail\" to get information about the failure.\n"
 "        Get help at https://forums.ghostbsd.org."
@@ -139,93 +139,97 @@ msgstr ""
 "Нажмите \"Подробности\" для получения информации об этой ошибке.\n"
 "        Получите помощь на https://forums.ghostbsd.org."
 
-#: src/update-station.py:711
+#: src/update-station.py:714
 msgid "Detail"
 msgstr "Подробности"
 
-#: src/update-station.py:750 src/update-station.py:794
+#: src/update-station.py:753 src/update-station.py:797
 msgid "Update Completed"
 msgstr "Обновление завершено"
 
-#: src/update-station.py:755
+#: src/update-station.py:758
 msgid "The computer needs to restart to run on the updated software."
 msgstr ""
 "Чтобы запустить обновленное программное обеспечение,\n"
 "необходимо перезагрузить компьютер."
 
-#: src/update-station.py:763
+#: src/update-station.py:766
 msgid "Restart Now"
 msgstr "Перезагрузить сейчас"
 
-#: src/update-station.py:765
+#: src/update-station.py:768
 msgid "Restart Later"
 msgstr "Перезагрузить позже"
 
-#: src/update-station.py:799
+#: src/update-station.py:802
 msgid "All software on this system is up to date."
 msgstr "Все программное обеспечение в этой системе уже обновлено."
 
-#: src/update-station.py:826
+#: src/update-station.py:829
 msgid "No Update Available"
 msgstr "Нет доступных обновлений"
 
-#: src/update-station.py:834
+#: src/update-station.py:837
 msgid "No update available. This system is up to date."
 msgstr "Нет доступных обновлений. Эта система уже обновлена."
 
-#: src/update-station.py:868
+#: src/update-station.py:871
 msgid "Looking For Updates"
 msgstr "Ищу обновления"
 
-#: src/update-station.py:907
+#: src/update-station.py:910
 msgid "Checking if the repository is online"
 msgstr "Проверка на доступность репозиторий"
 
-#: src/update-station.py:911
+#: src/update-station.py:914
 msgid "The repository is online"
 msgstr "Репозиторий доступен"
 
-#: src/update-station.py:915
+#: src/update-station.py:918
 msgid "The mirror is Syncing"
 msgstr "Зеркало синхронизируется"
 
-#: src/update-station.py:920
+#: src/update-station.py:923
 msgid "Updates are already running"
 msgstr "Ообновления уже запущены"
 
-#: src/update-station.py:928
+#: src/update-station.py:927
+msgid "Checking for updates"
+msgstr "Проверка обновлений"
+
+#: src/update-station.py:931
 msgid "Getting the list of packages"
 msgstr "Получение списка пакетов"
 
-#: src/update-station.py:932
+#: src/update-station.py:935
 msgid "Open the update window"
 msgstr "Откройте окно обновления"
 
-#: src/update-station.py:936
+#: src/update-station.py:939
 msgid "No update found"
 msgstr "Обновление не найдено"
 
-#: src/update-station.py:942
+#: src/update-station.py:945
 msgid "The Mirror is unreachable"
 msgstr "Зеркало не доступно"
 
-#: src/update-station.py:977
+#: src/update-station.py:980
 msgid "Update Station already started"
 msgstr "Центр обновлений уже запущен"
 
-#: src/update-station.py:985
+#: src/update-station.py:988
 msgid "Update Station already open."
 msgstr "Центр обновлений уже открыт"
 
-#: src/update-station.py:1010 src/update-station.py:1044
+#: src/update-station.py:1013 src/update-station.py:1047
 msgid "Server Unreachable"
 msgstr "Сервер не доступен"
 
-#: src/update-station.py:1018
+#: src/update-station.py:1021
 msgid "Packages mirrors are syncing with new packages"
 msgstr "Идет синхронизация с новыми пакетами на зеркальных серверах"
 
-#: src/update-station.py:1052
+#: src/update-station.py:1055
 msgid ""
 "The server is unreachable. Your internet could\n"
 "be down or software package server is down."
@@ -233,11 +237,11 @@ msgstr ""
 "Сервер не доступен. Возможно у Вас нас нет доступа в сеть Интернет или\n"
 "сервер пакетов программного обеспечения в настоящее время не работает."
 
-#: src/update-station.py:1078
+#: src/update-station.py:1081
 msgid "Something Is Wrong"
 msgstr "Есть ошибки"
 
-#: src/update-station.py:1087
+#: src/update-station.py:1090
 msgid ""
 "If you see this message it means that something is wrong.\n"
 " Please look at pkg upgrade output."
@@ -246,14 +250,14 @@ msgstr ""
 "Пожалуйста, посмотрите на вывод о результах этого обновления\n"
 "с помощью утилиты pkg."
 
-#: src/update-station.py:1110
+#: src/update-station.py:1113
 msgid "Software Station"
 msgstr "Центр приложений"
 
-#: src/update-station.py:1116
+#: src/update-station.py:1119
 msgid "You need to be root"
 msgstr "У Вас должны быть права root"
 
-#: src/update-station.py:1122
+#: src/update-station.py:1125
 msgid "OK"
 msgstr "ОК"
