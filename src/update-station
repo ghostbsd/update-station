@@ -38,12 +38,13 @@ _ = gettext.gettext
 
 lib_path: str = f'{sys.prefix}/lib/update-station'
 
-__VERSION__ = '4.8'
+__VERSION__ = '5.0'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
 
-class UpdateWindow:
+
+class update_window:
     """
     Class that creates the main window to see update list and start the update process.
     """
@@ -96,13 +97,14 @@ class UpdateWindow:
         )
         table.attach(backup_checkbox, 0, 1, 0, 1)
         backup_checkbox.connect("toggled", self.if_backup)
-        if len(bectl.get_be_list()) >= 2 and Data.second_update is False:
+        if bectl.is_file_system_zfs() and Data.second_update is False:
             backup_checkbox.set_active(True)
             backup_checkbox.set_sensitive(True)
+            Data.backup = True
         else:
             backup_checkbox.set_active(False)
             backup_checkbox.set_sensitive(False)
-        Data.backup = backup_checkbox.get_active()
+            Data.backup = False
         img = Gtk.Image(icon_name='window-close')
         close_button = Gtk.Button(label=_("Close"))
         close_button.set_image(img)
@@ -493,7 +495,7 @@ class InstallUpdate:
             txt = _("Creating boot environment")
             txt += f" {backup_name}"
             GLib.idle_add(self.update_progress, progress, fraction, txt)
-            bectl.create_be(newBeName=backup_name)
+            bectl.create_be(new_be_name=backup_name)
             sleep(1)
         if Data.major_upgrade:
             txt = _("Fetching package updates")
@@ -933,7 +935,7 @@ class StartCheckUpdate:
                         look_update_station()
                         GLib.idle_add(self.update_progress, progress,
                                       _('Open the update window'))
-                        GLib.idle_add(self.stop_tread, UpdateWindow)
+                        GLib.idle_add(self.stop_tread, update_window)
                     elif not update_available and update_available is not None:
                         GLib.idle_add(self.update_progress, progress,
                                       _('No update found'))
