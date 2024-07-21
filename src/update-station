@@ -400,8 +400,7 @@ class TrayIcon:
         """
         if updating():
             unlock_update_station()
-        thr = threading.Thread(target=self.check)
-        thr.setDaemon(True)
+        thr = threading.Thread(target=self.check, daemon=True)
         thr.start()
 
     def check(self):
@@ -582,8 +581,7 @@ class InstallUpdate:
         # self.pbar.set_size_request(-1, 20)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
-        self.thr = threading.Thread(target=self.read_output, args=[self.pbar])
-        self.thr.setDaemon(True)
+        self.thr = threading.Thread(target=self.read_output, args=[self.pbar], daemon=True)
         self.thr.start()
 
     def update_progress(self, progress, fraction, text):
@@ -1023,9 +1021,9 @@ class StartCheckUpdate:
         self.win.show_all()
         self.thr = threading.Thread(
             target=self.check_for_update,
-            args=[self.pbar]
+            args=[self.pbar],
+            daemon=True
         )
-        self.thr.setDaemon(True)
         self.thr.start()
 
     def update_progress(self, progress: Gtk.ProgressBar, text: str):
