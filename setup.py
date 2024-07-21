@@ -14,12 +14,12 @@ from setuptools import setup
 # ,,python setup.py build_i18n -m''
 
 for line in open('src/update-station').readlines():
-    if (line.startswith('__VERSION__')):
+    if line.startswith('__VERSION__'):
         exec(line.strip())
         break
 # Silence flake8, __VERSION__ is properly assigned below
 else:
-    __VERSION__ = '4.8'
+    __VERSION__ = '5.1'
 
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix

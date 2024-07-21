@@ -5,11 +5,19 @@ import os
 import socket
 import requests
 from update_data import Data
-from subprocess import Popen, PIPE, call, run
+from subprocess import Popen, PIPE, call, run, CompletedProcess
 
-ustation_db = '/var/db/update-station'
-pkg_lock_file = f'{ustation_db}/lock-pkgs'
+update_station_db = '/var/db/update-station'
+pkg_lock_file = f'{update_station_db}/lock-pkgs'
 updates_run = '/tmp/update-station'
+
+
+def run_command(command: str, check: bool = True) -> CompletedProcess:
+    """Run a shell command and optionally check for errors."""
+    process = run(command, shell=True, text=True)
+    if check and process.returncode != 0:
+        raise RuntimeError(f"Command failed: {command}\n{process.stderr}")
+    return process
 
 
 def check_for_update() -> bool:
@@ -296,3 +304,47 @@ def updating() -> bool:
         return True
     else:
         return False
+
+
+# the code below is for upgrading to PKGBASE this will be removed in the future.
+def find_if_os_generic_exists() -> bool:
+    """
+    This function is look if there is some os generic packages installed.
+    :return: True if some os generic packages are exists else False.
+    """
+    return run_command("pkg info -E -g 'os-generic*'").returncode == 0
+
+
+def set_package_base_config_file() -> CompletedProcess:
+    # /usr/local/etc/pkg/repos/GhostBSD.conf
+    config_path = '/usr/local/etc/pkg/repos/GhostBSD.conf'
+    return run_command(f'cp {config_path}.default {config_path}')
+
+
+def remove_os_generic(mount_point: str) -> CompletedProcess:
+    """
+    This function is used to remove all os generic packages.
+    :param mount_point: The mount point of the basepkg-test.
+    """
+    return run_command(f'pkg-static -r {mount_point} delete -g "os-generic*"')
+
+
+def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
+    """
+    This function is used to install the GhostBSD-base package.
+    :param mount_point: The mount point of the basepkg-test.
+    """
+    return run_command(f'pkg-static -r {mount_point} install -r GhostBSD-base -g "GhostBSD-*"')
+
+
+def restore_vital_files(mount_point: str) -> None:
+    """
+    This function is used to restart the vital files.
+    :param mount_point: The mount point of the basepkg-test.
+    """
+    run_command(f'cp /etc/passwd {mount_point}/etc/passwd')
+    run_command(f'cp /etc/master.passwd {mount_point}/etc/master.passwd')
+    run_command(f'cp /etc/group {mount_point}/etc/group')
+    run_command(f'cp /etc/sysctl.conf {mount_point}/etc/sysctl.conf')
+    run_command(f'mkdir {mount_point}/proc')
+    run_command(f'chroot {mount_point} pwd_mkdb -p /etc/master.passwd')

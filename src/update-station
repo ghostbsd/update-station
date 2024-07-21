@@ -30,7 +30,12 @@ from updateHandler import (
     repository_is_syncing,
     is_major_upgrade_available,
     get_abi_upgrade,
-    get_current_abi
+    get_current_abi,
+    find_if_os_generic_exists,
+    remove_os_generic,
+    install_ghostbsd_pkgbase,
+    set_package_base_config_file,
+    restore_vital_files
 )
 gettext.bindtextdomain('update-station', '/usr/local/share/locale')
 gettext.textdomain('update-station')
@@ -38,13 +43,13 @@ _ = gettext.gettext
 
 lib_path: str = f'{sys.prefix}/lib/update-station'
 
-__VERSION__ = '5.0'
+__VERSION__ = '5.1'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
 
 
-class update_window:
+class UpdateWindow:
     """
     Class that creates the main window to see update list and start the update process.
     """
@@ -373,6 +378,8 @@ class TrayIcon:
         """
         Function that updates the tray icon.
         """
+        if find_if_os_generic_exists():
+            UpgradeToPKGBase()
         if check_for_update():
             GLib.idle_add(self.status_icon.set_visible, True)
             notifier = UpdateNotifier()
@@ -393,8 +400,7 @@ class TrayIcon:
         """
         if updating():
             unlock_update_station()
-        thr = threading.Thread(target=self.check)
-        thr.setDaemon(True)
+        thr = threading.Thread(target=self.check, daemon=True)
         thr.start()
 
     def check(self):
@@ -403,14 +409,142 @@ class TrayIcon:
         """
         while True:
             sleep(120)
-            if repository_is_syncing() is False:
-                if Data.stop_pkg_refreshing is False:
+            if not repository_is_syncing():
+                if not Data.stop_pkg_refreshing:
                     if not updating():
                         GLib.idle_add(self.update_tray)
                     else:
                         GLib.idle_add(self.status_icon.set_visible, False)
             # Wait for an hour to look for update
             sleep(600)
+
+
+class UpgradeToPKGBase(Gtk.Window):
+    def __init__(self):
+        Gtk.Window.__init__(self, title=_("Upgrade to PKGBASE"))
+        self.connect("destroy", Gtk.main_quit)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        vbox.set_border_width(10)
+        self.add(vbox)
+        label = Gtk.Label(label=_("Would you like to upgrade to PKGBASE?"))
+        vbox.pack_start(label, True, True, 5)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        vbox.pack_end(hbox, False, False, 0)
+        button1 = Gtk.Button(label=_("Upgrade Now"))
+        button1.connect("clicked", self.on_clicked)
+
+    def on_clicked(self, widget):
+        self.hide()
+        UpgradePKGBASEProgress()
+
+
+class UpgradePKGBASEProgress:
+    """
+    The class for the window that is displayed the progress of the update.
+    """
+    def close_application(self, widget, data):
+        if updating():
+            unlock_update_station()
+        Gtk.main_quit()
+
+    def __init__(self):
+        """
+        The constructor for the InstallUpdate class.
+        """
+        self.win = Gtk.Window()
+        self.win.connect("delete-event", self.close_application)
+        self.win.set_size_request(500, 75)
+        self.win.set_resizable(False)
+        self.win.set_title(_("Upgrading to PKGBASE"))
+        self.win.set_border_width(0)
+        self.win.set_position(Gtk.WindowPosition.CENTER)
+        self.win.set_default_icon_name('system-software-update')
+        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        self.win.add(box1)
+        box1.show()
+        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2.set_border_width(10)
+        box1.pack_start(box2, True, True, 0)
+        box2.show()
+        self.pbar = Gtk.ProgressBar()
+        self.pbar.set_show_text(True)
+        self.pbar.set_fraction(0.0)
+        # self.pbar.set_size_request(-1, 20)
+        box2.pack_start(self.pbar, False, False, 0)
+        self.win.show_all()
+        self.thr = threading.Thread(
+            target=self.read_output,
+            args=[self.pbar],
+            daemon=True
+        )
+        self.thr.start()
+
+    def update_progress(self, progress, fraction, text):
+        """
+        Function that updates the progress bar.
+        :param progress: The progress bar.
+        :param fraction: The fraction to add.
+        :param text: The text to display.
+        """
+        progress.set_fraction(fraction)
+        progress.set_text(text)
+
+    def read_output(self, progress):
+        fraction = 1.0 / 16
+        progress_text = _("Adding PKGBASE repository support")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        assert set_package_base_config_file().returncode == 0
+        progress_text = _("Adding PKGBASE repository support completed")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        sleep(1)
+        progress_text = _("Creating boot environment pkgbase-upgrade")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        bectl.create_be('pkgbase-upgrade')
+        progress_text = _("Boot environment pkgbase-upgrade created")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        sleep(1)
+        progress_text = _("Mounting boot environment pkgbase-upgrade")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        bectl.mount_be('pkgbase-upgrade', '/tmp/pkgbase-upgrade')
+        progress_text = _("Boot environment mounted to /tmp/pkgbase-upgrade")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        sleep(1)
+        progress_text = _("Removing os-generic packages from boot environment")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        assert remove_os_generic('/tmp/pkgbase-upgrade').returncode == 0
+        progress_text = _("os-generic packages are removed from boot environment")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        sleep(1)
+        progress_text = _("Installing PGKBASE in the boot environment")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        assert install_ghostbsd_pkgbase('/tmp/pkgbase-upgrade') == 0
+        progress_text = _("PGKBASE installed in the boot environment")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        sleep(1)
+        progress_text = _("Restoring vital files")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        assert restore_vital_files('/tmp/pkgbase-upgrade') == 0
+        progress_text = _("Vital files restored")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        sleep(1)
+        progress_text = _("Unmounting boot environment pkgbase-upgrade")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        bectl.umount_be('pkgbase-upgrade')
+        progress_text = _("Boot environment unmounted")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        sleep(1)
+        progress_text = _("Activating pkgbase-upgrade boot environment")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        bectl.activate_be('pkgbase-upgrade')
+        progress_text = _("Activating pkgbase-upgrade boot environment completed")
+        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        sleep(1)
+        self.stop_tread()
+
+    def stop_tread(self):
+        self.win.hide()
+        self.thr.join()
+
 
 
 class InstallUpdate:
@@ -447,8 +581,7 @@ class InstallUpdate:
         # self.pbar.set_size_request(-1, 20)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
-        self.thr = threading.Thread(target=self.read_output, args=[self.pbar])
-        self.thr.setDaemon(True)
+        self.thr = threading.Thread(target=self.read_output, args=[self.pbar], daemon=True)
         self.thr.start()
 
     def update_progress(self, progress, fraction, text):
@@ -482,7 +615,7 @@ class InstallUpdate:
             Data.second_update = False
         if Data.kernel_upgrade:
             option = 'f'
-        howmany = (Data.total_packages * 5) + 10
+        howmany = (Data.total_packages * 4) + 20
         fraction = 1.0 / howmany
         if Data.backup:
             today = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -888,9 +1021,9 @@ class StartCheckUpdate:
         self.win.show_all()
         self.thr = threading.Thread(
             target=self.check_for_update,
-            args=[self.pbar]
+            args=[self.pbar],
+            daemon=True
         )
-        self.thr.setDaemon(True)
         self.thr.start()
 
     def update_progress(self, progress: Gtk.ProgressBar, text: str):
@@ -935,7 +1068,7 @@ class StartCheckUpdate:
                         look_update_station()
                         GLib.idle_add(self.update_progress, progress,
                                       _('Open the update window'))
-                        GLib.idle_add(self.stop_tread, update_window)
+                        GLib.idle_add(self.stop_tread, UpdateWindow)
                     elif not update_available and update_available is not None:
                         GLib.idle_add(self.update_progress, progress,
                                       _('No update found'))
