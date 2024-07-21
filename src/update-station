@@ -494,7 +494,7 @@ class UpgradePKGBASEProgress:
         fraction = 1.0 / 16
         progress_text = _("Adding PKGBASE repository support")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
-        set_package_base_config_file()
+        assert set_package_base_config_file().returncode == 0
         progress_text = _("Adding PKGBASE repository support completed")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
         sleep(1)
@@ -512,19 +512,19 @@ class UpgradePKGBASEProgress:
         sleep(1)
         progress_text = _("Removing os-generic packages from boot environment")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
-        remove_os_generic('/tmp/pkgbase-upgrade')
+        assert remove_os_generic('/tmp/pkgbase-upgrade').returncode == 0
         progress_text = _("os-generic packages are removed from boot environment")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
         sleep(1)
         progress_text = _("Installing PGKBASE in the boot environment")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
-        install_ghostbsd_pkgbase('/tmp/pkgbase-upgrade')
+        assert install_ghostbsd_pkgbase('/tmp/pkgbase-upgrade') == 0
         progress_text = _("PGKBASE installed in the boot environment")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
         sleep(1)
         progress_text = _("Restoring vital files")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
-        restore_vital_files('/tmp/pkgbase-upgrade')
+        assert restore_vital_files('/tmp/pkgbase-upgrade') == 0
         progress_text = _("Vital files restored")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
         sleep(1)
