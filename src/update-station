@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python3.11
 """This is the main file for the update-station application"""
 
 import bectl
@@ -13,9 +13,6 @@ import socket
 import sys
 import threading
 import distro
-gi.require_version('Gtk', '3.0')
-gi.require_version('Notify', '0.7')
-from gi.repository import Gtk, GLib, Notify
 from subprocess import Popen, PIPE, run
 from time import sleep
 from update_data import Data
@@ -37,6 +34,11 @@ from updateHandler import (
     set_package_base_config_file,
     restore_vital_files
 )
+
+gi.require_version('Gtk', '3.0')
+gi.require_version('Notify', '0.7')
+from gi.repository import Gtk, GLib, Notify
+
 gettext.bindtextdomain('update-station', '/usr/local/share/locale')
 gettext.textdomain('update-station')
 _ = gettext.gettext
@@ -53,7 +55,7 @@ class UpdateWindow:
     """
     Class that creates the main window to see update list and start the update process.
     """
-    def delete_event(self, widget: Gtk.Widget) -> None:
+    def delete_event(self, widget: Gtk.Widget, event) -> bool:
         """
         Function that handles the delete event when the window is closed.
         :param widget: The widget that triggered the delete event.
@@ -69,6 +71,7 @@ class UpdateWindow:
                 if updating():
                     unlock_update_station()
                 tray.tray_icon().set_visible(True)
+        return True
 
     def start_update(self, widget):
         """
@@ -91,16 +94,9 @@ class UpdateWindow:
         Function that creates the button box.
         :return: The button box.
         """
-        table = Gtk.Table(
-            n_rows=1,
-            n_columns=5,
-            homogeneous=False,
-            column_spacing=5
-        )
-        backup_checkbox = Gtk.CheckButton(
-            label=_("Create boot environment backup")
-        )
-        table.attach(backup_checkbox, 0, 1, 0, 1)
+        table = Gtk.Grid()
+        backup_checkbox = Gtk.CheckButton(label=_("Create boot environment backup"))
+        table.attach(backup_checkbox, 0, 0, 1, 1)
         backup_checkbox.connect("toggled", self.if_backup)
         if bectl.is_file_system_zfs() and Data.second_update is False:
             backup_checkbox.set_active(True)
@@ -110,13 +106,14 @@ class UpdateWindow:
             backup_checkbox.set_active(False)
             backup_checkbox.set_sensitive(False)
             Data.backup = False
-        img = Gtk.Image(icon_name='window-close')
+
         close_button = Gtk.Button(label=_("Close"))
-        close_button.set_image(img)
-        table.attach(close_button, 3, 4, 0, 1)
+        close_button.set_image(Gtk.Image(icon_name='window-close'))
+        table.attach(close_button, 3, 0, 1, 1)
         close_button.connect("clicked", self.delete_event)
+
         install_button = Gtk.Button(label=_("Install update"))
-        table.attach(install_button, 4, 5, 0, 1)
+        table.attach(install_button, 4, 0, 1, 1)
         install_button.connect("clicked", self.start_update)
         return table
 
@@ -132,21 +129,17 @@ class UpdateWindow:
         self.window.set_border_width(0)
         self.window.set_position(Gtk.WindowPosition.CENTER)
         self.window.set_default_icon_name('system-software-update')
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.window.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=0)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         box2.set_border_width(20)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
         # Title
         title_text = _("Updates available!")
-
-        update_title_label = Gtk.Label(
-            label=f"<b><span size='large'>{title_text}</span></b>"
-        )
-        update_title_label.set_use_markup(True)
+        update_title_label = Gtk.Label()
+        update_title_label.set_markup(f"<b><span size='large'>{title_text}</span></b>")
         box2.pack_start(update_title_label, False, False, 0)
+
         self.tree_store = Gtk.TreeStore(str, bool)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
@@ -157,13 +150,11 @@ class UpdateWindow:
         self.view.append_column(self.column0)
         self.view.set_headers_visible(False)
         sw.add(self.view)
-        sw.show()
         box2.pack_start(sw, True, True, 10)
-        box2 = Gtk.HBox(homogeneous=False, spacing=10)
+
+        box2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, False, 5)
-        box2.show()
-        # Add button
         box2.pack_start(self.create_bbox(), True, True, 10)
         self.window.show_all()
 
@@ -235,7 +226,7 @@ class UpdateNotifier:
         self.notification = None
         Notify.init('Test')
         self.msg = _("Software updates are now available.")
-        self.timeout = 10000 # 10 seconds
+        self.timeout = 10000  # 10 seconds
 
     def notify(self):
         """
@@ -384,7 +375,7 @@ class TrayIcon:
             GLib.idle_add(self.status_icon.set_visible, True)
             notifier = UpdateNotifier()
             notifier.notify()
-        elif is_major_upgrade_available() and  Data.do_not_upgrade is False:
+        elif is_major_upgrade_available() and Data.do_not_upgrade is False:
             Data.major_upgrade = True
             GLib.idle_add(self.status_icon.set_visible, True)
             Data.current_abi = get_current_abi()
@@ -459,17 +450,14 @@ class UpgradePKGBASEProgress:
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WindowPosition.CENTER)
         self.win.set_default_icon_name('system-software-update')
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.win.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
         self.pbar = Gtk.ProgressBar()
         self.pbar.set_show_text(True)
         self.pbar.set_fraction(0.0)
-        # self.pbar.set_size_request(-1, 20)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
         self.thr = threading.Thread(
@@ -546,7 +534,6 @@ class UpgradePKGBASEProgress:
         self.thr.join()
 
 
-
 class InstallUpdate:
     """
     The class for the window that is displayed the progress of the update.
@@ -568,17 +555,14 @@ class InstallUpdate:
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WindowPosition.CENTER)
         self.win.set_default_icon_name('system-software-update')
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.win.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
         self.pbar = Gtk.ProgressBar()
         self.pbar.set_show_text(True)
         self.pbar.set_fraction(0.0)
-        # self.pbar.set_size_request(-1, 20)
         box2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
         self.thr = threading.Thread(target=self.read_output, args=[self.pbar], daemon=True)
@@ -649,8 +633,7 @@ class InstallUpdate:
                     break
                 fetch_text += stdout_line
                 new_val = progress.get_fraction() + fraction
-                GLib.idle_add(self.update_progress, progress, new_val,
-                              stdout_line.strip())
+                GLib.idle_add(self.update_progress, progress, new_val, stdout_line.strip())
             if fetch.returncode != 0:
                 stderr_line = fetch.stderr.read()
                 fetch_text += stderr_line
@@ -680,8 +663,7 @@ class InstallUpdate:
                 break
             fetch_text += stdout_line
             new_val = progress.get_fraction() + fraction
-            GLib.idle_add(self.update_progress, progress, new_val,
-                          stdout_line.strip())
+            GLib.idle_add(self.update_progress, progress, new_val, stdout_line.strip())
         if fetch.returncode != 0:
             stderr_line = fetch.stderr.read()
             fetch_text += stderr_line
@@ -714,8 +696,7 @@ class InstallUpdate:
                         break
                     install_text += stdout_line
                     new_val = progress.get_fraction() + fraction
-                    GLib.idle_add(self.update_progress, progress, new_val,
-                                  stdout_line.strip())
+                    GLib.idle_add(self.update_progress, progress, new_val, stdout_line.strip())
                 if install.returncode == 3:
                     stderr_line = install.stderr.readline()
                     if 'Fail to create temporary file' in stderr_line:
@@ -745,8 +726,7 @@ class InstallUpdate:
                                 break
                             reinstall_text += stdout_line
                             new_val = progress.get_fraction() + fraction
-                            GLib.idle_add(self.update_progress, progress,
-                                          new_val, stdout_line.strip())
+                            GLib.idle_add(self.update_progress, progress, new_val, stdout_line.strip())
                         if reinstall.returncode != 0:
                             reinstall_text += reinstall.stderr.readline()
                             update_fail = open(f'{home}/update.failed', 'w')
@@ -778,7 +758,7 @@ class InstallUpdate:
         GLib.idle_add(self.win.destroy)
         GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
 
-    def stop_tread(self, fail: bool, update_pkg: bool, reboot:bool):
+    def stop_tread(self, fail: bool, update_pkg: bool, reboot: bool):
         """
         The function to stop the thread.
         :param fail: True if update failed.
@@ -829,23 +809,19 @@ class FailedUpdate:
         """
         self.window = Gtk.Window()
         self.window.set_position(Gtk.WindowPosition.CENTER)
-        # self.window.set_border_width(8)
         self.window.connect("destroy", self.on_close)
         self.window.set_title(_("Update Failed"))
         self.window.set_default_icon_name('system-software-update')
-        vBox = Gtk.VBox(homogeneous=False, spacing=0)
+        vBox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.window.add(vBox)
-        vBox.show()
         label = Gtk.Label()
         failed_text = _("""Press "Detail" to get information about the failure.
         Get help at https://forums.ghostbsd.org.""")
         label.set_markup(failed_text)
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
-        hBox = Gtk.HBox(homogeneous=False, spacing=0)
-        # hBox.set_border_width(5)
+        hBox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         vBox.pack_start(hBox, False, True, 5)
-        hBox.show()
         restart = Gtk.Button(label=_("Detail"))
         restart.connect("clicked", self.get_detail)
         continue_button = Gtk.Button(label=_("Close"))
@@ -883,21 +859,17 @@ class RestartSystem:
         """
         self.window = Gtk.Window()
         self.window.set_position(Gtk.WindowPosition.CENTER)
-        # self.window.set_border_width(8)
         self.window.connect("destroy", self.on_close)
         self.window.set_title(_("Update Completed"))
         self.window.set_default_icon_name('system-software-update')
-        vBox = Gtk.VBox(homogeneous=False, spacing=0)
+        vBox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.window.add(vBox)
-        vBox.show()
         reboot_text = _("The computer needs to restart to run on the updated software.")
         label = Gtk.Label(label=reboot_text)
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
-        hBox = Gtk.HBox(homogeneous=False, spacing=0)
-        # hBox.set_border_width(5)
+        hBox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         vBox.pack_start(hBox, False, True, 5)
-        hBox.show()
         restart = Gtk.Button(label=_("Restart Now"))
         restart.connect("clicked", self.on_reboot)
         continue_button = Gtk.Button(label=_("Restart Later"))
@@ -931,24 +903,21 @@ class UpdateCompleted:
         self.window.connect("destroy", self.on_close)
         self.window.set_title(_("Update Completed"))
         self.window.set_default_icon_name('system-software-update')
-        vBox = Gtk.VBox(homogeneous=False, spacing=0)
+        vBox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.window.add(vBox)
-        vBox.show()
         rtxt = _("""All software on this system is up to date.""")
         label = Gtk.Label(label=rtxt)
         vBox.set_border_width(5)
         vBox.pack_start(label, False, False, 5)
-        hBox = Gtk.HBox(homogeneous=False, spacing=0)
-        # hBox.set_border_width(5)
+        hBox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         vBox.pack_start(hBox, False, True, 5)
-        hBox.show()
         close_button = Gtk.Button(label=_("Close"))
         close_button.connect("clicked", self.on_close)
         hBox.pack_end(close_button, False, False, 5)
         self.window.show_all()
 
 
-class NoUpdateAvailable(object):
+class NoUpdateAvailable:
     """
     Class for no update available window.
     """
@@ -959,23 +928,18 @@ class NoUpdateAvailable(object):
         """
         window = Gtk.Window()
         window.set_position(Gtk.WindowPosition.CENTER)
-        window.set_border_width(8)
         window.connect("destroy", Gtk.main_quit)
         window.set_title(_("No Update Available"))
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         window.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
-        label = Gtk.Label(label=_("No update available. This system is up "
-                          "to date."))
+        label = Gtk.Label(label=_("No update available. This system is up to date."))
         box2.pack_start(label, False, False, 0)
-        box2 = Gtk.HBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
-        box2.show()
         ok_button = Gtk.Button(label=_("Close"))
         ok_button.connect("clicked", Gtk.main_quit)
         box2.pack_end(ok_button, False, False, 0)
@@ -986,7 +950,7 @@ class StartCheckUpdate:
     """
     Class for start check for update window.
     """
-    def close_application(self, widget: Gtk.Widget):
+    def close_application(self, widget: Gtk.Widget, event) -> bool:
         """
         The function to close the window.
         :param widget: The window widget.
@@ -994,6 +958,7 @@ class StartCheckUpdate:
         if updating():
             unlock_update_station()
         Gtk.main_quit()
+        return True
 
     def __init__(self):
         """
@@ -1007,13 +972,11 @@ class StartCheckUpdate:
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WindowPosition.CENTER)
         self.win.set_default_icon_name('system-software-update')
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.win.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
         self.pbar = Gtk.ProgressBar()
         self.pbar.set_show_text(True)
         self.pbar.set_fraction(0.0)
@@ -1041,43 +1004,34 @@ class StartCheckUpdate:
         The function to check for update and update the progress bar.
         :param progress: The progress bar.
         """
-        GLib.idle_add(self.update_progress, progress,
-                      _('Checking if the repository is online'))
+        GLib.idle_add(self.update_progress, progress, _('Checking if the repository is online'))
         sleep(1)
         if network_stat() == 'UP' and repo_online() is True:
-            GLib.idle_add(self.update_progress, progress,
-                          _('The repository is online'))
+            GLib.idle_add(self.update_progress, progress, _('The repository is online'))
             sleep(1)
             if repository_is_syncing() is True:
-                GLib.idle_add(self.update_progress, progress,
-                              _('The mirror is Syncing'))
+                GLib.idle_add(self.update_progress, progress, _('The mirror is Syncing'))
                 GLib.idle_add(self.stop_tread, MirrorSyncing)
             else:
                 if updating():
-                    GLib.idle_add(self.update_progress, progress,
-                                  _('Updates are already running'))
+                    GLib.idle_add(self.update_progress, progress, _('Updates are already running'))
                     GLib.idle_add(self.stop_tread, UpdateStationOpen)
                 else:
-                    GLib.idle_add(self.update_progress, progress,
-                                  _('Checking for updates'))
+                    GLib.idle_add(self.update_progress, progress, _('Checking for updates'))
                     update_available = check_for_update()
                     if update_available:
-                        GLib.idle_add(self.update_progress, progress,
-                                      _('Getting the list of packages'))
+                        GLib.idle_add(self.update_progress, progress, _('Getting the list of packages'))
                         Data.packages_dictionary = get_pkg_upgrade_data()
                         look_update_station()
-                        GLib.idle_add(self.update_progress, progress,
-                                      _('Open the update window'))
+                        GLib.idle_add(self.update_progress, progress, _('Open the update window'))
                         GLib.idle_add(self.stop_tread, UpdateWindow)
                     elif not update_available and update_available is not None:
-                        GLib.idle_add(self.update_progress, progress,
-                                      _('No update found'))
+                        GLib.idle_add(self.update_progress, progress, _('No update found'))
                         GLib.idle_add(self.stop_tread, NoUpdateAvailable)
                     else:
                         GLib.idle_add(self.stop_tread, SomethingIsWrong)
         else:
-            GLib.idle_add(self.update_progress, progress,
-                          _('The Mirror is unreachable'))
+            GLib.idle_add(self.update_progress, progress, _('The Mirror is unreachable'))
             GLib.idle_add(self.stop_tread, ServerUnreachable)
 
     def stop_tread(self, start_window: object):
@@ -1090,7 +1044,7 @@ class StartCheckUpdate:
         self.thr.join()
 
 
-class UpdateStationOpen(object):
+class UpdateStationOpen:
     """
     Class for update station already started window.
     """
@@ -1110,29 +1064,25 @@ class UpdateStationOpen(object):
         """
         self.window = Gtk.Window()
         self.window.set_position(Gtk.WindowPosition.CENTER)
-        self.window.set_border_width(8)
         self.window.connect("destroy", self.on_close)
         self.window.set_title(_("Update Station already started"))
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.window.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
         label = Gtk.Label(label=_("Update Station already open."))
         box2.pack_start(label, False, False, 0)
-        box2 = Gtk.HBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
-        box2.show()
         ok_button = Gtk.Button(label=_("Close"))
         ok_button.connect("clicked", self.on_close)
         box2.pack_end(ok_button, False, False, 0)
         self.window.show_all()
 
 
-class MirrorSyncing(object):
+class MirrorSyncing:
     """
     Class for the mirror is syncing warning window.
     """
@@ -1143,30 +1093,25 @@ class MirrorSyncing(object):
         """
         window = Gtk.Window()
         window.set_position(Gtk.WindowPosition.CENTER)
-        window.set_border_width(8)
         window.connect("destroy", Gtk.main_quit)
         window.set_title(_("Server Unreachable"))
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         window.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
-        label = Gtk.Label(label=_("Packages mirrors are syncing with new "
-                          "packages"))
+        label = Gtk.Label(label=_("Packages mirrors are syncing with new packages"))
         box2.pack_start(label, False, False, 0)
-        box2 = Gtk.HBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
-        box2.show()
         ok_button = Gtk.Button(label=_("Close"))
         ok_button.connect("clicked", Gtk.main_quit)
         box2.pack_end(ok_button, False, False, 0)
         window.show_all()
 
 
-class ServerUnreachable(object):
+class ServerUnreachable:
     """
     Class for the server unreachable warning window.
     """
@@ -1177,30 +1122,25 @@ class ServerUnreachable(object):
         """
         window = Gtk.Window()
         window.set_position(Gtk.WindowPosition.CENTER)
-        window.set_border_width(8)
         window.connect("destroy", Gtk.main_quit)
         window.set_title(_("Server Unreachable"))
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         window.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
-        label = Gtk.Label(label=_("The server is unreachable. Your internet "
-                          "could\nbe down or software package server is down."))
+        label = Gtk.Label(label=_("The server is unreachable. Your internet could\nbe down or software package server is down."))
         box2.pack_start(label, False, False, 0)
-        box2 = Gtk.HBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
-        box2.show()
         ok_button = Gtk.Button(label=_("Close"))
         ok_button.connect("clicked", Gtk.main_quit)
         box2.pack_end(ok_button, False, False, 0)
         window.show_all()
 
 
-class SomethingIsWrong(object):
+class SomethingIsWrong:
     """
     Class for the something is wrong warning window.
     """
@@ -1211,25 +1151,18 @@ class SomethingIsWrong(object):
         """
         window = Gtk.Window()
         window.set_position(Gtk.WindowPosition.CENTER)
-        window.set_border_width(8)
         window.connect("destroy", Gtk.main_quit)
         window.set_title(_("Something Is Wrong"))
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         window.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
-        box2.show()
-        label = Gtk.Label(label=_(
-                          "If you see this message it means that "
-                          "something is wrong.\n Please look at pkg upgrade "
-                          "output."))
+        label = Gtk.Label(label=_("If you see this message it means that something is wrong.\n Please look at pkg upgrade output."))
         box2.pack_start(label, False, False, 0)
-        box2 = Gtk.HBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         box2.set_border_width(5)
         box1.pack_start(box2, False, True, 0)
-        box2.show()
         ok_button = Gtk.Button(label=_("Close"))
         ok_button.connect("clicked", Gtk.main_quit)
         box2.pack_end(ok_button, False, False, 0)
@@ -1248,18 +1181,14 @@ class NotRoot(Gtk.Window):
         self.set_title(_("Software Station"))
         self.connect("delete-event", Gtk.main_quit)
         self.set_size_request(200, 80)
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(box1)
-        box1.show()
         label = Gtk.Label(label=_('You need to be root'))
         box1.pack_start(label, True, True, 0)
-        hBox = Gtk.HBox(homogeneous=False, spacing=0)
-        hBox.show()
+        hBox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         box1.pack_end(hBox, False, False, 5)
-        ok_button = Gtk.Button()
-        ok_button.set_label(_("OK"))
-        apply_img = Gtk.Image()
-        apply_img.set_from_icon_name('gtk-ok')
+        ok_button = Gtk.Button(label=_("OK"))
+        apply_img = Gtk.Image(icon_name='gtk-ok')
         ok_button.set_image(apply_img)
         ok_button.connect("clicked", Gtk.main_quit)
         hBox.pack_end(ok_button, False, False, 5)
@@ -1275,7 +1204,6 @@ Available Commands:
 check-now       - Look for update now
 
 """
-
 
 if os.geteuid() == 0:
     if len(arg) == 1:
