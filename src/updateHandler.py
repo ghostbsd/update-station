@@ -14,7 +14,7 @@ updates_run = '/tmp/update-station'
 
 def run_command(command: str, check: bool = True) -> CompletedProcess:
     """Run a shell command and optionally check for errors."""
-    process = run(command, shell=True, text=True)
+    process = run(command, shell=True, stdout=PIPE, stderr=PIPE)
     if check and process.returncode != 0:
         raise RuntimeError(f"Command failed: {command}\n{process.stderr}")
     return process
