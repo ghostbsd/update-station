@@ -235,7 +235,7 @@ class UpdateNotifier:
         self.notification = None
         Notify.init('Test')
         self.msg = _("Software updates are now available.")
-        self.timeout = 10000 # 10 seconds
+        self.timeout = 10000  # 10 seconds
 
     def notify(self):
         """
@@ -380,11 +380,11 @@ class TrayIcon:
         """
         if find_if_os_generic_exists():
             UpgradeToPKGBase()
-        if check_for_update():
+        elif check_for_update():
             GLib.idle_add(self.status_icon.set_visible, True)
             notifier = UpdateNotifier()
             notifier.notify()
-        elif is_major_upgrade_available() and  Data.do_not_upgrade is False:
+        elif is_major_upgrade_available() and Data.do_not_upgrade is False:
             Data.major_upgrade = True
             GLib.idle_add(self.status_icon.set_visible, True)
             Data.current_abi = get_current_abi()
@@ -426,12 +426,23 @@ class UpgradeToPKGBase(Gtk.Window):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
         vbox.set_border_width(10)
         self.add(vbox)
-        label = Gtk.Label(label=_("Would you like to upgrade to PKGBASE?"))
+        label = Gtk.Label(label=_("To continue receiving system updates, you need to upgrade to PKGBASE.\n\n"
+                                  "This upgrade cannot be performed on a UFS installation. If you have \n"
+                                  "installed GhostBSD with UFS, please cancel and reinstall using ZFS.\n\n"
+                                  "This upgrade will be performed in a new boot environment and will\n"
+                                  "automatically reboot into it."))
         vbox.pack_start(label, True, True, 5)
+
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         vbox.pack_end(hbox, False, False, 0)
-        button1 = Gtk.Button(label=_("Upgrade Now"))
-        button1.connect("clicked", self.on_clicked)
+        upgrade_button = Gtk.Button(label=_("Upgrade Now"))
+        upgrade_button.connect("clicked", self.on_clicked)
+        hbox.pack_end(upgrade_button, False, False, 0)
+        cancel_button = Gtk.Button(label=_("Upgrade Now"))
+        cancel_button.connect("clicked", Gtk.main_quit)
+        hbox.pack_end(cancel_button, False, False, 0)
+
+        self.show_all()
 
     def on_clicked(self, widget):
         self.hide()
@@ -544,7 +555,6 @@ class UpgradePKGBASEProgress:
     def stop_tread(self):
         self.win.hide()
         self.thr.join()
-
 
 
 class InstallUpdate:
@@ -778,11 +788,11 @@ class InstallUpdate:
         GLib.idle_add(self.win.destroy)
         GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
 
-    def stop_tread(self, fail: bool, update_pkg: bool, reboot:bool):
+    def stop_tread(self, fail: bool, update_pkg: bool, reboot: bool):
         """
         The function to stop the thread.
         :param fail: True if update failed.
-        :param update_pkg: True if update pkg was updated first..
+        :param update_pkg: True if update pkg was updated first.
         :param reboot: True if system needs to be rebooted after update completed.
         """
         self.thr.join()
@@ -833,18 +843,18 @@ class FailedUpdate:
         self.window.connect("destroy", self.on_close)
         self.window.set_title(_("Update Failed"))
         self.window.set_default_icon_name('system-software-update')
-        vBox = Gtk.VBox(homogeneous=False, spacing=0)
-        self.window.add(vBox)
-        vBox.show()
+        v_box = Gtk.VBox(homogeneous=False, spacing=0)
+        self.window.add(v_box)
+        v_box.show()
         label = Gtk.Label()
         failed_text = _("""Press "Detail" to get information about the failure.
         Get help at https://forums.ghostbsd.org.""")
         label.set_markup(failed_text)
-        vBox.set_border_width(5)
-        vBox.pack_start(label, False, False, 5)
+        v_box.set_border_width(5)
+        v_box.pack_start(label, False, False, 5)
         hBox = Gtk.HBox(homogeneous=False, spacing=0)
         # hBox.set_border_width(5)
-        vBox.pack_start(hBox, False, True, 5)
+        v_box.pack_start(hBox, False, True, 5)
         hBox.show()
         restart = Gtk.Button(label=_("Detail"))
         restart.connect("clicked", self.get_detail)
@@ -931,16 +941,15 @@ class UpdateCompleted:
         self.window.connect("destroy", self.on_close)
         self.window.set_title(_("Update Completed"))
         self.window.set_default_icon_name('system-software-update')
-        vBox = Gtk.VBox(homogeneous=False, spacing=0)
-        self.window.add(vBox)
-        vBox.show()
-        rtxt = _("""All software on this system is up to date.""")
-        label = Gtk.Label(label=rtxt)
-        vBox.set_border_width(5)
-        vBox.pack_start(label, False, False, 5)
+        v_box = Gtk.VBox(homogeneous=False, spacing=0)
+        self.window.add(v_box)
+        v_box.show()
+        label = Gtk.Label(label=_("""All software on this system is up to date."""))
+        v_box.set_border_width(5)
+        v_box.pack_start(label, False, False, 5)
         hBox = Gtk.HBox(homogeneous=False, spacing=0)
         # hBox.set_border_width(5)
-        vBox.pack_start(hBox, False, True, 5)
+        v_box.pack_start(hBox, False, True, 5)
         hBox.show()
         close_button = Gtk.Button(label=_("Close"))
         close_button.connect("clicked", self.on_close)
