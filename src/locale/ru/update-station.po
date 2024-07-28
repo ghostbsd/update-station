@@ -143,7 +143,7 @@ msgstr "Монтирование загрузочной среды pkgbase-upgra
 
 #: src/update-station.py:520
 msgid "Boot environment mounted to /tmp/pkgbase-upgrade"
-msgstr "Загрузочная среда примотирована в /tmp/pkgbase-upgrade"
+msgstr "Загрузочная среда примонтирована в /tmp/pkgbase-upgrade"
 
 #: src/update-station.py:523
 msgid "Removing os-generic packages from boot environment"
