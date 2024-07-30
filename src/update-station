@@ -502,7 +502,6 @@ class UpgradePKGBASEProgress:
         progress.set_text(text)
 
     def read_output(self, progress):
-
         fraction = 1.0 / 18
         progress_text = _("Setting temporary packages configuration")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
@@ -563,6 +562,7 @@ class UpgradePKGBASEProgress:
     def stop_tread(self):
         self.win.hide()
         self.thr.join()
+        RestartSystem()
 
 
 class InstallUpdate:
