@@ -11,15 +11,9 @@ from setuptools import setup
 # import DistUtilsExtra.command.clean_i18n
 
 # to update i18n .mo files (and merge .pot file into .po files) run on Linux:
-# ,,python setup.py build_i18n -m''
+# python setup.py build_i18n -m''
 
-for line in open('src/update-station').readlines():
-    if line.startswith('__VERSION__'):
-        exec(line.strip())
-        break
-# Silence flake8, __VERSION__ is properly assigned below
-else:
-    __VERSION__ = '5.1'
+__VERSION__ = '5.4'
 
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
@@ -28,14 +22,14 @@ prefix = sys.prefix
 os.system("sh compile_translations.sh")
 
 
-def datafilelist(installbase, sourcebase):
-    datafileList = []
-    for root, subFolders, files in os.walk(sourcebase):
-        fileList = []
+def data_file_list(install_base, source_base):
+    data = []
+    for root, subFolders, files in os.walk(source_base):
+        file_list = []
         for f in files:
-            fileList.append(os.path.join(root, f))
-        datafileList.append((root.replace(sourcebase, installbase), fileList))
-    return datafileList
+            file_list.append(os.path.join(root, f))
+        data.append((root.replace(source_base, install_base), file_list))
+    return data
 
 
 data_files = [
@@ -43,11 +37,10 @@ data_files = [
     (f'{prefix}/share/applications', ['src/update-manager.desktop']),
     (f'{prefix}/lib/update-station', ['src/need_reboot.json']),
     (f'{prefix}/etc/sudoers.d', ['src/sudoers.d/update-station']),
-    (f'{prefix}/share/locale/ru/LC_MESSAGES', ['src/locale/ru/update-station.mo']),
-
+    (f'{prefix}/share/locale/ru/LC_MESSAGES', ['src/locale/ru/update-station.mo'])
 ]
 
-data_files.extend(datafilelist(f'{prefix}/share/locale', 'build/mo'))
+data_files.extend(data_file_list(f'{prefix}/share/locale', 'build/mo'))
 
 setup(
     name="update-station",

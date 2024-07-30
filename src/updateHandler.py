@@ -326,7 +326,7 @@ def remove_os_generic(mount_point: str) -> CompletedProcess:
     This function is used to remove all os generic packages.
     :param mount_point: The mount point of the basepkg-test.
     """
-    return run_command(f'pkg-static -r {mount_point} delete -y -g "os-generic*"')
+    return run_command(f'pkg-static -r {mount_point} delete -yf -g "os-generic*"')
 
 
 def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
