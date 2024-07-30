@@ -326,7 +326,7 @@ def remove_os_generic(mount_point: str) -> CompletedProcess:
     This function is used to remove all os generic packages.
     :param mount_point: The mount point of the basepkg-test.
     """
-    return run_command(f'pkg-static -r {mount_point} delete -g "os-generic*"')
+    return run_command(f'pkg-static -r {mount_point} delete -y -g "os-generic*"')
 
 
 def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
@@ -334,7 +334,7 @@ def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
     This function is used to install the GhostBSD-base package.
     :param mount_point: The mount point of the basepkg-test.
     """
-    return run_command(f'pkg-static -r {mount_point} install -r GhostBSD-base -g "GhostBSD-*"')
+    return run_command(f'pkg-static -r {mount_point} install -y -r GhostBSD-base -g "GhostBSD-*"')
 
 
 def restore_vital_files(mount_point: str) -> None:
@@ -348,3 +348,8 @@ def restore_vital_files(mount_point: str) -> None:
     run_command(f'cp /etc/sysctl.conf {mount_point}/etc/sysctl.conf')
     run_command(f'mkdir {mount_point}/proc')
     run_command(f'chroot {mount_point} pwd_mkdb -p /etc/master.passwd')
+
+
+def remove_package_config():
+    config_path = '/usr/local/etc/pkg/repos/GhostBSD.conf'
+    return run_command(f'rm {config_path}')

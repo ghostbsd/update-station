@@ -35,7 +35,8 @@ from updateHandler import (
     remove_os_generic,
     install_ghostbsd_pkgbase,
     set_package_base_config_file,
-    restore_vital_files
+    restore_vital_files,
+    remove_package_config
 )
 gettext.bindtextdomain('update-station', '/usr/local/share/locale')
 gettext.textdomain('update-station')
@@ -438,7 +439,7 @@ class UpgradeToPKGBase(Gtk.Window):
         upgrade_button = Gtk.Button(label=_("Upgrade Now"))
         upgrade_button.connect("clicked", self.on_clicked)
         hbox.pack_end(upgrade_button, False, False, 0)
-        cancel_button = Gtk.Button(label=_("Upgrade Now"))
+        cancel_button = Gtk.Button(label=_("Cancel"))
         cancel_button.connect("clicked", Gtk.main_quit)
         hbox.pack_end(cancel_button, False, False, 0)
 
@@ -501,60 +502,67 @@ class UpgradePKGBASEProgress:
         progress.set_text(text)
 
     def read_output(self, progress):
-        fraction = 1.0 / 16
-        progress_text = _("Adding PKGBASE repository support")
+        fraction = 1.0 / 18
+        progress_text = _("Setting temporary packages configuration")
         GLib.idle_add(self.update_progress, progress, fraction, progress_text)
         assert set_package_base_config_file().returncode == 0
-        progress_text = _("Adding PKGBASE repository support completed")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        progress_text = _("Temporary packages configuration setting completed")
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         sleep(1)
         progress_text = _("Creating boot environment pkgbase-upgrade")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         bectl.create_be('pkgbase-upgrade')
         progress_text = _("Boot environment pkgbase-upgrade created")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         sleep(1)
         progress_text = _("Mounting boot environment pkgbase-upgrade")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         bectl.mount_be('pkgbase-upgrade', '/tmp/pkgbase-upgrade')
         progress_text = _("Boot environment mounted to /tmp/pkgbase-upgrade")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         sleep(1)
         progress_text = _("Removing os-generic packages from boot environment")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         assert remove_os_generic('/tmp/pkgbase-upgrade').returncode == 0
         progress_text = _("os-generic packages are removed from boot environment")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         sleep(1)
         progress_text = _("Installing PGKBASE in the boot environment")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
-        assert install_ghostbsd_pkgbase('/tmp/pkgbase-upgrade') == 0
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
+        assert install_ghostbsd_pkgbase('/tmp/pkgbase-upgrade').returncode == 0
         progress_text = _("PGKBASE installed in the boot environment")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         sleep(1)
         progress_text = _("Restoring vital files")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
-        assert restore_vital_files('/tmp/pkgbase-upgrade') == 0
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
+        assert restore_vital_files('/tmp/pkgbase-upgrade')
         progress_text = _("Vital files restored")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         sleep(1)
         progress_text = _("Unmounting boot environment pkgbase-upgrade")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         bectl.umount_be('pkgbase-upgrade')
         progress_text = _("Boot environment unmounted")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         sleep(1)
         progress_text = _("Activating pkgbase-upgrade boot environment")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         bectl.activate_be('pkgbase-upgrade')
         progress_text = _("Activating pkgbase-upgrade boot environment completed")
-        GLib.idle_add(self.update_progress, progress, fraction, progress_text)
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
+        sleep(1)
+        progress_text = _("Remove temporary package configuration")
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
+        assert remove_package_config().returncode == 0
+        progress_text = _("Temporary package configuration removed")
+        GLib.idle_add(self.update_progress, progress, progress.get_fraction() + fraction, progress_text)
         sleep(1)
         self.stop_tread()
 
     def stop_tread(self):
         self.win.hide()
         self.thr.join()
+        RestartSystem()
 
 
 class InstallUpdate:
