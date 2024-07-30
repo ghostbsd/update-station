@@ -44,7 +44,7 @@ _ = gettext.gettext
 
 lib_path: str = f'{sys.prefix}/lib/update-station'
 
-__VERSION__ = '5.1'
+__VERSION__ = '5.2'
 
 username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 home = os.path.expanduser('~')
