@@ -47,7 +47,7 @@ def get_default_repo_url() -> str:
     :return: The default pkg repository url.
     """
     raw_url = Popen(
-        'pkg -vv | grep -B 1 "enabled.*yes" | grep url',
+        'pkg -vv | grep -B 1 "enabled.*yes" | grep url | grep latest',
         shell=True,
         stdout=PIPE,
         close_fds=True,

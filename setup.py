@@ -13,7 +13,7 @@ from setuptools import setup
 # to update i18n .mo files (and merge .pot file into .po files) run on Linux:
 # python setup.py build_i18n -m''
 
-__VERSION__ = '5.4'
+__VERSION__ = '5.5'
 
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
@@ -45,6 +45,7 @@ data_files.extend(data_file_list(f'{prefix}/share/locale', 'build/mo'))
 setup(
     name="update-station",
     version=PROGRAM_VERSION,
+    #use_scm_version=True,
     description="Update Manager For GhostBSD/FreeBSD",
     license='BSD',
     author='Eric Turgeon',
