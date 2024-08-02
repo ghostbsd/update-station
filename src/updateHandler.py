@@ -339,7 +339,7 @@ def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
 
 def fetch_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
     """
-    This function is used to install the GhostBSD-base package.
+    This function is used to download the GhostBSD-base package.
     :param mount_point: The mount point of the basepkg-test.
     """
     return run_command(f'pkg-static -r {mount_point} fetch -y -r GhostBSD-base -g "GhostBSD-*"')
