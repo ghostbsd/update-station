@@ -337,6 +337,14 @@ def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
     return run_command(f'pkg-static -r {mount_point} install -y -r GhostBSD-base -g "GhostBSD-*"')
 
 
+def fetch_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
+    """
+    This function is used to download the GhostBSD-base package.
+    :param mount_point: The mount point of the basepkg-test.
+    """
+    return run_command(f'pkg-static -r {mount_point} fetch -y -r GhostBSD-base -g "GhostBSD-*"')
+
+
 def restore_vital_files(mount_point: str) -> None:
     """
     This function is used to restart the vital files.
