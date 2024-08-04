@@ -236,16 +236,7 @@ def repo_online() -> bool:
     """
     Check if the repository is online.
     """
-    cmd = "pkg -vv | grep -B 1 'enabled.*yes' | grep url"
-    raw_url = Popen(
-        cmd,
-        shell=True,
-        stdout=PIPE,
-        close_fds=True,
-        universal_newlines=True,
-        encoding='utf-8'
-    )
-    server = list(filter(None, raw_url.stdout.read().split('/')))[1]
+    server = list(filter(None, get_default_repo_url().split('/')))[1]
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(5)
