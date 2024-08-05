@@ -13,7 +13,7 @@ from setuptools import setup
 # to update i18n .mo files (and merge .pot file into .po files) run on Linux:
 # python setup.py build_i18n -m''
 
-__VERSION__ = '5.7'
+__VERSION__ = '5.8'
 
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
