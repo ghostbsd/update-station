@@ -566,7 +566,6 @@ class UpgradePKGBASEProgress:
 
     def stop_tread(self):
         self.win.hide()
-        self.thr.join()
         RestartSystem()
 
 
@@ -808,7 +807,6 @@ class InstallUpdate:
         :param update_pkg: True if update pkg was updated first.
         :param reboot: True if system needs to be rebooted after update completed.
         """
-        self.thr.join()
         if updating():
             unlock_update_station()
         if fail is True:
@@ -1109,7 +1107,6 @@ class StartCheckUpdate:
         """
         start_window()
         self.win.hide()
-        self.thr.join()
 
 
 class UpdateStationOpen(object):
