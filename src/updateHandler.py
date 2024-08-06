@@ -12,8 +12,15 @@ pkg_lock_file = f'{update_station_db}/lock-pkgs'
 updates_run = '/tmp/update-station'
 
 
-def run_command(command: str, check: bool = True) -> CompletedProcess:
-    """Run a shell command and optionally check for errors."""
+def run_command(command: str, check: bool = False) -> CompletedProcess:
+    """
+    Run a shell command and optionally check for errors.
+
+    :param command: The shell command to run.
+    :param check: Optional parameter to check for errors.
+
+    :return: The CompletedProcess object.
+    """
     process = run(command, shell=True, stdout=PIPE, stderr=PIPE)
     if check and process.returncode != 0:
         raise RuntimeError(f"Command failed: {command}\n{process.stderr}")
@@ -71,7 +78,7 @@ def get_abi_upgrade() -> str:
     return requests.get(next_version).text.strip()
 
 
-def get_current_abi():
+def get_current_abi() -> str:
     """
     Get the current ABI of the system.
     :return: The current ABI of the system.
@@ -349,6 +356,10 @@ def restore_vital_files(mount_point: str) -> None:
     run_command(f'chroot {mount_point} pwd_mkdb -p /etc/master.passwd')
 
 
-def remove_package_config():
+def remove_package_config() -> CompletedProcess:
+    """
+    This function is used to remove the package config file.
+    :return: The CompletedProcess object.
+    """
     config_path = '/usr/local/etc/pkg/repos/GhostBSD.conf'
     return run_command(f'rm {config_path}')
