@@ -379,7 +379,10 @@ class TrayIcon:
         Function that updates the tray icon.
         """
         if find_if_os_generic_exists():
-            UpgradeToPKGBase()
+            # Simple code avoid showing the Upgrade to PKGBase Window twice.
+            if Data.pkgbase_upgrade_shown is False:
+                Data.pkgbase_upgrade_shown = True
+                UpgradeToPKGBase()
         elif check_for_update():
             GLib.idle_add(self.status_icon.set_visible, True)
             notifier = UpdateNotifier()

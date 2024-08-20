@@ -16,6 +16,7 @@ class Data:
     """
     backup: bool = False
     close_session: bool = False
+    pkgbase_upgrade_shown: bool = False
     current_abi: str = ''
     do_not_upgrade: bool = False
     kernel_upgrade: bool = False
