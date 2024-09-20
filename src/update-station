@@ -37,16 +37,16 @@ from updateHandler import (
     set_package_base_config_file,
     restore_vital_files,
     remove_package_config,
-    fetch_ghostbsd_pkgbase
+    fetch_ghostbsd_pkgbase,
+    get_packages_to_reinstall
 )
 gettext.bindtextdomain('update-station', '/usr/local/share/locale')
 gettext.textdomain('update-station')
 _ = gettext.gettext
 
 lib_path: str = f'{sys.prefix}/lib/update-station'
-
-username = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
-home = os.path.expanduser('~')
+username: str = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
+home: str = os.path.expanduser('~')
 
 
 class UpdateWindow:
@@ -616,7 +616,8 @@ class InstallUpdate:
         :param fraction: The fraction to add.
         :param text: The text to display.
         """
-        progress.set_fraction(fraction)
+        new_val = progress.get_fraction() + fraction
+        progress.set_fraction(new_val)
         progress.set_text(text)
 
     def read_output(self, progress):
@@ -626,11 +627,10 @@ class InstallUpdate:
         """
         fail = False
         update_pkg = False
-        option = ''
         packages = ''
         env = f'env ABI={Data.new_abi} ' if Data.major_upgrade else ''
         need_reboot_packages = set(json.loads(open(f'{lib_path}/need_reboot.json').read()))
-        upgrade_packages = set(re.split(": | ", " ".join(Data.packages_dictionary['upgrade'])))
+        upgrade_packages = set(re.findall(r"(\S+):", " ".join(Data.packages_dictionary['upgrade'])))
         reboot = bool(need_reboot_packages.intersection(upgrade_packages))
         if len(Data.packages_dictionary['upgrade']) == 1 and 'pkg:' in Data.packages_dictionary['upgrade'][0]:
             update_pkg = True
@@ -638,10 +638,10 @@ class InstallUpdate:
             Data.second_update = True
         else:
             Data.second_update = False
-        if Data.kernel_upgrade:
-            option = 'f'
         howmany = (Data.total_packages * 4) + 20
         fraction = 1.0 / howmany
+
+        # TODO: make a function for this
         if Data.backup:
             today = datetime.datetime.now().strftime("%Y-%m-%d")
             txt = _("Cleaning old boot environment")
@@ -655,10 +655,10 @@ class InstallUpdate:
             GLib.idle_add(self.update_progress, progress, fraction, txt)
             bectl.create_be(new_be_name=backup_name)
             sleep(1)
+
         if Data.major_upgrade:
-            txt = _("Fetching package updates")
-            new_val = progress.get_fraction() + fraction
-            GLib.idle_add(self.update_progress, progress, new_val, txt)
+            txt = _("Setting env and bootstrap pkg to upgrade")
+            GLib.idle_add(self.update_progress, progress, fraction, txt)
             fetch = Popen(
                 f'{env}env IGNORE_OSVERSION=yes ASSUME_ALWAYS_YES=yes pkg bootstrap -f',
                 shell=True,
@@ -673,8 +673,7 @@ class InstallUpdate:
                 if fetch.poll() is not None:
                     break
                 fetch_text += stdout_line
-                new_val = progress.get_fraction() + fraction
-                GLib.idle_add(self.update_progress, progress, new_val,
+                GLib.idle_add(self.update_progress, progress, fraction,
                               stdout_line.strip())
             if fetch.returncode != 0:
                 stderr_line = fetch.stderr.read()
@@ -686,12 +685,11 @@ class InstallUpdate:
                 GLib.idle_add(self.win.destroy)
                 GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
                 return
-        txt = _("Fetching package updates")
-        new_val = progress.get_fraction() + fraction
-        GLib.idle_add(self.update_progress, progress, new_val, txt)
+        txt = _("Downloading packages to upgrade")
+        GLib.idle_add(self.update_progress, progress, fraction, txt)
         sleep(1)
         fetch = Popen(
-            f'{env}pkg-static upgrade -Fy{option}{packages}',
+            f'{env}pkg-static upgrade -Fy{packages}',
             shell=True,
             stdout=PIPE,
             stderr=PIPE,
@@ -704,8 +702,7 @@ class InstallUpdate:
             if fetch.poll() is not None:
                 break
             fetch_text += stdout_line
-            new_val = progress.get_fraction() + fraction
-            GLib.idle_add(self.update_progress, progress, new_val,
+            GLib.idle_add(self.update_progress, progress, fraction,
                           stdout_line.strip())
         if fetch.returncode != 0:
             stderr_line = fetch.stderr.read()
@@ -715,17 +712,15 @@ class InstallUpdate:
             update_fail.close()
             fail = True
         else:
-            new_val = progress.get_fraction() + fraction
-            txt = _("Package updates downloaded")
-            GLib.idle_add(self.update_progress, progress, new_val, txt)
+            txt = _("Packages to upgrade downloaded")
+            GLib.idle_add(self.update_progress, progress, fraction, txt)
             sleep(1)
-            new_val = progress.get_fraction() + fraction
-            txt = _("Installing package updates")
-            GLib.idle_add(self.update_progress, progress, new_val, txt)
+            txt = _("Upgrading packages")
+            GLib.idle_add(self.update_progress, progress, fraction, txt)
             sleep(1)
             while True:
                 install = Popen(
-                    f'{env}pkg-static upgrade -y{option}{packages}',
+                    f'{env}pkg-static upgrade -y{packages}',
                     shell=True,
                     stdout=PIPE,
                     stderr=PIPE,
@@ -738,8 +733,7 @@ class InstallUpdate:
                     if install.poll() is not None:
                         break
                     install_text += stdout_line
-                    new_val = progress.get_fraction() + fraction
-                    GLib.idle_add(self.update_progress, progress, new_val,
+                    GLib.idle_add(self.update_progress, progress, fraction,
                                   stdout_line.strip())
                 if install.returncode == 3:
                     stderr_line = install.stderr.readline()
@@ -769,9 +763,8 @@ class InstallUpdate:
                             if reinstall.poll() is not None:
                                 break
                             reinstall_text += stdout_line
-                            new_val = progress.get_fraction() + fraction
                             GLib.idle_add(self.update_progress, progress,
-                                          new_val, stdout_line.strip())
+                                          fraction, stdout_line.strip())
                         if reinstall.returncode != 0:
                             reinstall_text += reinstall.stderr.readline()
                             update_fail = open(f'{home}/update.failed', 'w')
@@ -780,11 +773,10 @@ class InstallUpdate:
                             fail = True
                             break
                         else:
-                            new_val = progress.get_fraction() + fraction
                             txt = _("Reinstalling")
                             txt += f" {failed_package} "
                             txt += _("completed")
-                            GLib.idle_add(self.update_progress, progress, new_val, txt)
+                            GLib.idle_add(self.update_progress, progress, fraction, txt)
                             sleep(1)
                 elif install.returncode != 0:
                     stderr_line = install.stderr.readline()
@@ -795,11 +787,75 @@ class InstallUpdate:
                     fail = True
                     break
                 else:
-                    new_val = progress.get_fraction() + fraction
-                    txt = _("Software packages upgrade completed")
-                    GLib.idle_add(self.update_progress, progress, new_val, txt)
+                    txt = _("Packages upgraded")
+                    GLib.idle_add(self.update_progress, progress, fraction, txt)
                     sleep(1)
                     break
+        if Data.kernel_upgrade:
+            all_packages = set(re.findall(r"(\S+):", " ".join(Data.packages_dictionary['reinstall'])))
+            all_packages.update(upgrade_packages)
+            packages_to_reinstall = set(get_packages_to_reinstall())
+            packages = " ".join(list(packages_to_reinstall.difference(all_packages)))
+            txt = _("Downloading packages depending on kernel")
+            GLib.idle_add(self.update_progress, progress, fraction, txt)
+            sleep(1)
+            fetch = Popen(
+                f'{env}pkg-static upgrade -Fy {packages}',
+                shell=True,
+                stdout=PIPE,
+                stderr=PIPE,
+                close_fds=True,
+                universal_newlines=True
+            )
+            fetch_text = ""
+            while True:
+                stdout_line = fetch.stdout.readline()
+                if fetch.poll() is not None:
+                    break
+                fetch_text += stdout_line
+                GLib.idle_add(self.update_progress, progress, fraction,
+                              stdout_line.strip())
+            if fetch.returncode != 0:
+                stderr_line = fetch.stderr.read()
+                fetch_text += stderr_line
+                update_fail = open(f'{home}/update.failed', 'w')
+                update_fail.writelines(fetch_text)
+                update_fail.close()
+                fail = True
+            else:
+                txt = _("Packages depending on kernel downloaded")
+                GLib.idle_add(self.update_progress, progress, fraction, txt)
+                sleep(1)
+                txt = _("Reinstalling packages depending on kernel")
+                GLib.idle_add(self.update_progress, progress, fraction, txt)
+                sleep(1)
+                install = Popen(
+                    f'{env}pkg-static upgrade -fy {packages}',
+                    shell=True,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    close_fds=True,
+                    universal_newlines=True
+                )
+                install_text = ""
+                while True:
+                    stdout_line = install.stdout.readline()
+                    if install.poll() is not None:
+                        break
+                    install_text += stdout_line
+                    GLib.idle_add(self.update_progress, progress, fraction,
+                                  stdout_line.strip())
+                if install.returncode != 0:
+                    stderr_line = install.stderr.readline()
+                    install_text += stderr_line
+                    update_fail = open(f'{home}/update.failed', 'w')
+                    update_fail.writelines(install_text)
+                    update_fail.close()
+                    fail = True
+                else:
+                    txt = _("Packages depending on kernel reinstalled")
+                    GLib.idle_add(self.update_progress, progress, fraction, txt)
+                    sleep(1)
         GLib.idle_add(self.win.destroy)
         GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
 

@@ -35,7 +35,7 @@ def data_file_list(install_base, source_base):
 data_files = [
     (f'{prefix}/etc/xdg/autostart', ['src/update-station.desktop']),
     (f'{prefix}/share/applications', ['src/update-manager.desktop']),
-    (f'{prefix}/lib/update-station', ['src/need_reboot.json']),
+    (f'{prefix}/lib/update-station', ['src/need_reboot.json', 'src/pkg_to_reinstall']),
     (f'{prefix}/etc/sudoers.d', ['src/sudoers.d/update-station']),
     (f'{prefix}/share/locale/ru/LC_MESSAGES', ['src/locale/ru/update-station.mo'])
 ]
