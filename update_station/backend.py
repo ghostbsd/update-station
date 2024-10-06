@@ -1,11 +1,12 @@
 #!/usr/local/bin/python
-"""All functions to handle various updates for GhostBSD."""
+"""All functions to handle various command for Update Station."""
 
 import os
 import sys
 import socket
 import requests
-from update_data import Data
+from gi.repository import Gtk
+from update_station.data import Data
 from subprocess import Popen, PIPE, call, run, CompletedProcess
 
 lib_path: str = f'{sys.prefix}/lib/update-station'
@@ -24,12 +25,28 @@ def read_file(file_path: str) -> str:
         return file.read()
 
 
+def on_reboot() -> None:
+    """
+    The function to reboot the system.
+    """
+    Popen('shutdown -r now', shell=True)
+    Gtk.main_quit()
+
+
+def get_detail() -> None:
+    """
+    Get the details of the upgrade failure.
+    :return:
+    """
+    Popen(f'sudo -u {Data.username} xdg-open {Data.home}/update.failed', shell=True)
+
+
 def get_packages_to_reinstall() -> list:
     """
     Get packages to reinstall on kernel upgrade.
     :return: The list of packages to reinstall.
     """
-    packages = read_file(f'pkg_to_reinstall').replace('\n', ' ')
+    packages = read_file(f'../src/pkg_to_reinstall').replace('\n', ' ')
     return run_command(f'pkg query "%n" {packages}').stdout.splitlines()
 
 
