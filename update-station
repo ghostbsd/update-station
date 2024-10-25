@@ -35,18 +35,20 @@ def update_tray():
     Function that updates the tray icon.
     """
     if check_for_update():
-        GLib.idle_add(Data.system_tray.tray_icon().set_visible, True)
+        Data.system_tray.tray_icon().set_visible(True)
+        print('system_tray')
         notifier = UpdateNotifier()
         notifier.notify()
+        print('notifier')
     elif is_major_upgrade_available() and Data.do_not_upgrade is False:
         Data.major_upgrade = True
-        GLib.idle_add(Data.system_tray.tray_icon().set_visible, True)
+        Data.system_tray.tray_icon().set_visible(True)
         Data.current_abi = get_current_abi()
         Data.new_abi = get_abi_upgrade()
         notifier = UpdateNotifier()
         notifier.notify()
     else:
-        GLib.idle_add(Data.system_tray.tray_icon().set_visible, False)
+        Data.system_tray.tray_icon().set_visible(False)
 
 
 def threading_update():
@@ -73,7 +75,7 @@ def check():
                     print('True')
                     GLib.idle_add(Data.system_tray.tray_icon().set_visible, False)
         # Wait for an hour to look for update
-        sleep(5)
+        sleep(600)
 
 
 def check_now():

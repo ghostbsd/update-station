@@ -25,7 +25,7 @@ def read_file(file_path: str) -> str:
         return file.read()
 
 
-def on_reboot() -> None:
+def on_reboot(*args) -> None:
     """
     The function to reboot the system.
     """
