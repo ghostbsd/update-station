@@ -269,10 +269,10 @@ class InstallUpdate:
             Data.second_update = True
         else:
             Data.second_update = False
-        howmany = (Data.total_packages * 4) + 20
+        howmany = (Data.total_packages * 5) + 25
         fraction = 1.0 / howmany
 
-        # TODO: make a function for this
+        # TODO: make a function for this part.
         if Data.backup:
             today = datetime.datetime.now().strftime("%Y-%m-%d")
             txt = _("Cleaning old boot environment")
