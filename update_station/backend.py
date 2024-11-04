@@ -1,15 +1,53 @@
 #!/usr/local/bin/python
-"""All functions to handle various updates for GhostBSD."""
+"""All functions to handle various command for Update Station."""
 
 import os
+import sys
 import socket
 import requests
-from update_data import Data
+from gi.repository import Gtk
+from update_station.data import Data
 from subprocess import Popen, PIPE, call, run, CompletedProcess
 
-update_station_db = '/var/db/update-station'
-pkg_lock_file = f'{update_station_db}/lock-pkgs'
-updates_run = '/tmp/update-station'
+lib_path: str = f'{sys.prefix}/lib/update-station'
+update_station_db: str = '/var/db/update-station'
+pkg_lock_file: str = f'{update_station_db}/lock-pkgs'
+updates_run: str = '/tmp/update-station'
+
+
+def read_file(file_path: str) -> str:
+    """
+    Read a file and return the contents.
+    :param file_path: The file path.
+    :return: The file contents.
+    """
+    with open(file_path, 'r') as file:
+        return file.read()
+
+
+def on_reboot(*args) -> None:
+    """
+    The function to reboot the system.
+    """
+    Popen('shutdown -r now', shell=True)
+    Gtk.main_quit()
+
+
+def get_detail() -> None:
+    """
+    Get the details of the upgrade failure.
+    :return:
+    """
+    Popen(f'sudo -u {Data.username} xdg-open {Data.home}/update.failed', shell=True)
+
+
+def get_packages_to_reinstall() -> list:
+    """
+    Get packages to reinstall on kernel upgrade.
+    :return: The list of packages to reinstall.
+    """
+    packages = read_file(f'../src/pkg_to_reinstall').replace('\n', ' ')
+    return run_command(f'pkg query "%n" {packages}').stdout.splitlines()
 
 
 def run_command(command: str, check: bool = False) -> CompletedProcess:
@@ -21,7 +59,7 @@ def run_command(command: str, check: bool = False) -> CompletedProcess:
 
     :return: The CompletedProcess object.
     """
-    process = run(command, shell=True, stdout=PIPE, stderr=PIPE)
+    process = run(command, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     if check and process.returncode != 0:
         raise RuntimeError(f"Command failed: {command}\n{process.stderr}")
     return process

@@ -1,0 +1,110 @@
+#!/usr/local/bin/python
+"""This is the main file for the update-station application"""
+
+import os
+import gettext
+import gi
+import socket
+import sys
+import threading
+gi.require_version('Gtk', '3.0')
+gi.require_version('Notify', '0.7')
+from gi.repository import Gtk, GLib
+from time import sleep
+from update_station.notification import UpdateNotifier, TrayIcon
+from update_station.frontend import StartCheckUpdate
+from update_station.dialog import NotRoot
+from update_station.data import Data
+from update_station.backend import (
+    check_for_update,
+    unlock_update_station,
+    updating,
+    repository_is_syncing,
+    is_major_upgrade_available,
+    get_abi_upgrade,
+    get_current_abi,
+)
+
+gettext.bindtextdomain('update-station', '/usr/local/share/locale')
+gettext.textdomain('update-station')
+_ = gettext.gettext
+
+
+def update_tray():
+    """
+    Function that updates the tray icon.
+    """
+    if check_for_update():
+        Data.system_tray.tray_icon().set_visible(True)
+        print('system_tray')
+        notifier = UpdateNotifier()
+        notifier.notify()
+        print('notifier')
+    elif is_major_upgrade_available() and Data.do_not_upgrade is False:
+        Data.major_upgrade = True
+        Data.system_tray.tray_icon().set_visible(True)
+        Data.current_abi = get_current_abi()
+        Data.new_abi = get_abi_upgrade()
+        notifier = UpdateNotifier()
+        notifier.notify()
+    else:
+        Data.system_tray.tray_icon().set_visible(False)
+
+
+def threading_update():
+    """
+    Function that creates a thread that checks for updates.
+    """
+    if updating():
+        unlock_update_station()
+    thr = threading.Thread(target=check, daemon=True)
+    thr.start()
+
+
+def check():
+    """
+    Function that checks for updates.
+    """
+    while True:
+        sleep(20)
+        if not repository_is_syncing():
+            if not Data.stop_pkg_refreshing:
+                if not updating():
+                    GLib.idle_add(update_tray)
+                else:
+                    print('True')
+                    GLib.idle_add(Data.system_tray.tray_icon().set_visible, False)
+        # Wait for an hour to look for update
+        sleep(600)
+
+
+def check_now():
+    pass
+
+
+arg = sys.argv
+UsageMSG = f"""
+Usage for {arg[0]}:
+
+Available Commands:
+
+check-now       - Look for update now
+
+"""
+if os.geteuid() == 0:
+    if len(arg) == 1:
+        if socket.gethostname() != 'livecd':
+            Data.close_session = False
+            Data.system_tray = TrayIcon()
+            threading_update()
+        else:
+            exit()
+    elif len(arg) == 2 and arg[1] == "check-now":
+        Data.close_session = True
+        StartCheckUpdate()
+    else:
+        print(UsageMSG)
+        sys.exit(0)
+else:
+    NotRoot()
+Gtk.main()
