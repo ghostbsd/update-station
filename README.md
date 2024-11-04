@@ -4,7 +4,7 @@ Update Station
 GhostBSD update manager.
 
 
-## Create up
+## Managing Translations
 To create translation file.
 ```shell
 ./setup.py create_translation --locale=fr
