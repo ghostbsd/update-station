@@ -269,8 +269,8 @@ class InstallUpdate:
             Data.second_update = True
         else:
             Data.second_update = False
-        howmany = (Data.total_packages * 5) + 25
-        fraction = 1.0 / howmany
+        howmany: float = (Data.total_packages * 5) + 45
+        fraction: float = 1.0 / howmany
 
         # TODO: make a function for this part.
         if Data.backup:
