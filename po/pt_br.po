@@ -1,0 +1,277 @@
+# Portuguese translations for PACKAGE package.
+# Copyright (C) 2024 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Edu_Amr <ghost.radiation065@silomails.com>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-05 21:34-0300\n"
+"PO-Revision-Date: 2024-12-13 22:50-0400\n"
+"Last-Translator: Edu_Amr <ghost.radiation065@silomails.com>\n"
+"Language-Team: Portuguese <translation-team-pt@lists.sourceforge.net>\n"
+"Language: pt_br\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: update_station/dialog.py:31
+msgid "Update Failed"
+msgstr "Atualização Falhou"
+
+#: update_station/dialog.py:37
+msgid ""
+"Press \"Detail\" to get information about the failure.\n"
+"        Get help at https://forums.ghostbsd.org or ."
+msgstr ""
+""Pressione \"Detalhe\" para obter informações sobre a falha.\n"
+"        Obtenha ajuda em https://forums.ghostbsd.org"
+
+#: update_station/dialog.py:46
+msgid "Detail"
+msgstr "Detalhe"
+
+#: update_station/dialog.py:48 update_station/dialog.py:114
+#: update_station/dialog.py:148 update_station/dialog.py:181
+#: update_station/dialog.py:215 update_station/dialog.py:249
+#: update_station/dialog.py:285 update_station/dialog.py:313
+#: update_station/frontend.py:105 update_station/notification.py:87
+msgid "Close"
+msgstr "Fechar"
+
+#: update_station/dialog.py:68 update_station/dialog.py:102
+msgid "Update Completed"
+msgstr "Atualização Concluída"
+
+#: update_station/dialog.py:73
+msgid "The computer needs to restart to run on the updated software."
+msgstr "O computador precisa reiniciar para executar o software atualizado."
+
+#: update_station/dialog.py:81
+msgid "Restart Now"
+msgstr "Reiniciar Agora"
+
+#: update_station/dialog.py:83
+msgid "Restart Later"
+msgstr "Reiniciar Depois"
+
+#: update_station/dialog.py:107
+msgid "All software on this system is up to date."
+msgstr "Todo o software neste sistema está atualizado."
+
+#: update_station/dialog.py:133
+msgid "No Update Available"
+msgstr "Nenhuma Atualização Disponível"
+
+#: update_station/dialog.py:141
+msgid "No update available. This system is up to date."
+msgstr "Nenhuma atualização disponível. Este sistema está atualizado."
+
+#: update_station/dialog.py:167
+msgid "Update Station already started"
+msgstr "O Update Station já foi iniciado"
+
+#: update_station/dialog.py:175
+msgid "Update Station already open."
+msgstr "O Update Station já está aberto."
+
+#: update_station/dialog.py:200 update_station/dialog.py:234
+msgid "Server Unreachable"
+msgstr "Servidor Inacessível"
+
+#: update_station/dialog.py:208
+msgid "Packages mirrors are syncing with new packages"
+msgstr "Os espelhos de pacotes estão sincronizando com novos pacotes"
+
+#: update_station/dialog.py:242
+msgid ""
+"The server is unreachable. Your internet could\n"
+"be down or software package server is down."
+msgstr ""
+"O servidor está inacessível. Sua internet pode\n"
+"estar fora do ar ou o servidor de pacotes de software está fora do ar."
+
+#: update_station/dialog.py:268
+msgid "Something Is Wrong"
+msgstr "Algo Está Errado"
+
+#: update_station/dialog.py:277
+msgid ""
+"If you see this message it means that something is wrong.\n"
+" Please look at pkg upgrade output."
+msgstr ""
+"Se você vir esta mensagem, significa que algo está errado.\n"
+"Por favor, verifique a saída do comando pkg upgrade."
+
+#: update_station/dialog.py:301
+msgid "Software Station"
+msgstr "Estação de Software"
+
+#: update_station/dialog.py:307
+msgid "You need to be root"
+msgstr "Você precisa ser root"
+
+#: update_station/frontend.py:92
+msgid "Create boot environment backup"
+msgstr "Criar backup do ambiente de inicialização"
+
+#: update_station/frontend.py:109
+msgid "Install update"
+msgstr "Instalar atualização"
+
+#: update_station/frontend.py:122
+msgid "Update Manager"
+msgstr "Gerenciador de Atualizações"
+
+#: update_station/frontend.py:134
+msgid "Updates available!"
+msgstr "Atualizações disponíveis!"
+
+#: update_station/frontend.py:173
+msgid "Installed packages to be REMOVED:"
+msgstr "Pacotes instalados a serem REMOVIDOS:"
+
+#: update_station/frontend.py:180
+msgid "Installed packages to be UPGRADED"
+msgstr "Pacotes instalados a serem ATUALIZADOS"
+
+#: update_station/frontend.py:187
+msgid "New packages to be INSTALLED:"
+msgstr "Novos pacotes a serem INSTALADOS:"
+
+#: update_station/frontend.py:194
+msgid "Installed packages to be REINSTALLED:"
+msgstr "Pacotes instalados a serem REINSTALADOS:"
+
+#: update_station/frontend.py:234
+msgid "Installing Update"
+msgstr "Instalando Atualização"
+
+#: update_station/frontend.py:278
+msgid "Cleaning old boot environment"
+msgstr "Limpando ambiente de inicialização antigo"
+
+#: update_station/frontend.py:284
+msgid "Creating boot environment"
+msgstr "Criando ambiente de inicialização"
+
+#: update_station/frontend.py:291
+msgid "Setting env and bootstrap pkg to upgrade"
+msgstr "Configurando ambiente e pacote bootstrap para atualização"
+
+#: update_station/frontend.py:319
+msgid "Downloading packages to upgrade"
+msgstr "Baixando pacotes para atualização"
+
+#: update_station/frontend.py:346
+msgid "Packages to upgrade downloaded"
+msgstr "Pacotes para atualização baixados"
+
+#: update_station/frontend.py:349
+msgid "Upgrading packages"
+msgstr "Atualizando pacotes"
+
+#: update_station/frontend.py:407
+msgid "Reinstalling"
+msgstr "Reinstalando"
+
+#: update_station/frontend.py:409
+msgid "completed"
+msgstr "concluído"
+
+#: update_station/frontend.py:421
+msgid "Packages upgraded"
+msgstr "Pacotes atualizados"
+
+#: update_station/frontend.py:430
+msgid "Downloading packages depending on kernel"
+msgstr "Baixando pacotes dependentes do kernel"
+
+#: update_station/frontend.py:457
+msgid "Packages depending on kernel downloaded"
+msgstr "Pacotes dependentes do kernel baixados"
+
+#: update_station/frontend.py:460
+msgid "Reinstalling packages depending on kernel"
+msgstr "Reinstalando pacotes dependentes do kernel"
+
+#: update_station/frontend.py:487
+msgid "Packages depending on kernel reinstalled"
+msgstr "Pacotes dependentes do kernel reinstalados"
+
+#: update_station/frontend.py:541
+msgid "Looking For Updates"
+msgstr "Procurando Atualizações"
+
+#: update_station/frontend.py:580
+msgid "Checking if the repository is online"
+msgstr "Verificando se o repositório está online"
+
+#: update_station/frontend.py:584
+msgid "The repository is online"
+msgstr "O repositório está online"
+
+#: update_station/frontend.py:588
+msgid "The mirror is Syncing"
+msgstr "O espelho está sincronizando"
+
+#: update_station/frontend.py:593
+msgid "Updates are already running"
+msgstr "As atualizações já estão em andamento"
+
+#: update_station/frontend.py:597
+msgid "Checking for updates"
+msgstr "Verificando atualizações"
+
+#: update_station/frontend.py:601
+msgid "Getting the list of packages"
+msgstr "Obtendo a lista de pacotes"
+
+#: update_station/frontend.py:605
+msgid "Open the update window"
+msgstr "Abrir a janela de atualização"
+
+#: update_station/frontend.py:609
+msgid "No update found"
+msgstr "Nenhuma atualização encontrada"
+
+#: update_station/frontend.py:615
+msgid "The Mirror is unreachable"
+msgstr "O espelho está inacessível"
+
+#: update_station/notification.py:25
+msgid "Software updates are now available."
+msgstr "Atualizações de software estão agora disponíveis."
+
+#: update_station/notification.py:33
+msgid "Major system version upgrade is now available."
+msgstr "Uma atualização importante de versão do sistema está agora disponível."
+
+#: update_station/notification.py:35
+msgid "System and software updates are now available."
+msgstr "Atualizações de sistema e software estão agora disponíveis."
+
+#: update_station/notification.py:37
+msgid "Update Available"
+msgstr "Atualização Disponível"
+
+#: update_station/notification.py:85
+msgid "Open Update"
+msgstr "Abrir Atualização"
+
+#: update_station/notification.py:130
+msgid "Major version upgrade"
+msgstr "Atualização de versão principal"
+
+#: update_station/notification.py:137
+#, python-brace-format
+msgid ""
+"Would you like to upgrade from {Data.current_abi} to {Data.new_abi}?\n"
+"\n"
+"If you select No, the upgrade will be skipped until the next boot."
+msgstr ""
+"Você gostaria de atualizar de {Data.current_abi} para {Data.new_abi}?\n"
+"\n"
+"Se você selecionar Não, a atualização será ignorada até a próxima inicialização."
