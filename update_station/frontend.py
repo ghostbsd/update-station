@@ -23,7 +23,6 @@ from update_station.dialog import (
 )
 from update_station.backend import (
     check_for_update,
-    get_packages_to_reinstall,
     get_pkg_upgrade_data,
     unlock_update_station,
     updating,
@@ -123,13 +122,13 @@ class UpdateWindow:
         self.window.set_border_width(0)
         self.window.set_position(Gtk.WindowPosition.CENTER)
         self.window.set_default_icon_name('system-software-update')
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
-        self.window.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=0)
-        box2.set_border_width(20)
-        box1.pack_start(box2, True, True, 0)
-        box2.show()
+        vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
+        self.window.add(vbox1)
+        vbox1.show()
+        vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
+        vbox2.set_border_width(20)
+        vbox1.pack_start(vbox2, True, True, 0)
+        vbox2.show()
         # Title
         title_text = _("Updates available!")
 
@@ -137,7 +136,7 @@ class UpdateWindow:
             label=f"<b><span size='large'>{title_text}</span></b>"
         )
         update_title_label.set_use_markup(True)
-        box2.pack_start(update_title_label, False, False, 0)
+        vbox2.pack_start(update_title_label, False, False, 0)
         self.tree_store = Gtk.TreeStore(str, bool)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
@@ -149,13 +148,13 @@ class UpdateWindow:
         self.view.set_headers_visible(False)
         sw.add(self.view)
         sw.show()
-        box2.pack_start(sw, True, True, 10)
-        box2 = Gtk.HBox(homogeneous=False, spacing=10)
-        box2.set_border_width(5)
-        box1.pack_start(box2, False, False, 5)
-        box2.show()
+        vbox2.pack_start(sw, True, True, 10)
+        vbox2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=10)
+        vbox2.set_border_width(5)
+        vbox1.pack_start(vbox2, False, False, 5)
+        vbox2.show()
         # Add button
-        box2.pack_start(self.create_bbox(), True, True, 10)
+        vbox2.pack_start(self.create_bbox(), True, True, 10)
         self.window.show_all()
 
     def store(self):
@@ -164,39 +163,34 @@ class UpdateWindow:
         :return: The store for the list of package to be updated.
         """
         self.tree_store.clear()
-        r_num = 0
-        u_num = 0
-        i_num = 0
-        ri_num = 0
         if bool(Data.packages_dictionary['remove']):
             r_num = len(Data.packages_dictionary['remove'])
             message = _('Installed packages to be REMOVED:')
-            message += f' {r_num}'
+            message += f' {Data.packages_dictionary["number_to_remove"]}'
             r_pinter = self.tree_store.append(None, (message, True))
             for line in Data.packages_dictionary['remove']:
                 self.tree_store.append(r_pinter, (line, True))
         if bool(Data.packages_dictionary['upgrade']):
             u_num = len(Data.packages_dictionary['upgrade'])
             message = _('Installed packages to be UPGRADED')
-            message += f' {u_num}'
+            message += f' {Data.packages_dictionary["number_to_upgrade"]}'
             u_pinter = self.tree_store.append(None, (message, True))
             for line in Data.packages_dictionary['upgrade']:
                 self.tree_store.append(u_pinter, (line, True))
         if bool(Data.packages_dictionary['install']):
             i_num = len(Data.packages_dictionary['install'])
             message = _('New packages to be INSTALLED:')
-            message += f' {i_num}'
+            message += f' {Data.packages_dictionary["number_to_install"]}'
             i_pinter = self.tree_store.append(None, (message, True))
             for line in Data.packages_dictionary['install']:
                 self.tree_store.append(i_pinter, (line, True))
         if bool(Data.packages_dictionary['reinstall']):
             ri_num = len(Data.packages_dictionary['reinstall'])
             message = _('Installed packages to be REINSTALLED:')
-            message += f' {ri_num}'
+            message += f' {Data.packages_dictionary["number_to_reinstall"]}'
             ri_pinter = self.tree_store.append(None, (message, True))
             for line in Data.packages_dictionary['reinstall']:
                 self.tree_store.append(ri_pinter, (line, True))
-        Data.total_packages = r_num + u_num + i_num + ri_num
         return self.tree_store
 
     def display(self, model: Gtk.TreeStore) -> Gtk.TreeView:
@@ -218,7 +212,7 @@ class InstallUpdate:
     """
     The class for the window that is displayed the progress of the update.
     """
-    def close_application(self, widget):
+    def close_application(self, widget, *args):
         if updating():
             unlock_update_station()
         Gtk.main_quit()
@@ -235,10 +229,10 @@ class InstallUpdate:
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WindowPosition.CENTER)
         self.win.set_default_icon_name('system-software-update')
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
+        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         self.win.add(box1)
         box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
+        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=10)
         box2.set_border_width(10)
         box1.pack_start(box2, True, True, 0)
         box2.show()
@@ -269,7 +263,7 @@ class InstallUpdate:
             Data.second_update = True
         else:
             Data.second_update = False
-        howmany: float = (Data.total_packages * 5) + 45
+        howmany: float = (Data.packages_dictionary["total_of_packages"] * 7) + 45
         fraction: float = 1.0 / howmany
 
         # TODO: make a function for this part.
@@ -320,7 +314,7 @@ class InstallUpdate:
         GLib.idle_add(update_progress, progress, fraction, txt)
         sleep(1)
         fetch = Popen(
-            f'{env}pkg-static upgrade -Fy{packages}',
+            f'{env}pkg upgrade -Fy{packages}',
             shell=True,
             stdout=PIPE,
             stderr=PIPE,
@@ -351,7 +345,7 @@ class InstallUpdate:
             sleep(1)
             while True:
                 install = Popen(
-                    f'{env}pkg-static upgrade -y{packages}',
+                    f'{env}pkg upgrade -y{packages}',
                     shell=True,
                     stdout=PIPE,
                     stderr=PIPE,
@@ -372,7 +366,7 @@ class InstallUpdate:
                         raw_line = install_text.splitlines()[-2]
                         failed_package = raw_line.split()[2].replace(':', '')
                         pkg_rquery = run(
-                            f'{env}pkg-static rquery -x "%n" "{failed_package}"',
+                            f'{env}pkg rquery -x "%n" "{failed_package}"',
                             shell=True,
                             stdout=PIPE,
                             stderr=PIPE,
@@ -380,8 +374,8 @@ class InstallUpdate:
                         )
                         package_name = pkg_rquery.stdout.strip()
                         reinstall = Popen(
-                            f'{env}pkg-static delete -y {package_name} ;'
-                            f'{env}pkg-static install -y {package_name}',
+                            f'{env}pkg delete -y {package_name} ;'
+                            f'{env}pkg install -y {package_name}',
                             shell=True,
                             stdout=PIPE,
                             stderr=PIPE,
@@ -422,71 +416,6 @@ class InstallUpdate:
                     GLib.idle_add(update_progress, progress, fraction, txt)
                     sleep(1)
                     break
-        if Data.kernel_upgrade:
-            all_packages = set(re.findall(r"(\S+):", " ".join(Data.packages_dictionary['reinstall'])))
-            all_packages.update(upgrade_packages)
-            packages_to_reinstall = set(get_packages_to_reinstall())
-            packages = " ".join(list(packages_to_reinstall.difference(all_packages)))
-            txt = _("Downloading packages depending on kernel")
-            GLib.idle_add(update_progress, progress, fraction, txt)
-            sleep(1)
-            fetch = Popen(
-                f'{env}pkg-static upgrade -Fy {packages}',
-                shell=True,
-                stdout=PIPE,
-                stderr=PIPE,
-                close_fds=True,
-                universal_newlines=True
-            )
-            fetch_text = ""
-            while True:
-                stdout_line = fetch.stdout.readline()
-                if fetch.poll() is not None:
-                    break
-                fetch_text += stdout_line
-                GLib.idle_add(update_progress, progress, fraction,
-                              stdout_line.strip())
-            if fetch.returncode != 0:
-                stderr_line = fetch.stderr.read()
-                fetch_text += stderr_line
-                update_fail = open(f'{Data.home}/update.failed', 'w')
-                update_fail.writelines(fetch_text)
-                update_fail.close()
-                fail = True
-            else:
-                txt = _("Packages depending on kernel downloaded")
-                GLib.idle_add(update_progress, progress, fraction, txt)
-                sleep(1)
-                txt = _("Reinstalling packages depending on kernel")
-                GLib.idle_add(update_progress, progress, fraction, txt)
-                sleep(1)
-                install = Popen(
-                    f'{env}pkg-static upgrade -fy {packages}',
-                    shell=True,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    close_fds=True,
-                    universal_newlines=True
-                )
-                install_text = ""
-                while True:
-                    stdout_line = install.stdout.readline()
-                    if install.poll() is not None:
-                        break
-                    install_text += stdout_line
-                    GLib.idle_add(update_progress, progress, fraction,
-                                  stdout_line.strip())
-                if install.returncode != 0:
-                    stderr_line = install.stderr.readline()
-                    install_text += stderr_line
-                    update_fail = open(f'{Data.home}/update.failed', 'w')
-                    update_fail.writelines(install_text)
-                    update_fail.close()
-                    fail = True
-                else:
-                    txt = _("Packages depending on kernel reinstalled")
-                    GLib.idle_add(update_progress, progress, fraction, txt)
-                    sleep(1)
         GLib.idle_add(self.win.destroy)
         GLib.idle_add(self.stop_tread, fail, update_pkg, reboot)
 
@@ -521,7 +450,7 @@ class StartCheckUpdate:
     """
     Class for start check for update window.
     """
-    def close_application(self, widget: Gtk.Widget):
+    def close_application(self, widget: Gtk.Widget, *args):
         """
         The function to close the window.
         :param widget: The window widget.
@@ -542,17 +471,17 @@ class StartCheckUpdate:
         self.win.set_border_width(0)
         self.win.set_position(Gtk.WindowPosition.CENTER)
         self.win.set_default_icon_name('system-software-update')
-        box1 = Gtk.VBox(homogeneous=False, spacing=0)
-        self.win.add(box1)
-        box1.show()
-        box2 = Gtk.VBox(homogeneous=False, spacing=10)
-        box2.set_border_width(10)
-        box1.pack_start(box2, True, True, 0)
-        box2.show()
+        vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
+        self.win.add(vbox1)
+        vbox1.show()
+        vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=10)
+        vbox2.set_border_width(10)
+        vbox1.pack_start(vbox2, True, True, 0)
+        vbox2.show()
         self.pbar = Gtk.ProgressBar()
         self.pbar.set_show_text(True)
         self.pbar.set_fraction(0.0)
-        box2.pack_start(self.pbar, False, False, 0)
+        vbox2.pack_start(self.pbar, False, False, 0)
         self.win.show_all()
         self.thr = threading.Thread(
             target=self.check_for_update,

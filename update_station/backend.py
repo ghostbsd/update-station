@@ -7,7 +7,7 @@ import socket
 import requests
 from gi.repository import Gtk
 from update_station.data import Data
-from subprocess import Popen, PIPE, call, run, CompletedProcess
+from subprocess import Popen, PIPE, run, CompletedProcess
 
 lib_path: str = f'{sys.prefix}/lib/update-station'
 update_station_db: str = '/var/db/update-station'
@@ -41,15 +41,6 @@ def get_detail() -> None:
     Popen(f'sudo -u {Data.username} xdg-open {Data.home}/update.failed', shell=True)
 
 
-def get_packages_to_reinstall() -> list:
-    """
-    Get packages to reinstall on kernel upgrade.
-    :return: The list of packages to reinstall.
-    """
-    packages = read_file(f'../src/pkg_to_reinstall').replace('\n', ' ')
-    return run_command(f'pkg query "%n" {packages}').stdout.splitlines()
-
-
 def run_command(command: str, check: bool = False) -> CompletedProcess:
     """
     Run a shell command and optionally check for errors.
@@ -70,17 +61,13 @@ def check_for_update() -> bool:
     Check if there is an update.
     :return: True if there is an update else False.
     """
-    kernel_version_change()
+    update_local_pkg_database()
     upgrade_text = get_pkg_upgrade()
     if 'Your packages are up to date' in upgrade_text:
         return False
     elif 'UPGRADED:' in upgrade_text:
         return True
-    elif ' INSTALLED:' in upgrade_text:
-        return True
-    elif 'REINSTALLED:' in upgrade_text:
-        return True
-    elif 'REMOVED:' in upgrade_text:
+    elif 'INSTALLED:' in upgrade_text:
         return True
     else:
         return False
@@ -132,40 +119,48 @@ def get_current_abi() -> str:
     return pkg_abi.stdout.read().strip()
 
 
-def get_pkg_upgrade(option: str = '') -> str:
+def get_pkg_upgrade() -> str:
     """
-    Get the upgrade data from pkg.
-    :param option: f to get full upgrade data, n to get only the new packages data.
-    :return:  The upgrade data.
-    """
+    This function is used to get the upgrade data from pkg.
 
+    :return: This function returns the pkg upgrade output.
+    """
     env = f'env ABI={Data.new_abi} ' if Data.major_upgrade else ''
-    print(f'{env}pkg upgrade -n{option}')
     pkg_upgrade = Popen(
-        f'{env}pkg upgrade -n{option}',
+        f'{env}pkg upgrade -n',
         shell=True,
         stdout=PIPE,
         close_fds=True,
         universal_newlines=True,
         encoding='utf-8'
     )
-    upgrade_verbose = pkg_upgrade.stdout.read()
-    return upgrade_verbose
+    return pkg_upgrade.stdout.read()
 
 
 def get_pkg_upgrade_data() -> dict:
     """
-    Get the upgrade data from pkg.
-    :return: The upgrade data.
+    This function is used to get the upgrade data from pkg.
+
+    :return: Returns a dictionary with the following keys:
+        - system_upgrade: True if the system is upgrading else False.
+        - remove: The list of packages to remove.
+        - number_to_remove: The number of packages to remove.
+        - upgrade: The list of packages to upgrade.
+        - number_to_upgrade: The number of packages to upgrade.
+        - upgrade: The list of packages to upgrade.
+        - number_to_upgrade: The number of packages to upgrade.
+        - install: The list of packages to install.
+        - number_to_install: The number of packages to install.
+        - reinstall: The list of packages to reinstall.
+        - number_to_reinstall: The number of packages to reinstall.
+        - total_of_packages: The total number of packages to upgrade.
     """
-    option = ''
-    system_upgrade = False
-    if kernel_version_change() or Data.major_upgrade:
-        Data.kernel_upgrade = True
-        system_upgrade = True
-        option = 'f'
-    update_pkg = get_pkg_upgrade(option)
+    update_pkg = get_pkg_upgrade()
     update_pkg_list = update_pkg.splitlines()
+    system_upgrade = False
+    if 'kernel-generic' in update_pkg:
+        Data.system_upgrade = True
+        system_upgrade = True
     pkg_to_remove = []
     pkg_to_upgrade = []
     pkg_to_install = []
@@ -209,9 +204,14 @@ def get_pkg_upgrade_data() -> dict:
     pkg_dictionary = {
         'system_upgrade': system_upgrade,
         'remove': pkg_to_remove,
+        'number_to_remove': len(pkg_to_remove),
         'upgrade': pkg_to_upgrade,
+        'number_to_upgrade': len(pkg_to_upgrade),
         'install': pkg_to_install,
-        'reinstall': pkg_to_reinstall
+        'number_to_install': len(pkg_to_install),
+        'reinstall': pkg_to_reinstall,
+        'number_to_reinstall': len(pkg_to_reinstall),
+        'total_of_packages': len(pkg_to_remove) + len(pkg_to_upgrade) + len(pkg_to_install) + len(pkg_to_reinstall)
     }
     return pkg_dictionary
 
@@ -225,14 +225,13 @@ def is_major_upgrade_available() -> bool:
     return True if requests.get(next_version).status_code == 200 else False
 
 
-def kernel_version_change() -> bool:
+def update_local_pkg_database() -> None:
     """
     Check if the kernel version has changed.
     :return: True if the kernel version has changed else False.
     """
     env = f'env ABI={Data.new_abi} ' if Data.major_upgrade else ''
-    print(f'yes | {env}pkg update -f')
-    pkg_update = Popen(
+    run(
         f'yes | {env}pkg update -f',
         shell=True,
         stdout=PIPE,
@@ -240,22 +239,6 @@ def kernel_version_change() -> bool:
         universal_newlines=True,
         encoding='utf-8'
     )
-    if 'Newer FreeBSD version' in pkg_update.stdout.read():
-        return True
-    else:
-        return False
-
-
-def lock_pkg(lock_pkg_list: list) -> None:
-    """
-    Lock all packages in the list.
-    :param lock_pkg_list: The list of pkg to lock.
-    """
-    for line in lock_pkg_list:
-        call(
-            f'pkg lock -y {line.strip()}',
-            shell=True
-        )
 
 
 def look_update_station() -> None:
@@ -302,28 +285,6 @@ def repository_is_syncing() -> bool:
     return True if requests.get(syncing_url).status_code == 200 else False
 
 
-def unlock_all_pkg() -> None:
-    """
-    Unlock all locked packages.
-    """
-    call(
-        'pkg unlock -ay',
-        shell=True
-    )
-
-
-def unlock_pkg(lock_pkg_list: list) -> None:
-    """
-    Unlock all packages in the list.
-    :param lock_pkg_list: The list of pkg to unlock.
-    """
-    for line in lock_pkg_list:
-        call(
-            f'pkg unlock -y {line.strip()}',
-            shell=True
-        )
-
-
 def unlock_update_station() -> None:
     """
     Remove the lock file.
@@ -340,64 +301,3 @@ def updating() -> bool:
         return True
     else:
         return False
-
-
-# the code below is for upgrading to PKGBASE this will be removed in the future.
-def find_if_os_generic_exists() -> bool:
-    """
-    This function is look if there is some os generic packages installed.
-    :return: True if some os generic packages are exists else False.
-    """
-    return run_command("pkg info -E -g 'os-generic*'").returncode == 0
-
-
-def set_package_base_config_file() -> CompletedProcess:
-    # /usr/local/etc/pkg/repos/GhostBSD.conf
-    config_path = '/usr/local/etc/pkg/repos/GhostBSD.conf'
-    return run_command(f'cp {config_path}.default {config_path}')
-
-
-def remove_os_generic(mount_point: str) -> CompletedProcess:
-    """
-    This function is used to remove all os generic packages.
-    :param mount_point: The mount point of the basepkg-test.
-    """
-    return run_command(f'pkg-static -r {mount_point} delete -yf -g "os-generic*"')
-
-
-def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
-    """
-    This function is used to install the GhostBSD-base package.
-    :param mount_point: The mount point of the basepkg-test.
-    """
-    return run_command(f'pkg-static -r {mount_point} install -y -r GhostBSD-base -g "GhostBSD-*"')
-
-
-def fetch_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
-    """
-    This function is used to download the GhostBSD-base package.
-    :param mount_point: The mount point of the basepkg-test.
-    """
-    return run_command(f'pkg-static -r {mount_point} fetch -y -r GhostBSD-base -g "GhostBSD-*"')
-
-
-def restore_vital_files(mount_point: str) -> None:
-    """
-    This function is used to restart the vital files.
-    :param mount_point: The mount point of the basepkg-test.
-    """
-    run_command(f'cp /etc/passwd {mount_point}/etc/passwd')
-    run_command(f'cp /etc/master.passwd {mount_point}/etc/master.passwd')
-    run_command(f'cp /etc/group {mount_point}/etc/group')
-    run_command(f'cp /etc/sysctl.conf {mount_point}/etc/sysctl.conf')
-    run_command(f'mkdir {mount_point}/proc')
-    run_command(f'chroot {mount_point} pwd_mkdb -p /etc/master.passwd')
-
-
-def remove_package_config() -> CompletedProcess:
-    """
-    This function is used to remove the package config file.
-    :return: The CompletedProcess object.
-    """
-    config_path = '/usr/local/etc/pkg/repos/GhostBSD.conf'
-    return run_command(f'rm {config_path}')

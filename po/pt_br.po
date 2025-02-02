@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-05 21:34-0300\n"
+"POT-Creation-Date: 2025-02-01 19:55-0400\n"
 "PO-Revision-Date: 2024-12-13 22:50-0400\n"
 "Last-Translator: Edu_Amr <ghost.radiation065@silomails.com>\n"
 "Language-Team: Portuguese <translation-team-pt@lists.sourceforge.net>\n"
@@ -26,7 +26,7 @@ msgid ""
 "Press \"Detail\" to get information about the failure.\n"
 "        Get help at https://forums.ghostbsd.org or ."
 msgstr ""
-""Pressione \"Detalhe\" para obter informações sobre a falha.\n"
+"Pressione \"Detalhe\" para obter informações sobre a falha.\n"
 "        Obtenha ajuda em https://forums.ghostbsd.org"
 
 #: update_station/dialog.py:46
@@ -37,7 +37,7 @@ msgstr "Detalhe"
 #: update_station/dialog.py:148 update_station/dialog.py:181
 #: update_station/dialog.py:215 update_station/dialog.py:249
 #: update_station/dialog.py:285 update_station/dialog.py:313
-#: update_station/frontend.py:105 update_station/notification.py:87
+#: update_station/frontend.py:104 update_station/notification.py:86
 msgid "Close"
 msgstr "Fechar"
 
@@ -113,165 +113,162 @@ msgstr "Estação de Software"
 msgid "You need to be root"
 msgstr "Você precisa ser root"
 
-#: update_station/frontend.py:92
+#: update_station/frontend.py:91
 msgid "Create boot environment backup"
 msgstr "Criar backup do ambiente de inicialização"
 
-#: update_station/frontend.py:109
+#: update_station/frontend.py:108
 msgid "Install update"
 msgstr "Instalar atualização"
 
-#: update_station/frontend.py:122
+#: update_station/frontend.py:121
 msgid "Update Manager"
 msgstr "Gerenciador de Atualizações"
 
-#: update_station/frontend.py:134
+#: update_station/frontend.py:133
 msgid "Updates available!"
 msgstr "Atualizações disponíveis!"
 
-#: update_station/frontend.py:173
+#: update_station/frontend.py:168
 msgid "Installed packages to be REMOVED:"
 msgstr "Pacotes instalados a serem REMOVIDOS:"
 
-#: update_station/frontend.py:180
+#: update_station/frontend.py:175
 msgid "Installed packages to be UPGRADED"
 msgstr "Pacotes instalados a serem ATUALIZADOS"
 
-#: update_station/frontend.py:187
+#: update_station/frontend.py:182
 msgid "New packages to be INSTALLED:"
 msgstr "Novos pacotes a serem INSTALADOS:"
 
-#: update_station/frontend.py:194
+#: update_station/frontend.py:189
 msgid "Installed packages to be REINSTALLED:"
 msgstr "Pacotes instalados a serem REINSTALADOS:"
 
-#: update_station/frontend.py:234
+#: update_station/frontend.py:228
 msgid "Installing Update"
 msgstr "Instalando Atualização"
 
-#: update_station/frontend.py:278
+#: update_station/frontend.py:272
 msgid "Cleaning old boot environment"
 msgstr "Limpando ambiente de inicialização antigo"
 
-#: update_station/frontend.py:284
+#: update_station/frontend.py:278
 msgid "Creating boot environment"
 msgstr "Criando ambiente de inicialização"
 
-#: update_station/frontend.py:291
+#: update_station/frontend.py:285
 msgid "Setting env and bootstrap pkg to upgrade"
 msgstr "Configurando ambiente e pacote bootstrap para atualização"
 
-#: update_station/frontend.py:319
+#: update_station/frontend.py:313
 msgid "Downloading packages to upgrade"
 msgstr "Baixando pacotes para atualização"
 
-#: update_station/frontend.py:346
+#: update_station/frontend.py:340
 msgid "Packages to upgrade downloaded"
 msgstr "Pacotes para atualização baixados"
 
-#: update_station/frontend.py:349
+#: update_station/frontend.py:343
 msgid "Upgrading packages"
 msgstr "Atualizando pacotes"
 
-#: update_station/frontend.py:407
+#: update_station/frontend.py:401
 msgid "Reinstalling"
 msgstr "Reinstalando"
 
-#: update_station/frontend.py:409
+#: update_station/frontend.py:403
 msgid "completed"
 msgstr "concluído"
 
-#: update_station/frontend.py:421
+#: update_station/frontend.py:415
 msgid "Packages upgraded"
 msgstr "Pacotes atualizados"
 
-#: update_station/frontend.py:430
-msgid "Downloading packages depending on kernel"
-msgstr "Baixando pacotes dependentes do kernel"
-
-#: update_station/frontend.py:457
-msgid "Packages depending on kernel downloaded"
-msgstr "Pacotes dependentes do kernel baixados"
-
-#: update_station/frontend.py:460
-msgid "Reinstalling packages depending on kernel"
-msgstr "Reinstalando pacotes dependentes do kernel"
-
-#: update_station/frontend.py:487
-msgid "Packages depending on kernel reinstalled"
-msgstr "Pacotes dependentes do kernel reinstalados"
-
-#: update_station/frontend.py:541
+#: update_station/frontend.py:470
 msgid "Looking For Updates"
 msgstr "Procurando Atualizações"
 
-#: update_station/frontend.py:580
+#: update_station/frontend.py:509
 msgid "Checking if the repository is online"
 msgstr "Verificando se o repositório está online"
 
-#: update_station/frontend.py:584
+#: update_station/frontend.py:513
 msgid "The repository is online"
 msgstr "O repositório está online"
 
-#: update_station/frontend.py:588
+#: update_station/frontend.py:517
 msgid "The mirror is Syncing"
 msgstr "O espelho está sincronizando"
 
-#: update_station/frontend.py:593
+#: update_station/frontend.py:522
 msgid "Updates are already running"
 msgstr "As atualizações já estão em andamento"
 
-#: update_station/frontend.py:597
+#: update_station/frontend.py:526
 msgid "Checking for updates"
 msgstr "Verificando atualizações"
 
-#: update_station/frontend.py:601
+#: update_station/frontend.py:530
 msgid "Getting the list of packages"
 msgstr "Obtendo a lista de pacotes"
 
-#: update_station/frontend.py:605
+#: update_station/frontend.py:534
 msgid "Open the update window"
 msgstr "Abrir a janela de atualização"
 
-#: update_station/frontend.py:609
+#: update_station/frontend.py:538
 msgid "No update found"
 msgstr "Nenhuma atualização encontrada"
 
-#: update_station/frontend.py:615
+#: update_station/frontend.py:544
 msgid "The Mirror is unreachable"
 msgstr "O espelho está inacessível"
 
-#: update_station/notification.py:25
+#: update_station/notification.py:24
 msgid "Software updates are now available."
 msgstr "Atualizações de software estão agora disponíveis."
 
-#: update_station/notification.py:33
+#: update_station/notification.py:32
 msgid "Major system version upgrade is now available."
 msgstr "Uma atualização importante de versão do sistema está agora disponível."
 
-#: update_station/notification.py:35
+#: update_station/notification.py:34
 msgid "System and software updates are now available."
 msgstr "Atualizações de sistema e software estão agora disponíveis."
 
-#: update_station/notification.py:37
+#: update_station/notification.py:36
 msgid "Update Available"
 msgstr "Atualização Disponível"
 
-#: update_station/notification.py:85
+#: update_station/notification.py:84
 msgid "Open Update"
 msgstr "Abrir Atualização"
 
-#: update_station/notification.py:130
+#: update_station/notification.py:129
 msgid "Major version upgrade"
 msgstr "Atualização de versão principal"
 
 #: update_station/notification.py:137
-#, python-brace-format
+#, fuzzy
 msgid ""
-"Would you like to upgrade from {Data.current_abi} to {Data.new_abi}?\n"
+"\n"
 "\n"
 "If you select No, the upgrade will be skipped until the next boot."
 msgstr ""
 "Você gostaria de atualizar de {Data.current_abi} para {Data.new_abi}?\n"
 "\n"
-"Se você selecionar Não, a atualização será ignorada até a próxima inicialização."
+"Se você selecionar Não, a atualização será ignorada até a próxima "
+"inicialização."
+
+#~ msgid "Downloading packages depending on kernel"
+#~ msgstr "Baixando pacotes dependentes do kernel"
+
+#~ msgid "Packages depending on kernel downloaded"
+#~ msgstr "Pacotes dependentes do kernel baixados"
+
+#~ msgid "Reinstalling packages depending on kernel"
+#~ msgstr "Reinstalando pacotes dependentes do kernel"
+
+#~ msgid "Packages depending on kernel reinstalled"
+#~ msgstr "Pacotes dependentes do kernel reinstalados"

@@ -1,5 +1,4 @@
 import gettext
-
 from gi.repository import Gtk, GLib, Notify
 from update_station.data import Data
 from update_station.backend import updating
@@ -31,7 +30,7 @@ class UpdateNotifier:
         """
         if Data.major_upgrade is True:
             self.msg = _("Major system version upgrade is now available.")
-        elif Data.kernel_upgrade is True:
+        elif Data.system_upgrade is True:
             self.msg = _("System and software updates are now available.")
         self.notification = Notify.Notification().new(
             summary=_('Update Available'),

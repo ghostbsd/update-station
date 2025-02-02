@@ -1,17 +1,17 @@
 # French translations for PACKAGE package.
 # Copyright (C) 2024 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# Eric Turgeon <ericturgeon@ghostbsd.com>, 2024.
+# Eric Turgeon <ericturgeon@ghostbsd.org>, 2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-02-01 19:53-0400\n"
-"PO-Revision-Date: 2024-10-03 21:32-0300\n"
-"Last-Translator: Eric Turgeon <ericturgeon@ghostbsd.com>\n"
+"PO-Revision-Date: 2024-11-15 19:12-0400\n"
+"Last-Translator: Eric Turgeon <ericturgeon@ghostbsd.org>\n"
 "Language-Team: French <traduc@traduc.org>\n"
-"Language: fr\n"
+"Language: fr_CA\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -37,7 +37,7 @@ msgstr ""
 #: update_station/dialog.py:285 update_station/dialog.py:313
 #: update_station/frontend.py:104 update_station/notification.py:86
 msgid "Close"
-msgstr "Fermer"
+msgstr ""
 
 #: update_station/dialog.py:68 update_station/dialog.py:102
 msgid "Update Completed"
@@ -109,35 +109,35 @@ msgstr ""
 
 #: update_station/frontend.py:91
 msgid "Create boot environment backup"
-msgstr "Créer une sauvegarde de l'environnement de démarrage"
+msgstr ""
 
 #: update_station/frontend.py:108
 msgid "Install update"
-msgstr "Installer la mise à jour"
+msgstr ""
 
 #: update_station/frontend.py:121
 msgid "Update Manager"
-msgstr "Gestionnaire de mise à jour"
+msgstr ""
 
 #: update_station/frontend.py:133
 msgid "Updates available!"
-msgstr "Mises à jour disponibles !"
+msgstr ""
 
 #: update_station/frontend.py:168
 msgid "Installed packages to be REMOVED:"
-msgstr "Paquets installés à SUPPRIMER:"
+msgstr ""
 
 #: update_station/frontend.py:175
 msgid "Installed packages to be UPGRADED"
-msgstr "Packages installés à mettre à niveau"
+msgstr ""
 
 #: update_station/frontend.py:182
 msgid "New packages to be INSTALLED:"
-msgstr "Nouveaux packages à INSTALLER:"
+msgstr ""
 
 #: update_station/frontend.py:189
 msgid "Installed packages to be REINSTALLED:"
-msgstr "Packages installés à RÉINSTALLER:"
+msgstr ""
 
 #: update_station/frontend.py:228
 msgid "Installing Update"
@@ -181,7 +181,7 @@ msgstr ""
 
 #: update_station/frontend.py:470
 msgid "Looking For Updates"
-msgstr "À la recherche de mises à jour"
+msgstr ""
 
 #: update_station/frontend.py:509
 msgid "Checking if the repository is online"

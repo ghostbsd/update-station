@@ -12,14 +12,13 @@ class Data:
         current_abi: String that indicates the current ABI of the system.
         do_not_upgrade: Boolean that indicates if the update-station should not upgrade the system.
         home: String that indicates the home directory of the user that is running the update-station.
-        kernel_upgrade: Boolean that indicates if the update-station should upgrade the kernel.
+        system_upgrade: Boolean that indicates if the update-station should upgrade the kernel.
         packages_dictionary: Dictionary that contains all the packages that are installed on the system.
         major_upgrade: Boolean that indicates if the update-station should do a major upgrade.
         new_abi: String that indicates the new ABI of the system.
         second_update: Boolean that indicates if the update-station should do 2 update.
         stop_pkg_refreshing: Boolean that indicates if the update-station should stop refreshing the packages.
         system_tray: Object that contains the system tray of the update-station.
-        total_packages: Integer that indicates the total number of packages that are that will be updated.
         update_started: Boolean that indicates if the application has started updating the system.
         username: String that indicates the username of the user that is running the update-station.
     """
@@ -28,13 +27,12 @@ class Data:
     current_abi: str = ''
     do_not_upgrade: bool = False
     home: str = os.path.expanduser('~')
-    kernel_upgrade: bool = False
+    system_upgrade: bool = False
     major_upgrade: bool = False
     new_abi: str = ''
     packages_dictionary: dict = {}
     second_update: bool = False
     stop_pkg_refreshing: bool = False
     system_tray = None
-    total_packages: int = 0
     update_started: bool = False
     username: str = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
