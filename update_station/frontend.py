@@ -164,28 +164,24 @@ class UpdateWindow:
         """
         self.tree_store.clear()
         if bool(Data.packages_dictionary['remove']):
-            r_num = len(Data.packages_dictionary['remove'])
             message = _('Installed packages to be REMOVED:')
             message += f' {Data.packages_dictionary["number_to_remove"]}'
             r_pinter = self.tree_store.append(None, (message, True))
             for line in Data.packages_dictionary['remove']:
                 self.tree_store.append(r_pinter, (line, True))
         if bool(Data.packages_dictionary['upgrade']):
-            u_num = len(Data.packages_dictionary['upgrade'])
             message = _('Installed packages to be UPGRADED')
             message += f' {Data.packages_dictionary["number_to_upgrade"]}'
             u_pinter = self.tree_store.append(None, (message, True))
             for line in Data.packages_dictionary['upgrade']:
                 self.tree_store.append(u_pinter, (line, True))
         if bool(Data.packages_dictionary['install']):
-            i_num = len(Data.packages_dictionary['install'])
             message = _('New packages to be INSTALLED:')
             message += f' {Data.packages_dictionary["number_to_install"]}'
             i_pinter = self.tree_store.append(None, (message, True))
             for line in Data.packages_dictionary['install']:
                 self.tree_store.append(i_pinter, (line, True))
         if bool(Data.packages_dictionary['reinstall']):
-            ri_num = len(Data.packages_dictionary['reinstall'])
             message = _('Installed packages to be REINSTALLED:')
             message += f' {Data.packages_dictionary["number_to_reinstall"]}'
             ri_pinter = self.tree_store.append(None, (message, True))
