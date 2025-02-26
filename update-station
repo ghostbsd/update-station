@@ -66,16 +66,15 @@ def check():
     Function that checks for updates.
     """
     while True:
-        sleep(20)
+        sleep(60)
         if not repository_is_syncing():
             if not Data.stop_pkg_refreshing:
                 if not updating():
                     GLib.idle_add(update_tray)
                 else:
-                    print('True')
                     GLib.idle_add(Data.system_tray.tray_icon().set_visible, False)
         # Wait for an hour to look for update
-        sleep(600)
+        sleep(3600)
 
 
 def check_now():
