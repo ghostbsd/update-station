@@ -11,7 +11,7 @@ from DistUtilsExtra.command.clean_i18n import clean_i18n
 # to update i18n .mo files (and merge .pot file into .po files) run on Linux:
 # python setup.py build_i18n -m''
 
-__VERSION__ = '6.3'
+__VERSION__ = '6.2'
 
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
