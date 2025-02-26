@@ -19,7 +19,6 @@ class Data:
         second_update: Boolean that indicates if the update-station should do 2 update.
         stop_pkg_refreshing: Boolean that indicates if the update-station should stop refreshing the packages.
         system_tray: Object that contains the system tray of the update-station.
-        total_packages: Integer that indicates the total number of packages that are that will be updated.
         update_started: Boolean that indicates if the application has started updating the system.
         username: String that indicates the username of the user that is running the update-station.
     """
@@ -35,6 +34,5 @@ class Data:
     second_update: bool = False
     stop_pkg_refreshing: bool = False
     system_tray = None
-    total_packages: int = 0
     update_started: bool = False
     username: str = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
