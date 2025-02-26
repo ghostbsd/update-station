@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-02 22:45-0300\n"
+"POT-Creation-Date: 2025-02-26 18:52-0400\n"
 "PO-Revision-Date: 2024-10-03 21:32-0300\n"
 "Last-Translator: Eric Turgeon <ericturgeon@ghostbsd.com>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -17,256 +17,247 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: update_station/confirm_update.py:65
-msgid "Create boot environment backup"
-msgstr "Créer une sauvegarde de l'environnement de démarrage"
-
-#: update_station/confirm_update.py:78 update_station/message.py:59
-#: update_station/message.py:148 update_station/message.py:182
-#: update_station/message.py:224 update_station/message.py:258
-#: update_station/message.py:292 update_station/message.py:328
-#: update_station/system_tray.py:47
-msgid "Close"
-msgstr "Fermer"
-
-#: update_station/confirm_update.py:82
-msgid "Install update"
-msgstr "Installer la mise à jour"
-
-#: update_station/confirm_update.py:95
-msgid "Update Manager"
-msgstr "Gestionnaire de mise à jour"
-
-#: update_station/confirm_update.py:107
-msgid "Updates available!"
-msgstr "Mises à jour disponibles !"
-
-#: update_station/confirm_update.py:146
-msgid "Installed packages to be REMOVED:"
-msgstr "Paquets installés à SUPPRIMER:"
-
-#: update_station/confirm_update.py:153
-msgid "Installed packages to be UPGRADED"
-msgstr "Packages installés à mettre à niveau"
-
-#: update_station/confirm_update.py:160
-msgid "New packages to be INSTALLED:"
-msgstr "Nouveaux packages à INSTALLER:"
-
-#: update_station/confirm_update.py:167
-msgid "Installed packages to be REINSTALLED:"
-msgstr "Packages installés à RÉINSTALLER:"
-
-#: update_station/look_for_updated.py:50
-msgid "Looking For Updates"
-msgstr "À la recherche de mises à jour"
-
-#: update_station/look_for_updated.py:89
-msgid "Checking if the repository is online"
-msgstr ""
-
-#: update_station/look_for_updated.py:93
-msgid "The repository is online"
-msgstr ""
-
-#: update_station/look_for_updated.py:97
-msgid "The mirror is Syncing"
-msgstr ""
-
-#: update_station/look_for_updated.py:102
-msgid "Updates are already running"
-msgstr ""
-
-#: update_station/look_for_updated.py:106
-msgid "Checking for updates"
-msgstr ""
-
-#: update_station/look_for_updated.py:110
-msgid "Getting the list of packages"
-msgstr ""
-
-#: update_station/look_for_updated.py:114
-msgid "Open the update window"
-msgstr ""
-
-#: update_station/look_for_updated.py:118
-msgid "No update found"
-msgstr ""
-
-#: update_station/look_for_updated.py:124
-msgid "The Mirror is unreachable"
-msgstr ""
-
-#: update_station/look_for_updated.py:145
-msgid "Major version upgrade"
-msgstr ""
-
-#: update_station/look_for_updated.py:152
-#, python-brace-format
-msgid ""
-"Would you like to upgrade from {Data.current_abi} to {Data.new_abi}?\n"
-"\n"
-"If you select No, the upgrade will be skipped until the next boot."
-msgstr ""
-
-#: update_station/message.py:42
+#: update_station/dialog.py:31
 msgid "Update Failed"
 msgstr ""
 
-#: update_station/message.py:48
+#: update_station/dialog.py:37
 msgid ""
 "Press \"Detail\" to get information about the failure.\n"
-"        Get help at https://forums.ghostbsd.org."
+"        Get help at https://forums.ghostbsd.org or ."
 msgstr ""
 
-#: update_station/message.py:57
+#: update_station/dialog.py:46
 msgid "Detail"
 msgstr ""
 
-#: update_station/message.py:92 update_station/message.py:136
+#: update_station/dialog.py:48 update_station/dialog.py:114
+#: update_station/dialog.py:148 update_station/dialog.py:181
+#: update_station/dialog.py:215 update_station/dialog.py:249
+#: update_station/dialog.py:285 update_station/dialog.py:313
+#: update_station/frontend.py:104 update_station/notification.py:87
+msgid "Close"
+msgstr "Fermer"
+
+#: update_station/dialog.py:68 update_station/dialog.py:102
 msgid "Update Completed"
 msgstr ""
 
-#: update_station/message.py:97
+#: update_station/dialog.py:73
 msgid "The computer needs to restart to run on the updated software."
 msgstr ""
 
-#: update_station/message.py:105
+#: update_station/dialog.py:81
 msgid "Restart Now"
 msgstr ""
 
-#: update_station/message.py:107
+#: update_station/dialog.py:83
 msgid "Restart Later"
 msgstr ""
 
-#: update_station/message.py:141
+#: update_station/dialog.py:107
 msgid "All software on this system is up to date."
 msgstr ""
 
-#: update_station/message.py:167
+#: update_station/dialog.py:133
 msgid "No Update Available"
 msgstr ""
 
-#: update_station/message.py:175
+#: update_station/dialog.py:141
 msgid "No update available. This system is up to date."
 msgstr ""
 
-#: update_station/message.py:210
+#: update_station/dialog.py:167
 msgid "Update Station already started"
 msgstr ""
 
-#: update_station/message.py:218
+#: update_station/dialog.py:175
 msgid "Update Station already open."
 msgstr ""
 
-#: update_station/message.py:243 update_station/message.py:277
+#: update_station/dialog.py:200 update_station/dialog.py:234
 msgid "Server Unreachable"
 msgstr ""
 
-#: update_station/message.py:251
+#: update_station/dialog.py:208
 msgid "Packages mirrors are syncing with new packages"
 msgstr ""
 
-#: update_station/message.py:285
+#: update_station/dialog.py:242
 msgid ""
 "The server is unreachable. Your internet could\n"
 "be down or software package server is down."
 msgstr ""
 
-#: update_station/message.py:311
+#: update_station/dialog.py:268
 msgid "Something Is Wrong"
 msgstr ""
 
-#: update_station/message.py:320
+#: update_station/dialog.py:277
 msgid ""
 "If you see this message it means that something is wrong.\n"
 " Please look at pkg upgrade output."
 msgstr ""
 
-#: update_station/message.py:343
+#: update_station/dialog.py:301
 msgid "Software Station"
 msgstr ""
 
-#: update_station/message.py:349
+#: update_station/dialog.py:307
 msgid "You need to be root"
 msgstr ""
 
-#: update_station/message.py:355
-msgid "OK"
-msgstr ""
+#: update_station/frontend.py:91
+msgid "Create boot environment backup"
+msgstr "Créer une sauvegarde de l'environnement de démarrage"
 
-#: update_station/notification.py:23
-msgid "Software updates are now available."
-msgstr ""
+#: update_station/frontend.py:108
+msgid "Install update"
+msgstr "Installer la mise à jour"
 
-#: update_station/notification.py:31
-msgid "Major system version upgrade is now available."
-msgstr ""
+#: update_station/frontend.py:121
+msgid "Update Manager"
+msgstr "Gestionnaire de mise à jour"
 
-#: update_station/notification.py:33
-msgid "System and software updates are now available."
-msgstr ""
+#: update_station/frontend.py:133
+msgid "Updates available!"
+msgstr "Mises à jour disponibles !"
 
-#: update_station/notification.py:35
-msgid "Update Available"
-msgstr ""
+#: update_station/frontend.py:171
+#, fuzzy
+msgid "Installed packages to be upgraded:"
+msgstr "Paquets installés à SUPPRIMER:"
 
-#: update_station/system_tray.py:45
-msgid "Open Update"
-msgstr ""
+#: update_station/frontend.py:177
+#, fuzzy
+msgid "Installed packages to be downgraded:"
+msgstr "Paquets installés à SUPPRIMER:"
 
-#: update_station/upgrade_progress.py:49
+#: update_station/frontend.py:183
+#, fuzzy
+msgid "New packages to be installed:"
+msgstr "Nouveaux packages à INSTALLER:"
+
+#: update_station/frontend.py:189
+#, fuzzy
+msgid "Installed packages to be reinstalled:"
+msgstr "Paquets installés à SUPPRIMER:"
+
+#: update_station/frontend.py:195
+#, fuzzy
+msgid "Installed packages to be removed:"
+msgstr "Paquets installés à SUPPRIMER:"
+
+#: update_station/frontend.py:234
 msgid "Installing Update"
 msgstr ""
 
-#: update_station/upgrade_progress.py:93
+#: update_station/frontend.py:280
 msgid "Cleaning old boot environment"
 msgstr ""
 
-#: update_station/upgrade_progress.py:99
+#: update_station/frontend.py:286
 msgid "Creating boot environment"
 msgstr ""
 
-#: update_station/upgrade_progress.py:106
-msgid "Setting env and bootstrap pkg to upgrade"
+#: update_station/frontend.py:292 update_station/frontend.py:319
+msgid "Fetching package updates"
 msgstr ""
 
-#: update_station/upgrade_progress.py:134
-msgid "Downloading packages to upgrade"
+#: update_station/frontend.py:345
+msgid "Package updates downloaded"
 msgstr ""
 
-#: update_station/upgrade_progress.py:161
-msgid "Packages to upgrade downloaded"
-msgstr ""
+#: update_station/frontend.py:348
+#, fuzzy
+msgid "Installing package updates"
+msgstr "Installer la mise à jour"
 
-#: update_station/upgrade_progress.py:164
-msgid "Upgrading packages"
-msgstr ""
-
-#: update_station/upgrade_progress.py:222
+#: update_station/frontend.py:405
 msgid "Reinstalling"
 msgstr ""
 
-#: update_station/upgrade_progress.py:224
+#: update_station/frontend.py:407
 msgid "completed"
 msgstr ""
 
-#: update_station/upgrade_progress.py:236
-msgid "Packages upgraded"
+#: update_station/frontend.py:419
+msgid "Software packages upgrade completed"
 msgstr ""
 
-#: update_station/upgrade_progress.py:245
-msgid "Downloading packages depending on kernel"
+#: update_station/frontend.py:474
+msgid "Looking For Updates"
+msgstr "À la recherche de mises à jour"
+
+#: update_station/frontend.py:513
+msgid "Checking if the repository is online"
 msgstr ""
 
-#: update_station/upgrade_progress.py:272
-msgid "Packages depending on kernel downloaded"
+#: update_station/frontend.py:517
+msgid "The repository is online"
 msgstr ""
 
-#: update_station/upgrade_progress.py:275
-msgid "Reinstalling packages depending on kernel"
+#: update_station/frontend.py:521
+msgid "The mirror is Syncing"
 msgstr ""
 
-#: update_station/upgrade_progress.py:302
-msgid "Packages depending on kernel reinstalled"
+#: update_station/frontend.py:526
+msgid "Updates are already running"
 msgstr ""
+
+#: update_station/frontend.py:530
+msgid "Checking for updates"
+msgstr ""
+
+#: update_station/frontend.py:534
+msgid "Getting the list of packages"
+msgstr ""
+
+#: update_station/frontend.py:538
+msgid "Open the update window"
+msgstr ""
+
+#: update_station/frontend.py:542
+msgid "No update found"
+msgstr ""
+
+#: update_station/frontend.py:548
+msgid "The Mirror is unreachable"
+msgstr ""
+
+#: update_station/notification.py:25
+msgid "Software updates are now available."
+msgstr ""
+
+#: update_station/notification.py:33
+msgid "Major system version upgrade is now available."
+msgstr ""
+
+#: update_station/notification.py:35
+msgid "System and software updates are now available."
+msgstr ""
+
+#: update_station/notification.py:37
+msgid "Update Available"
+msgstr ""
+
+#: update_station/notification.py:85
+msgid "Open Update"
+msgstr ""
+
+#: update_station/notification.py:130
+msgid "Major version upgrade"
+msgstr ""
+
+#: update_station/notification.py:138
+msgid ""
+"\n"
+"\n"
+"If you select No, the upgrade will be skipped until the next boot."
+msgstr ""
+
+#~ msgid "Installed packages to be UPGRADED"
+#~ msgstr "Packages installés à mettre à niveau"
+
+#~ msgid "Installed packages to be REINSTALLED:"
+#~ msgstr "Packages installés à RÉINSTALLER:"
