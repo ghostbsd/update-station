@@ -33,21 +33,12 @@ def on_reboot(*args) -> None:
     Gtk.main_quit()
 
 
-def get_detail() -> None:
+def get_detail(*args) -> None:
     """
     Get the details of the upgrade failure.
     :return:
     """
     Popen(f'sudo -u {Data.username} xdg-open {Data.home}/update.failed', shell=True)
-
-
-def get_packages_to_reinstall() -> list:
-    """
-    Get packages to reinstall on kernel upgrade.
-    :return: The list of packages to reinstall.
-    """
-    packages = read_file(f'../src/pkg_to_reinstall').replace('\n', ' ')
-    return run_command(f'pkg query "%n" {packages}').stdout.splitlines()
 
 
 def run_command(command: str, check: bool = False) -> CompletedProcess:
@@ -76,11 +67,7 @@ def check_for_update() -> bool:
         return False
     elif 'UPGRADED:' in upgrade_text:
         return True
-    elif ' INSTALLED:' in upgrade_text:
-        return True
-    elif 'REINSTALLED:' in upgrade_text:
-        return True
-    elif 'REMOVED:' in upgrade_text:
+    elif 'DOWNGRADED:' in upgrade_text:
         return True
     else:
         return False
@@ -153,10 +140,42 @@ def get_pkg_upgrade(option: str = '') -> str:
     return upgrade_verbose
 
 
+def get_packages_list_by_upgrade_type(upgrade_type: str, update_pkg: str, update_pkg_list: list) -> list:
+    """
+    Get the list of packages by the upgrade type.
+    :param upgrade_type: The upgrade type: REMOVED, UPGRADED, INSTALLED, REINSTALLED, DOWNGRADED.
+    :param update_pkg: The upgrade data.
+    :param update_pkg_list: The list of the upgrade data.
+    :return: The list of packages.
+    """
+    package_list = []
+    stop = False
+    if f'{upgrade_type}:' in update_pkg:
+        for line in update_pkg_list:
+            if f'{upgrade_type}:' in line:
+                stop = True
+            elif stop is True and line == '':
+                break
+            elif stop is True:
+                package_list.append(line.strip())
+    return package_list
+
 def get_pkg_upgrade_data() -> dict:
     """
-    Get the upgrade data from pkg.
-    :return: The upgrade data.
+    This function is used to get the upgrade data from pkg.
+    :return: Returns a dictionary with the following keys:
+        - system_upgrade: True if the system is upgrading else False.
+        - remove: The list of packages to remove.
+        - number_to_remove: The number of packages to remove.
+        - upgrade: The list of packages to upgrade.
+        - number_to_upgrade: The number of packages to upgrade.
+        - upgrade: The list of packages to upgrade.
+        - number_to_upgrade: The number of packages to upgrade.
+        - install: The list of packages to install.
+        - number_to_install: The number of packages to install.
+        - reinstall: The list of packages to reinstall.
+        - number_to_reinstall: The number of packages to reinstall.
+        - total_of_packages: The total number of packages to upgrade.
     """
     option = ''
     system_upgrade = False
@@ -166,54 +185,46 @@ def get_pkg_upgrade_data() -> dict:
         option = 'f'
     update_pkg = get_pkg_upgrade(option)
     update_pkg_list = update_pkg.splitlines()
-    pkg_to_remove = []
-    pkg_to_upgrade = []
-    pkg_to_install = []
-    pkg_to_reinstall = []
-    stop = False
-    if 'REMOVED:' in update_pkg:
-        for line in update_pkg_list:
-            if 'REMOVED:' in line:
-                stop = True
-            elif stop is True and line == '':
-                stop = False
-                break
-            elif stop is True:
-                pkg_to_remove.append(line.strip())
-    if 'UPGRADED:' in update_pkg:
-        for line in update_pkg_list:
-            if 'UPGRADED:' in line:
-                stop = True
-            elif stop is True and line == '':
-                stop = False
-                break
-            elif stop is True:
-                pkg_to_upgrade.append(line.strip())
-    if ' INSTALLED:' in update_pkg:
-        for line in update_pkg_list:
-            if ' INSTALLED:' in line:
-                stop = True
-            elif stop is True and line == '':
-                stop = False
-                break
-            elif stop is True:
-                pkg_to_install.append(line.strip())
-    if 'REINSTALLED:' in update_pkg:
-        for line in update_pkg_list:
-            if 'REINSTALLED:' in line:
-                stop = True
-            elif stop is True and line == '':
-                break
-            elif stop is True:
-                pkg_to_reinstall.append(line.strip())
-    pkg_dictionary = {
+    pkg_to_upgrade = get_packages_list_by_upgrade_type(
+        'UPGRADED', update_pkg, update_pkg_list
+    )
+    pkg_to_downgrade = get_packages_list_by_upgrade_type(
+        'DOWNGRADED', update_pkg, update_pkg_list
+    )
+    pkg_to_install = get_packages_list_by_upgrade_type(
+        ' INSTALLED', update_pkg, update_pkg_list
+    )
+    pkg_to_reinstall = get_packages_list_by_upgrade_type(
+        'REINSTALLED', update_pkg, update_pkg_list
+    )
+    pkg_to_remove = get_packages_list_by_upgrade_type(
+        'REMOVED', update_pkg, update_pkg_list
+    )
+    total_of_packages = len(pkg_to_upgrade)
+    total_of_packages += (len(pkg_to_downgrade)
+                          + len(pkg_to_install)
+                          + len(pkg_to_reinstall)
+                          + len(pkg_to_remove))
+    return {
         'system_upgrade': system_upgrade,
-        'remove': pkg_to_remove,
         'upgrade': pkg_to_upgrade,
+        'number_to_upgrade': len(pkg_to_upgrade),
+        'downgrade': pkg_to_downgrade,
+        'number_to_downgrade': len(pkg_to_downgrade),
         'install': pkg_to_install,
-        'reinstall': pkg_to_reinstall
+        'number_to_install': len(pkg_to_install),
+        'reinstall': pkg_to_reinstall,
+        'number_to_reinstall': len(pkg_to_reinstall),
+        'remove': pkg_to_remove,
+        'number_to_remove': len(pkg_to_remove),
+        'total_of_packages': (
+            len(pkg_to_upgrade)
+            + len(pkg_to_downgrade)
+            + len(pkg_to_install)
+            + len(pkg_to_reinstall)
+            + len(pkg_to_remove)
+        )
     }
-    return pkg_dictionary
 
 
 def is_major_upgrade_available() -> bool:
