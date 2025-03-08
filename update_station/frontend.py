@@ -251,6 +251,38 @@ class InstallUpdate:
         self.thr = threading.Thread(target=self.read_output, args=[self.pbar], daemon=True)
         self.thr.start()
 
+    @classmethod
+    def should_destroy_be(cls, be_line: str, today_str: str) -> bool:
+        """
+        Determines if a Boot Environment should be destroyed based on criteria.
+        Returns False if the BE is protected (active and mounted at root).
+        :param be_line: The BE line to check.
+        :param today_str:  The string representation of today's date.
+        :return: True if the BE should be destroyed, False otherwise.
+        """
+        # Split the line into columns, handling multiple spaces
+        columns = be_line.split()
+        if len(columns) < 4:
+            return False
+
+        be_name = columns[0]
+        active_status = columns[1]
+        mount_point = columns[2]
+
+        # Protect BE if it's active (N) AND mounted at root (/)
+        if 'N' in active_status and mount_point == '/':
+            return False
+
+        if 'R' in active_status:
+            return False
+
+        # Apply your original deletion criteria
+        return (
+                'backup' in be_name and
+                today_str not in be_name and
+                'NR' not in active_status
+        )
+
 
     def read_output(self, progress):
         """
@@ -280,7 +312,7 @@ class InstallUpdate:
             txt = _("Cleaning old boot environment")
             GLib.idle_add(update_progress, progress, fraction, txt)
             for be in bectl.get_be_list():
-                if 'backup' in be and today not in be and 'NR' not in be:
+                if self.should_destroy_be(be, today):
                     bectl.destroy_be(be.split()[0])
             backup_name = datetime.datetime.now().strftime(f"{distro.version()}-backup-%Y-%m-%d-%H-%M")
             txt = _("Creating boot environment")
