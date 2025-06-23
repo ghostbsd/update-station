@@ -3,34 +3,33 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-26 18:52-0400\n"
-"PO-Revision-Date: 2024-07-28 17:57+0300\n"
-"Last-Translator: Alexander Alexeev <alexax66@gmail.com>\n"
-"Language-Team: Language locale/ru\n"
-"Language: ru\n"
+"POT-Creation-Date: 2025-02-26 18:54-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: update_station/dialog.py:31
 msgid "Update Failed"
-msgstr "Ошибка обновления"
+msgstr ""
 
 #: update_station/dialog.py:37
 msgid ""
 "Press \"Detail\" to get information about the failure.\n"
 "        Get help at https://forums.ghostbsd.org or ."
 msgstr ""
-"Нажмите \"Подробности\" для получения информации об этой ошибке.\n"
-"        Получите помощь на https://forums.ghostbsd.org."
 
 #: update_station/dialog.py:46
 msgid "Detail"
-msgstr "Подробности"
+msgstr ""
 
 #: update_station/dialog.py:48 update_station/dialog.py:114
 #: update_station/dialog.py:148 update_station/dialog.py:181
@@ -38,218 +37,211 @@ msgstr "Подробности"
 #: update_station/dialog.py:285 update_station/dialog.py:313
 #: update_station/frontend.py:104 update_station/notification.py:87
 msgid "Close"
-msgstr "Закрыть"
+msgstr ""
 
 #: update_station/dialog.py:68 update_station/dialog.py:102
 msgid "Update Completed"
-msgstr "Обновление завершено"
+msgstr ""
 
 #: update_station/dialog.py:73
 msgid "The computer needs to restart to run on the updated software."
 msgstr ""
-"Чтобы запустить обновленное программное обеспечение,\n"
-"необходимо перезагрузить компьютер."
 
 #: update_station/dialog.py:81
 msgid "Restart Now"
-msgstr "Перезагрузить сейчас"
+msgstr ""
 
 #: update_station/dialog.py:83
 msgid "Restart Later"
-msgstr "Перезагрузить позже"
+msgstr ""
 
 #: update_station/dialog.py:107
 msgid "All software on this system is up to date."
-msgstr "Все программное обеспечение в этой системе уже обновлено."
+msgstr ""
 
 #: update_station/dialog.py:133
 msgid "No Update Available"
-msgstr "Нет доступных обновлений"
+msgstr ""
 
 #: update_station/dialog.py:141
 msgid "No update available. This system is up to date."
-msgstr "Нет доступных обновлений. Эта система уже обновлена."
+msgstr ""
 
 #: update_station/dialog.py:167
 msgid "Update Station already started"
-msgstr "Центр обновлений уже запущен"
+msgstr ""
 
 #: update_station/dialog.py:175
 msgid "Update Station already open."
-msgstr "Центр обновлений уже открыт"
+msgstr ""
 
 #: update_station/dialog.py:200 update_station/dialog.py:234
 msgid "Server Unreachable"
-msgstr "Сервер не доступен"
+msgstr ""
 
 #: update_station/dialog.py:208
 msgid "Packages mirrors are syncing with new packages"
-msgstr "Идет синхронизация с новыми пакетами на зеркальных серверах"
+msgstr ""
 
 #: update_station/dialog.py:242
 msgid ""
 "The server is unreachable. Your internet could\n"
 "be down or software package server is down."
 msgstr ""
-"Сервер не доступен. Возможно у Вас нас нет доступа в сеть Интернет или\n"
-"сервер пакетов программного обеспечения в настоящее время не работает."
 
 #: update_station/dialog.py:268
 msgid "Something Is Wrong"
-msgstr "Есть ошибки"
+msgstr ""
 
 #: update_station/dialog.py:277
 msgid ""
 "If you see this message it means that something is wrong.\n"
 " Please look at pkg upgrade output."
 msgstr ""
-"Если вы видите это сообщение, значит, что-то пошло не так.\n"
-"Пожалуйста, посмотрите на вывод о результатах этого обновления\n"
-"с помощью утилиты pkg."
 
 #: update_station/dialog.py:301
 msgid "Software Station"
-msgstr "Центр приложений"
+msgstr ""
 
 #: update_station/dialog.py:307
 msgid "You need to be root"
-msgstr "У Вас должны быть права root"
+msgstr ""
 
 #: update_station/frontend.py:91
 msgid "Create boot environment backup"
-msgstr "Создать резервную копию загрузочной среды"
+msgstr ""
 
 #: update_station/frontend.py:108
 msgid "Install update"
-msgstr "Установить обновление"
+msgstr ""
 
 #: update_station/frontend.py:121
 msgid "Update Manager"
-msgstr "Менеджер обновлений"
+msgstr ""
 
 #: update_station/frontend.py:133
 msgid "Updates available!"
-msgstr "Доступны обновления!"
+msgstr ""
 
 #: update_station/frontend.py:171
 msgid "Installed packages to be upgraded:"
-msgstr "Ранее установленные пакеты будут обновлены:"
+msgstr ""
 
 #: update_station/frontend.py:177
 msgid "Installed packages to be downgraded:"
-msgstr "Ранее установленные пакеты будут откатаны на предыдущую версию:"
+msgstr ""
 
 #: update_station/frontend.py:183
 msgid "New packages to be installed:"
-msgstr "Новые пакеты будут установлены:"
+msgstr ""
 
 #: update_station/frontend.py:189
 msgid "Installed packages to be reinstalled:"
-msgstr "Ранее установленные пакеты будут переустановлены:"
+msgstr ""
 
 #: update_station/frontend.py:195
 msgid "Installed packages to be removed:"
-msgstr "Ранее установленные пакеты будут удалены:"
+msgstr ""
 
 #: update_station/frontend.py:234
 msgid "Installing Update"
-msgstr "Установка обновлений"
+msgstr ""
 
 #: update_station/frontend.py:280
 msgid "Cleaning old boot environment"
-msgstr "Очистка старой загрузочной среды"
+msgstr ""
 
 #: update_station/frontend.py:286
 msgid "Creating boot environment"
-msgstr "Создание загрузочной среды"
+msgstr ""
 
 #: update_station/frontend.py:292 update_station/frontend.py:319
 msgid "Fetching package updates"
-msgstr "Проверка обновлений"
+msgstr ""
 
 #: update_station/frontend.py:345
 msgid "Package updates downloaded"
-msgstr "Обновления загружены"
+msgstr ""
 
 #: update_station/frontend.py:348
 msgid "Installing package updates"
-msgstr "Установка обновлений"
+msgstr ""
 
 #: update_station/frontend.py:405
 msgid "Reinstalling"
-msgstr "Переустановка"
+msgstr ""
 
 #: update_station/frontend.py:407
 msgid "completed"
-msgstr "завершено"
+msgstr ""
 
 #: update_station/frontend.py:419
 msgid "Software packages upgrade completed"
-msgstr "Обновления загружены"
+msgstr ""
 
 #: update_station/frontend.py:474
 msgid "Looking For Updates"
-msgstr "Ищу обновления"
+msgstr ""
 
 #: update_station/frontend.py:513
 msgid "Checking if the repository is online"
-msgstr "Проверка на доступность репозиторий"
+msgstr ""
 
 #: update_station/frontend.py:517
 msgid "The repository is online"
-msgstr "Репозиторий доступен"
+msgstr ""
 
 #: update_station/frontend.py:521
 msgid "The mirror is Syncing"
-msgstr "Зеркало синхронизируется"
+msgstr ""
 
 #: update_station/frontend.py:526
 msgid "Updates are already running"
-msgstr "Обновления уже запущены"
+msgstr ""
 
 #: update_station/frontend.py:530
 msgid "Checking for updates"
-msgstr "Проверка обновлений"
+msgstr ""
 
 #: update_station/frontend.py:534
 msgid "Getting the list of packages"
-msgstr "Получение списка пакетов"
+msgstr ""
 
 #: update_station/frontend.py:538
 msgid "Open the update window"
-msgstr "Откройте окно обновления"
+msgstr ""
 
 #: update_station/frontend.py:542
 msgid "No update found"
-msgstr "Обновление не найдено"
+msgstr ""
 
 #: update_station/frontend.py:548
 msgid "The Mirror is unreachable"
-msgstr "Зеркало не доступно"
+msgstr ""
 
 #: update_station/notification.py:25
 msgid "Software updates are now available."
-msgstr "Доступны обновления программного обеспечения."
+msgstr ""
 
 #: update_station/notification.py:33
 msgid "Major system version upgrade is now available."
-msgstr "Доступно обновление версии основной системы."
+msgstr ""
 
 #: update_station/notification.py:35
 msgid "System and software updates are now available."
-msgstr "Доступны обновления системы и программного обеспечения"
+msgstr ""
 
 #: update_station/notification.py:37
 msgid "Update Available"
-msgstr "Доступно обновление"
+msgstr ""
 
 #: update_station/notification.py:85
 msgid "Open Update"
-msgstr "Открыть обновления"
+msgstr ""
 
 #: update_station/notification.py:130
 msgid "Major version upgrade"
-msgstr "Обновление основной версии"
+msgstr ""
 
 #: update_station/notification.py:138
 msgid ""
@@ -257,6 +249,3 @@ msgid ""
 "\n"
 "If you select No, the upgrade will be skipped until the next boot."
 msgstr ""
-"\n"
-"\n"
-"Если Вы виберете Нет, то обновлние будет пропущено до следующей перезагрузки."

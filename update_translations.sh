@@ -1,8 +1,12 @@
 #!/usr/bin/env sh
 
-cp -f src/update-station src/update-station.py
+cp -f update-station update-station.py
 
-xgettext src/update-station.py -o src/locale/update-station.pot
-msgmerge -U src/locale/ru/update-station.po src/locale/update-station.pot
+xgettext update-station.py -o pot/update-station.pot
 
-rm src/update-station.py
+msgmerge -U po/zh_CN.po po/update-station.pot
+msgmerge -U po/fr.po po/update-station.pot
+msgmerge -U po/pt_BR.po po/update-station.pot
+msgmerge -U po/ru.po po/update-station.pot
+
+rm update-station.py
