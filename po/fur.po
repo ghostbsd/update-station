@@ -1,0 +1,262 @@
+# Friulian translations for PACKAGE package.
+# Copyright (C) 2025 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Fabio Tomat <f.t.public@gmail.com>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-02-26 18:54-0400\n"
+"PO-Revision-Date: 2025-11-13 20:55+0000\n"
+"Last-Translator: Fabio Tomat <f.t.public@gmail.com>\n"
+"Language-Team: Friulian <f.t.public@gmail.com>\n"
+"Language: fur\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Editor: HaiPO 2.4 beta\n"
+
+#: update_station/dialog.py:31
+msgid "Update Failed"
+msgstr "Inzornament lât strucj"
+
+#: update_station/dialog.py:37
+msgid ""
+"Press \"Detail\" to get information about the failure.\n"
+"        Get help at https://forums.ghostbsd.org or ."
+msgstr ""
+"Frache \"Detai\" to vê informazions in merit al faliment.\n"
+"        Fâti judâ su https://forums.ghostbsd.org o ."
+
+#: update_station/dialog.py:46
+msgid "Detail"
+msgstr "Detai"
+
+#: update_station/dialog.py:48 update_station/dialog.py:114
+#: update_station/dialog.py:148 update_station/dialog.py:181
+#: update_station/dialog.py:215 update_station/dialog.py:249
+#: update_station/dialog.py:285 update_station/dialog.py:313
+#: update_station/frontend.py:104 update_station/notification.py:87
+msgid "Close"
+msgstr "Siere"
+
+#: update_station/dialog.py:68 update_station/dialog.py:102
+msgid "Update Completed"
+msgstr "Inzornament completât"
+
+#: update_station/dialog.py:73
+msgid "The computer needs to restart to run on the updated software."
+msgstr "Par doprâ il software inzornât tu scugnis tornâ a inviâ il computer."
+
+#: update_station/dialog.py:81
+msgid "Restart Now"
+msgstr "Torne invie daurman"
+
+#: update_station/dialog.py:83
+msgid "Restart Later"
+msgstr "Torne invie plui indevant"
+
+#: update_station/dialog.py:107
+msgid "All software on this system is up to date."
+msgstr "Dut il software di chest sisteme al è inzornât."
+
+#: update_station/dialog.py:133
+msgid "No Update Available"
+msgstr "Nissun inzornament disponibil"
+
+#: update_station/dialog.py:141
+msgid "No update available. This system is up to date."
+msgstr "Nissun inzornament disponibil. Chest sisteme al è inzornât."
+
+#: update_station/dialog.py:167
+msgid "Update Station already started"
+msgstr "Stazion di inzornament al è za stât inviât"
+
+#: update_station/dialog.py:175
+msgid "Update Station already open."
+msgstr "Stazion di inzornament al è za viert."
+
+#: update_station/dialog.py:200 update_station/dialog.py:234
+msgid "Server Unreachable"
+msgstr "Impussibil rivâ al servidôr"
+
+#: update_station/dialog.py:208
+msgid "Packages mirrors are syncing with new packages"
+msgstr ""
+"I servidôrs spieli dai pachets a son daûr a sincronizâsi cui gnûfs pachets"
+
+#: update_station/dialog.py:242
+msgid ""
+"The server is unreachable. Your internet could\n"
+"be down or software package server is down."
+msgstr ""
+"Impussibil contatâ il servidôr. Al è pussibil che\n"
+"la tô conession internet no funzioni o che il\n"
+"servidôr al sedi fûr servizi."
+
+#: update_station/dialog.py:268
+msgid "Something Is Wrong"
+msgstr "Alc al è lât strucj"
+
+#: update_station/dialog.py:277
+msgid ""
+"If you see this message it means that something is wrong.\n"
+" Please look at pkg upgrade output."
+msgstr ""
+"Se tu viodis chest messaç al significhe che alc al è lât strucj.\n"
+" Bute un voli a ce che al dîs pkg upgrade output."
+
+#: update_station/dialog.py:301
+msgid "Software Station"
+msgstr "Stazion di inzornament"
+
+#: update_station/dialog.py:307
+msgid "You need to be root"
+msgstr "Tu scugnis jessi root"
+
+#: update_station/frontend.py:91
+msgid "Create boot environment backup"
+msgstr "Cree backup di ambient di inviament"
+
+#: update_station/frontend.py:108
+msgid "Install update"
+msgstr "Instale inzornament"
+
+#: update_station/frontend.py:121
+msgid "Update Manager"
+msgstr "Gjestôr inzornaments"
+
+#: update_station/frontend.py:133
+msgid "Updates available!"
+msgstr "Inzornaments disponibii!"
+
+#: update_station/frontend.py:171
+msgid "Installed packages to be upgraded:"
+msgstr "Pachets instalâts che a vignaran incementâts di version:"
+
+#: update_station/frontend.py:177
+msgid "Installed packages to be downgraded:"
+msgstr "Pachets instalâts di regredî di version:"
+
+#: update_station/frontend.py:183
+msgid "New packages to be installed:"
+msgstr "Gnûfs pachets di instalâ:"
+
+#: update_station/frontend.py:189
+msgid "Installed packages to be reinstalled:"
+msgstr "Pachets instalâts di tornâ a instalâ:"
+
+#: update_station/frontend.py:195
+msgid "Installed packages to be removed:"
+msgstr "Pachets instalâts di gjavâ:"
+
+#: update_station/frontend.py:234
+msgid "Installing Update"
+msgstr "Instalazion dal inzornament"
+
+#: update_station/frontend.py:280
+msgid "Cleaning old boot environment"
+msgstr "Daûr a netâ vie l'ambient di inviament vecjo"
+
+#: update_station/frontend.py:286
+msgid "Creating boot environment"
+msgstr "Daûr a creâ l'ambient di inviament"
+
+#: update_station/frontend.py:292 update_station/frontend.py:319
+msgid "Fetching package updates"
+msgstr "Daûr a recuperâ i inzornaments dai pachets"
+
+#: update_station/frontend.py:345
+msgid "Package updates downloaded"
+msgstr "Inzornaments dai pachets discjariâts"
+
+#: update_station/frontend.py:348
+msgid "Installing package updates"
+msgstr "Daûr a instalâ i inzornaments dai pachets"
+
+#: update_station/frontend.py:405
+msgid "Reinstalling"
+msgstr "Daûr a tornâ a instalâ"
+
+#: update_station/frontend.py:407
+msgid "completed"
+msgstr "completât"
+
+#: update_station/frontend.py:419
+msgid "Software packages upgrade completed"
+msgstr "Increment di version dai pachets software completât"
+
+#: update_station/frontend.py:474
+msgid "Looking For Updates"
+msgstr "Daûr a cirî inzornaments"
+
+#: update_station/frontend.py:513
+msgid "Checking if the repository is online"
+msgstr "Daûr a verificâ che il dipuesit al sedi in linie"
+
+#: update_station/frontend.py:517
+msgid "The repository is online"
+msgstr "Il dipuesit al è in linie"
+
+#: update_station/frontend.py:521
+msgid "The mirror is Syncing"
+msgstr "Il servidôr spieli si sta sincronizant"
+
+#: update_station/frontend.py:526
+msgid "Updates are already running"
+msgstr "I inzornaments a son za in cors"
+
+#: update_station/frontend.py:530
+msgid "Checking for updates"
+msgstr "Daûr a controlâ la presince di inzornaments"
+
+#: update_station/frontend.py:534
+msgid "Getting the list of packages"
+msgstr "Daûr a otignî la liste dai pachets"
+
+#: update_station/frontend.py:538
+msgid "Open the update window"
+msgstr "Vierç il barcon dai inzornaments"
+
+#: update_station/frontend.py:542
+msgid "No update found"
+msgstr "Nissun inzornament cjatât"
+
+#: update_station/frontend.py:548
+msgid "The Mirror is unreachable"
+msgstr "Impussibil contatâ il servidôr spieli"
+
+#: update_station/notification.py:25
+msgid "Software updates are now available."
+msgstr "I inzornaments software a son cumò disponibii."
+
+#: update_station/notification.py:33
+msgid "Major system version upgrade is now available."
+msgstr "Cumò al è disponibil un increment principâl de version dal sisteme."
+
+#: update_station/notification.py:35
+msgid "System and software updates are now available."
+msgstr "In chest moment a son disponibii inzornaments software e di sisteme."
+
+#: update_station/notification.py:37
+msgid "Update Available"
+msgstr "Inzornament disponibil"
+
+#: update_station/notification.py:85
+msgid "Open Update"
+msgstr "Vierç inzornament"
+
+#: update_station/notification.py:130
+msgid "Major version upgrade"
+msgstr "Increment principâl di version"
+
+#: update_station/notification.py:138
+msgid ""
+"\n"
+"\n"
+"If you select No, the upgrade will be skipped until the next boot."
+msgstr ""
+"\n"
+"\n"
+"Se tu selezionis No, l'increment di version al ven saltât fin al prossim inviament."
