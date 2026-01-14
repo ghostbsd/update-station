@@ -161,4 +161,4 @@ class MajorUpgradeWindow(Gtk.Window):
         else:
             Data.major_upgrade = False
             Data.do_not_upgrade = True
-        self.hide()
+        self.destroy()
