@@ -11,7 +11,7 @@ from DistUtilsExtra.command.clean_i18n import clean_i18n
 # to update i18n .mo files (and merge .pot file into .po files) run on Linux:
 # python setup.py build_i18n -m''
 
-__VERSION__ = '6.3'
+__VERSION__ = '6.8'
 
 PROGRAM_VERSION = __VERSION__
 prefix = sys.prefix
@@ -21,8 +21,7 @@ def data_file_list(install_base, source_base):
     data = []
     for root, subFolders, files in os.walk(source_base):
         file_list = []
-        for f in files:
-            file_list.append(os.path.join(root, f))
+        file_list.extend(os.path.join(root, f) for f in files)
         data.append((root.replace(source_base, install_base), file_list))
     return data
 

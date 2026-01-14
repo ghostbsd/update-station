@@ -48,13 +48,13 @@ class UpdateWindow:
         Function that handles the delete event when the window is closed.
         :param widget: The widget that triggered the delete event.
         """
-        if Data.close_session is True:
+        if Data.close_session:
             if updating():
                 unlock_update_station()
             Gtk.main_quit()
         else:
             self.window.destroy()
-            if Data.update_started is False:
+            if not Data.update_started:
                 Data.stop_pkg_refreshing = False
                 if updating():
                     unlock_update_station()
@@ -67,7 +67,7 @@ class UpdateWindow:
         """
         Data.update_started = True
         InstallUpdate()
-        self.window.hide()
+        self.window.destroy()
 
     def if_backup(self, widget):
         """
@@ -282,7 +282,6 @@ class InstallUpdate:
                 today_str not in be_name and
                 'NR' not in active_status
         )
-
 
     def read_output(self, progress):
         """
@@ -586,4 +585,4 @@ class StartCheckUpdate:
         :param start_window: The start window object.
         """
         start_window()
-        self.win.hide()
+        self.win.destroy()
