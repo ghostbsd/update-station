@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-07 12:41-0400\n"
+"POT-Creation-Date: 2026-02-07 15:21-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,7 +35,7 @@ msgstr ""
 #: update_station/dialog.py:157 update_station/dialog.py:187
 #: update_station/dialog.py:218 update_station/dialog.py:249
 #: update_station/dialog.py:282 update_station/dialog.py:308
-#: update_station/frontend.py:118 update_station/notification.py:87
+#: update_station/frontend.py:122 update_station/frontend.py:733
 msgid "Close"
 msgstr ""
 
@@ -107,147 +107,147 @@ msgstr ""
 msgid "You need to be root"
 msgstr ""
 
-#: update_station/frontend.py:105
+#: update_station/frontend.py:109
 msgid "Create boot environment backup"
 msgstr ""
 
-#: update_station/frontend.py:122
+#: update_station/frontend.py:126
 msgid "Install update"
 msgstr ""
 
-#: update_station/frontend.py:135
+#: update_station/frontend.py:139
 msgid "Update Manager"
 msgstr ""
 
-#: update_station/frontend.py:147
+#: update_station/frontend.py:151
 msgid "Updates available!"
 msgstr ""
 
-#: update_station/frontend.py:185
+#: update_station/frontend.py:189
 msgid "Installed packages to be upgraded:"
 msgstr ""
 
-#: update_station/frontend.py:191
+#: update_station/frontend.py:195
 msgid "Installed packages to be downgraded:"
 msgstr ""
 
-#: update_station/frontend.py:197
+#: update_station/frontend.py:201
 msgid "New packages to be installed:"
 msgstr ""
 
-#: update_station/frontend.py:203
+#: update_station/frontend.py:207
 msgid "Installed packages to be reinstalled:"
 msgstr ""
 
-#: update_station/frontend.py:209
+#: update_station/frontend.py:213
 msgid "Installed packages to be removed:"
 msgstr ""
 
-#: update_station/frontend.py:248
+#: update_station/frontend.py:252
 msgid "Installing Update"
 msgstr ""
 
-#: update_station/frontend.py:371
+#: update_station/frontend.py:375
 msgid "Package updates downloaded"
 msgstr ""
 
-#: update_station/frontend.py:374
+#: update_station/frontend.py:378
 msgid "Installing package updates"
 msgstr ""
 
-#: update_station/frontend.py:399
+#: update_station/frontend.py:403
 msgid "Removed"
 msgstr ""
 
-#: update_station/frontend.py:401
+#: update_station/frontend.py:405
 msgid "will reinstall after upgrade"
 msgstr ""
 
-#: update_station/frontend.py:408
+#: update_station/frontend.py:412
 msgid "Software packages upgrade completed"
 msgstr ""
 
-#: update_station/frontend.py:416
+#: update_station/frontend.py:420
 msgid "Reinstalling"
 msgstr ""
 
-#: update_station/frontend.py:438 update_station/frontend.py:459
+#: update_station/frontend.py:442 update_station/frontend.py:463
 msgid "Fetching package updates"
 msgstr ""
 
-#: update_station/frontend.py:478
+#: update_station/frontend.py:482
 msgid "Cleaning old boot environment"
 msgstr ""
 
-#: update_station/frontend.py:486
+#: update_station/frontend.py:490
 msgid "Creating boot environment"
 msgstr ""
 
-#: update_station/frontend.py:564
+#: update_station/frontend.py:568
 msgid "Looking For Updates"
 msgstr ""
 
-#: update_station/frontend.py:604
+#: update_station/frontend.py:608
 msgid "Checking if the repository is online"
 msgstr ""
 
-#: update_station/frontend.py:608
+#: update_station/frontend.py:612
 msgid "The repository is online"
 msgstr ""
 
-#: update_station/frontend.py:612
+#: update_station/frontend.py:616
 msgid "The mirror is Syncing"
 msgstr ""
 
-#: update_station/frontend.py:616
+#: update_station/frontend.py:620
 msgid "Updates are already running"
 msgstr ""
 
-#: update_station/frontend.py:620
+#: update_station/frontend.py:624
 msgid "Checking for updates"
 msgstr ""
 
-#: update_station/frontend.py:623
+#: update_station/frontend.py:627
 msgid "Getting the list of packages"
 msgstr ""
 
-#: update_station/frontend.py:627
+#: update_station/frontend.py:631
 msgid "Open the update window"
 msgstr ""
 
-#: update_station/frontend.py:631
+#: update_station/frontend.py:642
 msgid "No update found"
 msgstr ""
 
-#: update_station/frontend.py:638
+#: update_station/frontend.py:649
 msgid "The Mirror is unreachable"
 msgstr ""
 
-#: update_station/notification.py:25
+#: update_station/frontend.py:671
 msgid "Software updates are now available."
 msgstr ""
 
-#: update_station/notification.py:33
+#: update_station/frontend.py:679
 msgid "Major system version upgrade is now available."
 msgstr ""
 
-#: update_station/notification.py:35
+#: update_station/frontend.py:681
 msgid "System and software updates are now available."
 msgstr ""
 
-#: update_station/notification.py:37
+#: update_station/frontend.py:683
 msgid "Update Available"
 msgstr ""
 
-#: update_station/notification.py:85
+#: update_station/frontend.py:731
 msgid "Open Update"
 msgstr ""
 
-#: update_station/notification.py:130
+#: update_station/frontend.py:776
 msgid "Major version upgrade"
 msgstr ""
 
-#: update_station/notification.py:138
+#: update_station/frontend.py:784
 msgid ""
 "\n"
 "\n"
