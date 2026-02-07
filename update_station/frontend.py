@@ -716,7 +716,7 @@ class TrayIcon:
         The constructor for the TrayIcon class.
         """
         self.status_icon = Gtk.StatusIcon()
-        self.status_icon.set_tooltip_text('Update Available')
+        self.status_icon.set_tooltip_text(_('Update Available'))
         self.menu = Gtk.Menu()
         self.menu.show_all()
         self.status_icon.connect("activate", self.left_click)
@@ -782,33 +782,40 @@ class MajorUpgradeWindow(Gtk.Window):
         self.add(vbox)
 
         label = Gtk.Label(
-            label=_(f"Would you like to upgrade from {Data.current_abi} to {Data.new_abi}?"
-                    "\n\nIf you select No, the upgrade will be skipped until the next boot.")
+            label=_(
+                "Would you like to upgrade from {current} to {new}?\n\n"
+                "If you select No, the upgrade will be skipped until the next boot."
+            ).format(current=Data.current_abi, new=Data.new_abi)
         )
         vbox.pack_start(label, True, True, 5)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         vbox.pack_start(hbox, False, False, 0)
-        button1 = Gtk.Button(label="Yes")
-        button1.connect("clicked", self.on_clicked)
+        button1 = Gtk.Button(label=_("Yes"))
+        button1.connect("clicked", self.on_yes_clicked)
         hbox.pack_end(button1, True, True, 0)
 
-        button2 = Gtk.Button(label="No")
-        button2.connect("clicked", self.on_clicked)
+        button2 = Gtk.Button(label=_("No"))
+        button2.connect("clicked", self.on_no_clicked)
         hbox.pack_end(button2, True, True, 0)
         self.show_all()
 
-    def on_clicked(self, widget):
+    def on_yes_clicked(self, _widget):
         """
-        Function that starts the upgrade.
-        :param widget: The widget that was clicked.
+        Function that starts the upgrade when Yes is clicked.
+        :param _widget: The widget that was clicked.
         """
-        if widget.get_label() == "Yes":
-            Data.major_upgrade = True
-            Data.do_not_upgrade = False
-            StartCheckUpdate()
-        else:
-            Data.major_upgrade = False
-            Data.do_not_upgrade = True
+        Data.major_upgrade = True
+        Data.do_not_upgrade = False
+        StartCheckUpdate()
+        self.destroy()
+
+    def on_no_clicked(self, _widget):
+        """
+        Function that declines the upgrade when No is clicked.
+        :param _widget: The widget that was clicked.
+        """
+        Data.major_upgrade = False
+        Data.do_not_upgrade = True
         self.destroy()
 
     def on_close(self, _widget: Gtk.Widget, _event=None) -> bool:

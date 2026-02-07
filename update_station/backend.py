@@ -250,7 +250,13 @@ def is_major_upgrade_available() -> bool:
     :return: True if the major upgrade is ready else False.
     """
     next_version = f'{get_default_repo_url()}/.next_version'
-    return requests.get(next_version).status_code == 200
+    try:
+        response = requests.get(next_version, timeout=5)
+        return response.status_code == 200
+    except requests.RequestException:
+        # If we cannot reach the server or the request fails,
+        # treat it as "no upgrade available" to avoid blocking UI flows.
+        return False
 
 
 def kernel_version_change() -> bool:
@@ -324,7 +330,13 @@ def repository_is_syncing() -> bool:
     :return: True if the repository is syncing else False.
     """
     syncing_url = f'{get_default_repo_url()}/.syncing'
-    return requests.get(syncing_url).status_code == 200
+    try:
+        response = requests.get(syncing_url, timeout=5)
+        return response.status_code == 200
+    except requests.RequestException:
+        # If we cannot reach the server, treat it as "not syncing"
+        # to avoid blocking update checks.
+        return False
 
 
 def unlock_all_pkg() -> None:
