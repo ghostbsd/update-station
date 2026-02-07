@@ -7,12 +7,15 @@ import gi
 import socket
 import sys
 import threading
+import signal
+import ctypes.util
+import psutil
+
 gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
 from gi.repository import Gtk, GLib
 from time import sleep
-from update_station.notification import UpdateNotifier, TrayIcon
-from update_station.frontend import StartCheckUpdate
+from update_station.frontend import UpdateNotifier, TrayIcon, StartCheckUpdate
 from update_station.dialog import NotRoot
 from update_station.data import Data
 from update_station.backend import (
@@ -30,21 +33,77 @@ gettext.textdomain('update-station')
 _ = gettext.gettext
 
 
+def find_running_instance_by_name() -> int:
+    """
+    Find existing update-station process by cmdline (after setproctitle).
+
+    :return: PID of existing instance, or 0 if not found.
+    """
+    my_pid = os.getpid()
+    for proc in psutil.process_iter(['pid', 'cmdline']):
+        try:
+            cmdline = proc.info['cmdline']
+            # After setproctitle, cmdline becomes ['python: update-station']
+            if cmdline and len(cmdline) == 1 and 'update-station' in cmdline[0] and proc.info['pid'] != my_pid:
+                # Verify process is still running (not a stale entry)
+                if proc.is_running():
+                    return proc.info['pid']
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return 0
+
+
+def send_signal_to_instance(pid: int) -> bool:
+    """
+    Send SIGUSR1 to existing instance.
+
+    :param pid: The process ID to signal.
+    :return: True if signal sent successfully.
+    """
+    try:
+        os.kill(pid, signal.SIGUSR1)
+        return True
+    except OSError:
+        return False
+
+
+def signal_check_now(signum, frame):
+    """
+    Signal handler for SIGUSR1 - opens update check GUI.
+
+    :param signum: The signal number.
+    :param frame: The current stack frame.
+    """
+    def start_check():
+        StartCheckUpdate()
+        Data.system_tray.tray_icon().set_visible(False)
+        return False  # Don't call again'
+
+    Data.stop_pkg_refreshing = True
+    GLib.idle_add(start_check)
+
+
+def show_update_notification():
+    """Show the update notification (called separately from tray update)."""
+    notifier = UpdateNotifier()
+    notifier.notify()
+    print('notifier')
+    return False
+
+
 def update_tray():
     """
     Function that updates the tray icon.
     """
     if check_for_update():
         Data.system_tray.tray_icon().set_visible(True)
-        print('system_tray')
         notifier = UpdateNotifier()
         notifier.notify()
-        print('notifier')
     elif is_major_upgrade_available() and Data.do_not_upgrade is False:
         Data.major_upgrade = True
-        Data.system_tray.tray_icon().set_visible(True)
         Data.current_abi = get_current_abi()
         Data.new_abi = get_abi_upgrade()
+        Data.system_tray.tray_icon().set_visible(True)
         notifier = UpdateNotifier()
         notifier.notify()
     else:
@@ -66,19 +125,15 @@ def check():
     Function that checks for updates.
     """
     while True:
-        sleep(60)
+        sleep(120)
         if not repository_is_syncing():
             if not Data.stop_pkg_refreshing:
                 if not updating():
                     GLib.idle_add(update_tray)
                 else:
                     GLib.idle_add(Data.system_tray.tray_icon().set_visible, False)
-        # Wait for an hour to look for update
+        # Wait for an hour to look for updates
         sleep(3600)
-
-
-def check_now():
-    pass
 
 
 arg = sys.argv
@@ -90,20 +145,57 @@ Available Commands:
 check-now       - Look for update now
 
 """
-if os.geteuid() == 0:
-    if len(arg) == 1:
-        if socket.gethostname() != 'livecd':
-            Data.close_session = False
-            Data.system_tray = TrayIcon()
-            threading_update()
-        else:
-            exit()
-    elif len(arg) == 2 and arg[1] == "check-now":
-        Data.close_session = True
-        StartCheckUpdate()
-    else:
-        print(UsageMSG)
-        sys.exit(0)
-else:
+
+# Check for root permissions first
+if os.geteuid() != 0:
     NotRoot()
+    Gtk.main()
+    sys.exit(0)
+
+# Check for existing instance BEFORE setting process name
+existing_pid = find_running_instance_by_name()
+
+if len(arg) == 2 and arg[1] == "check-now":
+    # check-now mode: signal existing instance if found
+    if existing_pid > 0:
+        if send_signal_to_instance(existing_pid):
+            sys.exit(0)
+        else:
+            print("Error: Could not signal running instance")
+            sys.exit(1)
+
+    # No existing instance, start check-now mode
+    Data.close_session = True
+    StartCheckUpdate()
+
+elif len(arg) == 1:
+    # Tray mode: exit if instance already exists
+    if existing_pid > 0:
+        print(f"update-station is already running (PID {existing_pid})")
+        sys.exit(1)
+
+    # No existing instance - we're the first, set process name
+    try:
+        libc = ctypes.CDLL(ctypes.util.find_library('c'))
+        libc.setproctitle(b'update-station')
+    except Exception as e:
+        print(f"Error: Failed to set process name: {e}")
+        print("update-station requires process naming support to prevent multiple instances")
+        sys.exit(1)
+
+    # Set up signal handler for check-now requests
+    signal.signal(signal.SIGUSR1, signal_check_now)
+
+    # Start tray if not on livecd
+    if socket.gethostname() != 'livecd':
+        Data.close_session = False
+        Data.system_tray = TrayIcon()
+        threading_update()
+    else:
+        sys.exit(0)
+
+else:
+    print(UsageMSG)
+    sys.exit(0)
+
 Gtk.main()

@@ -82,14 +82,9 @@ def check_for_update() -> bool:
     """
     kernel_version_change()
     upgrade_text = get_pkg_upgrade()
-    if 'Your packages are up to date' in upgrade_text:
-        return False
-    elif 'UPGRADED:' in upgrade_text:
-        return True
-    elif 'DOWNGRADED:' in upgrade_text:
-        return True
-    else:
-        return False
+    return 'Your packages are up to date' not in upgrade_text and (
+        'UPGRADED:' in upgrade_text or 'DOWNGRADED:' in upgrade_text
+    )
 
 
 def get_default_repo_url() -> str:
@@ -106,8 +101,7 @@ def get_default_repo_url() -> str:
         universal_newlines=True,
         encoding='utf-8'
     )
-    pkg_url = raw_url.stdout.read().strip().split('"')[1]
-    return pkg_url
+    return raw_url.stdout.read().strip().split('"')[1]
 
 
 def get_abi_upgrade() -> str:
@@ -159,8 +153,7 @@ def get_pkg_upgrade(option: str = '') -> str:
         universal_newlines=True,
         encoding='utf-8'
     )
-    upgrade_verbose = pkg_upgrade.stdout.read()
-    return upgrade_verbose
+    return pkg_upgrade.stdout.read()
 
 
 def get_packages_list_by_upgrade_type(upgrade_type: str, update_pkg: str, update_pkg_list: list) -> list:
@@ -182,6 +175,7 @@ def get_packages_list_by_upgrade_type(upgrade_type: str, update_pkg: str, update
             elif stop is True:
                 package_list.append(line.strip())
     return package_list
+
 
 def get_pkg_upgrade_data() -> dict:
     """
@@ -256,7 +250,13 @@ def is_major_upgrade_available() -> bool:
     :return: True if the major upgrade is ready else False.
     """
     next_version = f'{get_default_repo_url()}/.next_version'
-    return True if requests.get(next_version).status_code == 200 else False
+    try:
+        response = requests.get(next_version, timeout=5)
+        return response.status_code == 200
+    except requests.RequestException:
+        # If we cannot reach the server or the request fails,
+        # treat it as "no upgrade available" to avoid blocking UI flows.
+        return False
 
 
 def kernel_version_change() -> bool:
@@ -274,10 +274,7 @@ def kernel_version_change() -> bool:
         universal_newlines=True,
         encoding='utf-8'
     )
-    if 'Newer FreeBSD version' in pkg_update.stdout.read():
-        return True
-    else:
-        return False
+    return 'Newer FreeBSD version' in pkg_update.stdout.read()
 
 
 def lock_pkg(lock_pkg_list: list) -> None:
@@ -333,7 +330,13 @@ def repository_is_syncing() -> bool:
     :return: True if the repository is syncing else False.
     """
     syncing_url = f'{get_default_repo_url()}/.syncing'
-    return True if requests.get(syncing_url).status_code == 200 else False
+    try:
+        response = requests.get(syncing_url, timeout=5)
+        return response.status_code == 200
+    except requests.RequestException:
+        # If we cannot reach the server, treat it as "not syncing"
+        # to avoid blocking update checks.
+        return False
 
 
 def unlock_all_pkg() -> None:
@@ -370,10 +373,7 @@ def updating() -> bool:
     Check if the system is updating.
     :return: True if the system is updating else False.
     """
-    if os.path.exists(f'{updates_run}/updating'):
-        return True
-    else:
-        return False
+    return bool(os.path.exists(f'{updates_run}/updating'))
 
 
 # the code below is for upgrading to PKGBASE this will be removed in the future.
