@@ -56,9 +56,28 @@ def run_command(command: str, check: bool = False) -> CompletedProcess:
     return process
 
 
+def command_output(command: str) -> Popen:
+    """
+    Run command and return the live Popen process.
+
+    :param command: The shell command to run.
+    
+    :return: The Popen process object.
+    """
+    return Popen(
+        command,
+        shell=True,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True,
+        universal_newlines=True
+    )
+
+
 def check_for_update() -> bool:
     """
     Check if there is an update.
+    
     :return: True if there is an update else False.
     """
     kernel_version_change()
@@ -76,6 +95,7 @@ def check_for_update() -> bool:
 def get_default_repo_url() -> str:
     """
     Get the default pkg repository url.
+    
     :return: The default pkg repository url.
     """
     raw_url = Popen(
@@ -93,6 +113,7 @@ def get_default_repo_url() -> str:
 def get_abi_upgrade() -> str:
     """
     Get the major upgrade version.
+    
     :return: The major upgrade version.
 
     Output:
@@ -106,6 +127,7 @@ def get_abi_upgrade() -> str:
 def get_current_abi() -> str:
     """
     Get the current ABI of the system.
+    
     :return: The current ABI of the system.
     """
     pkg_abi = Popen(
@@ -123,6 +145,7 @@ def get_pkg_upgrade(option: str = '') -> str:
     """
     Get the upgrade data from pkg.
     :param option: f to get full upgrade data, n to get only the new packages data.
+    
     :return:  The upgrade data.
     """
 

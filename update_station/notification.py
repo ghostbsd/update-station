@@ -29,9 +29,9 @@ class UpdateNotifier:
         """
         Function that creates the notification for the update.
         """
-        if Data.major_upgrade is True:
+        if Data.major_upgrade:
             self.msg = _("Major system version upgrade is now available.")
-        elif Data.kernel_upgrade is True:
+        elif Data.kernel_upgrade:
             self.msg = _("System and software updates are now available.")
         self.notification = Notify.Notification().new(
             summary=_('Update Available'),
@@ -41,13 +41,13 @@ class UpdateNotifier:
         self.notification.add_action('clicked', 'Start Upgrade', self.on_activated)
         self.notification.show()
 
-    def on_activated(self, notification, action_name):
+    def on_activated(self, notification, _action_name):
         """
         Function that starts the upgrade.
         :param notification: The notification widget.
-        :param action_name: The name of the action.
+        :param _action_name: The name of the action.
         """
-        if Data.major_upgrade is True:
+        if Data.major_upgrade:
             MajorUpgradeWindow()
         else:
             StartCheckUpdate()
@@ -101,7 +101,7 @@ class TrayIcon:
             UpdateStationOpen()
         else:
             Data.stop_pkg_refreshing = True
-            if Data.major_upgrade is True:
+            if Data.major_upgrade:
                 MajorUpgradeWindow()
             else:
                 StartCheckUpdate()
@@ -128,7 +128,7 @@ class MajorUpgradeWindow(Gtk.Window):
         The constructor for the MajorUpgradeWindow class.
         """
         Gtk.Window.__init__(self, title=_("Major version upgrade"))
-        self.connect("destroy", Gtk.main_quit)
+        self.connect("delete-event", self.on_close)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
         vbox.set_border_width(10)
         self.add(vbox)
@@ -162,3 +162,17 @@ class MajorUpgradeWindow(Gtk.Window):
             Data.major_upgrade = False
             Data.do_not_upgrade = True
         self.destroy()
+
+    def on_close(self, _widget: Gtk.Widget, _event=None) -> bool:
+        """
+        Handle window close event.
+
+        :param _widget: The widget that triggered the event.
+        :param _event: The event object.
+        :return: True to prevent default GTK behavior.
+        """
+        if Data.close_session:
+            Gtk.main_quit()
+        else:
+            self.destroy()
+        return True
