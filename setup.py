@@ -86,6 +86,32 @@ class CreateTranslationCommand(Command):
             print(f"PO file for locale '{self.locale}' already exists: {po_file}")
 
 
+class CleanCommand(Command):
+    """Custom command to clean build artifacts."""
+    description = 'Remove build, dist, and egg-info directories'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import shutil
+
+        dirs_to_remove = ['build', 'dist', 'update_station.egg-info']
+
+        for directory in dirs_to_remove:
+            if os.path.exists(directory):
+                print(f"Removing {directory}/")
+                shutil.rmtree(directory)
+            else:
+                print(f"{directory}/ does not exist, skipping")
+
+        print("Clean complete!")
+
+
 data_files = [
     (f'{prefix}/etc/xdg/autostart', ['src/update-station.desktop']),
     (f'{prefix}/share/applications', ['src/update-manager.desktop']),
@@ -110,6 +136,7 @@ setup(
     cmdclass={
         'create_translation': CreateTranslationCommand,
         'update_translations': UpdateTranslationsCommand,
+        'clean_build': CleanCommand,
         "build": build_extra,
         "build_i18n": build_i18n,
         "clean": clean_i18n
