@@ -1,5 +1,3 @@
-#!/usr/local/bin/python
-
 import gi
 import gettext
 gi.require_version('Gtk', '3.0')

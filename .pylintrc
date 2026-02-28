@@ -1,0 +1,17 @@
+# Pylint configuration for GhostBSD python Code
+
+[MASTER]
+# Add current directory to Python path so pylint can find local modules
+init-hook='import sys; sys.path.append(".")'
+
+# Ignore virtual environments and cache directories
+ignore=.venv,venv,.git,__pycache__
+
+[MESSAGES CONTROL]
+disable=import-outside-toplevel,
+    # gi.require_version() must be called between import gi and from gi.repository
+    wrong-import-position
+
+[FORMAT]
+# Maximum line length
+max-line-length=120
