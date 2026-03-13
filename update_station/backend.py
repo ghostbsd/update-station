@@ -2,9 +2,12 @@
 """All functions to handle various command for Update Station."""
 
 import os
+import re
 import sys
 import socket
 import requests
+import bectl
+import datetime
 from gi.repository import Gtk
 from update_station.data import Data
 from subprocess import Popen, PIPE, call, run, CompletedProcess
@@ -90,7 +93,7 @@ def check_for_update() -> bool:
 def get_default_repo_url() -> str:
     """
     Get the default pkg repository url.
-    
+
     :return: The default pkg repository url.
     """
     raw_url = Popen(
@@ -101,7 +104,29 @@ def get_default_repo_url() -> str:
         universal_newlines=True,
         encoding='utf-8'
     )
-    return raw_url.stdout.read().strip().split('"')[1]
+    match = re.search(r'"(https://pkg\.[^"]+/latest)"', raw_url.stdout.read())
+    return match[1]
+
+
+def get_default_base_repo_url(abi: str = '') -> str:
+    """
+    Get the base repository URL, optionally for a specific ABI.
+
+    :param abi: Optional ABI string (e.g., "FreeBSD:15:amd64"). If empty, uses current ABI.
+
+    :return: The base repository URL (GhostBSD-base repository).
+    """
+    env = f'env ABI={abi} ' if abi else ''
+    raw_url = Popen(
+        f'{env}pkg -vv | grep -B 1 "enabled.*yes" | grep url | grep base',
+        shell=True,
+        stdout=PIPE,
+        close_fds=True,
+        universal_newlines=True,
+        encoding='utf-8'
+    )
+    match = re.search(r'"(https://pkg\.[^"]+/base)"', raw_url.stdout.read())
+    return match[1]
 
 
 def get_abi_upgrade() -> str:
@@ -121,7 +146,7 @@ def get_abi_upgrade() -> str:
 def get_current_abi() -> str:
     """
     Get the current ABI of the system.
-    
+
     :return: The current ABI of the system.
     """
     pkg_abi = Popen(
@@ -133,6 +158,202 @@ def get_current_abi() -> str:
         encoding='utf-8'
     )
     return pkg_abi.stdout.read().strip()
+
+
+def get_current_version() -> str:
+    """
+    Get the full GhostBSD version currently installed on the system.
+
+    :return: The full version string (e.g., "25.02-R14.3p8").
+    """
+    result = run_command('ghostbsd-version')
+    return result.stdout.strip()
+
+
+def get_version(new_abi: str) -> str:
+    """
+    Get the full GhostBSD version from the new ABI repository.
+
+    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
+
+    :return: The full version string (e.g., "25.02-R14.3p8").
+    """
+    result = run_command(f'env ABI={new_abi} IGNORE_OSVERSION=yes pkg rquery "%v" GhostBSD-runtime')
+    return result.stdout.strip()
+
+
+def fetch_base_packagelist(new_abi: str) -> list:
+    """
+    Fetch the base package list from the repository.
+
+    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
+
+    :return: List of base package names.
+    """
+    base_repo_url = get_default_base_repo_url(new_abi)
+    url = f'{base_repo_url}/packagelist.json'
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    return response.json()
+
+
+def cleanup_old_backups(keep_count: int = 5) -> None:
+    """
+    Clean old auto_backup BEs, keeping only the most recent ones by timestamp.
+
+    :param keep_count: Number of auto_backup BEs to keep.
+    """
+    be_list = bectl.get_be_list()
+    auto_backups = [be for be in be_list if 'auto_backup' in be]
+
+    if len(auto_backups) <= keep_count:
+        return
+
+    # Sort by timestamp in BE name (format: version-auto_backup-YYYY-MM-DD_HHmmss)
+    # Extract timestamp after 'auto_backup-' and sort by it (newest first)
+    auto_backups.sort(key=lambda be: be.split()[0].split('auto_backup-')[-1], reverse=True)
+    backups_to_delete = auto_backups[keep_count:]
+
+    for be_line in backups_to_delete:
+        columns = be_line.split()
+        if len(columns) < 4:
+            continue
+        be_name = columns[0]
+        active_status = columns[1]
+        mount_point = columns[2]
+        if 'N' in active_status and mount_point == '/':
+            continue
+        if 'R' in active_status:
+            continue
+        bectl.destroy_be(be_name)
+
+
+def create_be(full_version: str, upgrade: bool = False) -> str:
+    """
+    Create a boot environment.
+
+    :param full_version: The complete version string (e.g., "25.02-R14.3p8").
+    :param upgrade: If True, creates a boot environment for a major upgrade.
+
+    :return: The boot environment name.
+    """
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    backup = '' if upgrade else '-auto_backup'
+    be_name = f'{full_version}{backup}-{timestamp}'
+    bectl.create_be(new_be_name=be_name)
+    return be_name
+
+
+def mount_be(be_name: str) -> str:
+    """
+    Mount the boot environment.
+
+    :param be_name: The boot environment name.
+
+    :return: The mount path of the boot environment.
+    """
+    return bectl.mount_be(be_name)
+
+
+def bootstrap_pkg_in_be(mount_path: str, new_abi: str) -> Popen:
+    """
+    Bootstrap pkg in the mounted boot environment.
+
+    :param mount_path: The mount path of the boot environment.
+    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
+
+    :return: The Popen process object for live output streaming.
+    """
+    command = f'env ABI={new_abi} IGNORE_OSVERSION=yes ASSUME_ALWAYS_YES=yes pkg-static -r {mount_path} bootstrap -f'
+    return command_output(command)
+
+
+def fetch_base_packages_in_be(mount_path: str, new_abi: str, package_list: list) -> Popen:
+    """
+    Fetch base packages in the mounted boot environment.
+
+    :param mount_path: The mount path of the boot environment.
+    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
+    :param package_list: List of base package names to fetch.
+
+    :return: The Popen process object for live output streaming.
+    """
+    env = f'env ABI={new_abi} ' if new_abi else ''
+    packages = ' '.join(package_list)
+    command = f'{env}pkg-static -r {mount_path} upgrade -Fy {packages}'
+    return command_output(command)
+
+
+def fetch_software_packages_in_be(mount_path: str, new_abi: str = '') -> Popen:
+    """
+    Fetch all remaining software packages in the mounted boot environment.
+
+    :param mount_path: The mount path of the boot environment.
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If empty, uses current ABI.
+
+    :return: The Popen process object for live output streaming.
+    """
+    env = f'env ABI={new_abi} ' if new_abi else ''
+    command = f'{env}pkg-static -r {mount_path} upgrade -Fy'
+    return command_output(command)
+
+
+def upgrade_base_packages_in_be(mount_path: str, new_abi: str, package_list: list) -> Popen:
+    """
+    Install base packages in the mounted boot environment.
+
+    :param mount_path: The mount path of the boot environment.
+    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
+    :param package_list: List of base package names to upgrade.
+
+    :return: The Popen process object for live output streaming.
+    """
+    env = f'env ABI={new_abi} ' if new_abi else ''
+    packages = ' '.join(package_list)
+    command = f'{env}pkg-static -r {mount_path} upgrade -y {packages}'
+    return command_output(command)
+
+
+def upgrade_software_packages_in_be(mount_path: str, new_abi: str = '') -> Popen:
+    """
+    Install all remaining software packages in the mounted boot environment.
+
+    :param mount_path: The mount path of the boot environment.
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If empty, uses current ABI.
+
+    :return: The Popen process object for live output streaming.
+    """
+    env = f'env ABI={new_abi} ' if new_abi else ''
+    command = f'{env}pkg-static -r {mount_path} upgrade -y'
+    return command_output(command)
+
+
+def umount_upgrade_be(be_name: str) -> None:
+    """
+    Unmount the boot environment.
+
+    :param be_name: The boot environment name.
+    """
+    bectl.umount_be(be_name)
+
+
+def activate_upgrade_be(be_name: str) -> None:
+    """
+    Activate the boot environment for next boot.
+
+    :param be_name: The boot environment name.
+    """
+    bectl.activate_be(be_name)
+
+
+def cleanup_failed_upgrade_be(be_name: str) -> None:
+    """
+    Clean up a failed boot environment upgrade.
+
+    :param be_name: The boot environment name.
+    """
+    bectl.umount_be(be_name)
+    bectl.destroy_be(be_name)
 
 
 def get_pkg_upgrade(option: str = '') -> str:

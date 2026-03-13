@@ -26,6 +26,8 @@ from update_station.backend import (
     is_major_upgrade_available,
     get_abi_upgrade,
     get_current_abi,
+    get_current_version,
+    get_version,
 )
 
 gettext.bindtextdomain('update-station', '/usr/local/share/locale')
@@ -103,6 +105,8 @@ def update_tray():
         Data.major_upgrade = True
         Data.current_abi = get_current_abi()
         Data.new_abi = get_abi_upgrade()
+        Data.current_version = get_current_version()
+        Data.new_version = get_version(Data.new_abi)
         Data.system_tray.tray_icon().set_visible(True)
         notifier = UpdateNotifier()
         notifier.notify()
