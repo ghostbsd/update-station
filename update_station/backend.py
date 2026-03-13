@@ -175,7 +175,7 @@ def get_version(new_abi: str) -> str:
 
     :return: The full version string (e.g., "25.02-R14.3p8").
     """
-    result = run_command(f'env ABI={new_abi} pkg rquery "%v" GhostBSD-runtime')
+    result = run_command(f'env ABI={new_abi} IGNORE_OSVERSION=yes pkg rquery "%v" GhostBSD-runtime')
     return result.stdout.strip()
 
 
