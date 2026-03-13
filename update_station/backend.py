@@ -2,6 +2,7 @@
 """All functions to handle various command for Update Station."""
 
 import os
+import re
 import sys
 import socket
 import requests
@@ -103,7 +104,8 @@ def get_default_repo_url() -> str:
         universal_newlines=True,
         encoding='utf-8'
     )
-    return raw_url.stdout.read().strip().split('"')[1]
+    match = re.search(r'"(https://pkg\.[^"]+/latest)"', raw_url.stdout.read())
+    return match[1]
 
 
 def get_default_base_repo_url(abi: str = '') -> str:
@@ -123,7 +125,8 @@ def get_default_base_repo_url(abi: str = '') -> str:
         universal_newlines=True,
         encoding='utf-8'
     )
-    return raw_url.stdout.read().strip().split('"')[1]
+    match = re.search(r'"(https://pkg\.[^"]+/base)"', raw_url.stdout.read())
+    return match[1]
 
 
 def get_abi_upgrade() -> str:
