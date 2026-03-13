@@ -142,7 +142,7 @@ class UpdateWindow:
         close_button.set_image(img)
         table.attach(close_button, 3, 4, 0, 1)
         close_button.connect("clicked", self.delete_event)
-        install_button = Gtk.Button(label=_("Install update"))
+        install_button = Gtk.Button(label=_("Install Now"))
         table.attach(install_button, 4, 5, 0, 1)
         install_button.connect("clicked", self.start_update)
         return table
