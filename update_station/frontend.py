@@ -782,13 +782,13 @@ class UpdateNotifier:
         self.notification.add_action('clicked', 'Start Upgrade', self.on_activated)
         self.notification.show()
 
-    @classmethod
-    def on_activated(cls, notification, _action_name):
+    def on_activated(self, notification, _action_name):
         """
         Function that starts the upgrade.
         :param notification: The notification widget.
         :param _action_name: The name of the action.
         """
+        Data.stop_pkg_refreshing = True
         if Data.major_upgrade:
             MajorUpgradeWindow()
         else:
