@@ -131,7 +131,7 @@ class UpdateWindow:
         backup_checkbox.connect("toggled", self.if_backup)
         if bectl.is_file_system_zfs() and Data.second_update is False:
             backup_checkbox.set_active(True)
-            backup_checkbox.set_sensitive(True)
+            backup_checkbox.set_sensitive(not Data.major_upgrade)
             Data.backup = True
         else:
             backup_checkbox.set_active(False)
@@ -167,7 +167,10 @@ class UpdateWindow:
         vbox1.pack_start(vbox2, True, True, 0)
         vbox2.show()
         # Title
-        title_text = _("Updates available!")
+        if Data.major_upgrade:
+            title_text = _("Upgrade to {}").format(Data.new_version)
+        else:
+            title_text = _("Updates available!")
 
         update_title_label = Gtk.Label(
             label=f"<b><span size='large'>{title_text}</span></b>"
