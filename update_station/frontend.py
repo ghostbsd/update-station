@@ -728,6 +728,8 @@ class StartCheckUpdate:
                         Data.major_upgrade = True
                         Data.current_abi = get_current_abi()
                         Data.new_abi = get_abi_upgrade()
+                        Data.current_version = get_current_version()
+                        Data.new_version = get_version(Data.new_abi)
                         GLib.idle_add(self.stop_tread, MajorUpgradeWindow)
                     else:
                         GLib.idle_add(self.update_progress, progress,
@@ -884,7 +886,7 @@ class MajorUpgradeWindow(Gtk.Window):
             label=_(
                 "Would you like to upgrade from {current} to {new}?\n\n"
                 "If you select No, the upgrade will be skipped until the next boot."
-            ).format(current=Data.current_abi, new=Data.new_abi)
+            ).format(current=Data.current_version, new=Data.new_version)
         )
         vbox.pack_start(label, True, True, 5)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)

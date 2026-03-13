@@ -11,12 +11,14 @@ class Data:
         be_name: String that contains the name of the backup boot environment.
         close_session: Boolean that indicates if the update-station should close the session.
         current_abi: String that indicates the current ABI of the system.
+        current_version: String that indicates the current version of the system.
         do_not_upgrade: Boolean that indicates if the update-station should not upgrade the system.
         home: String that indicates the home directory of the user that is running the update-station.
         kernel_upgrade: Boolean that indicates if the update-station should upgrade the kernel.
         packages_dictionary: Dictionary that contains all the packages that are installed on the system.
         major_upgrade: Boolean that indicates if the update-station should do a major upgrade.
         new_abi: String that indicates the new ABI of the system.
+        new_version: String that indicates the new version of the system.
         second_update: Boolean that indicates if the update-station should do 2 update.
         stop_pkg_refreshing: Boolean that indicates if the update-station should stop refreshing the packages.
         system_tray: Object that contains the system tray of the update-station.
@@ -28,11 +30,13 @@ class Data:
     be_mount_path: str = ''
     close_session: bool = False
     current_abi: str = ''
+    current_version: str = ''
     do_not_upgrade: bool = False
     home: str = os.path.expanduser('~')
     kernel_upgrade: bool = False
     major_upgrade: bool = False
     new_abi: str = ''
+    new_version: str = ''
     packages_dictionary: dict = {}
     second_update: bool = False
     stop_pkg_refreshing: bool = False
