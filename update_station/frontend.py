@@ -888,7 +888,7 @@ class MajorUpgradeWindow(Gtk.Window):
         label = Gtk.Label(
             label=_(
                 "Would you like to upgrade from {current} to {new}?\n\n"
-                "If you select No, the upgrade will be skipped until the next boot."
+                "If you select No, you will not be asked again until the next boot."
             ).format(current=Data.current_version, new=Data.new_version)
         )
         vbox.pack_start(label, True, True, 5)
