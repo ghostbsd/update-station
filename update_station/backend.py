@@ -90,20 +90,22 @@ def command_output(command: list, env: dict = None) -> Popen:
     )
 
 
-def check_for_update() -> bool:
+def check_for_update() -> bool | None:
     """
     Check if there is an update.
 
-    :return: True if there is an update else False.
+    :return: True if there is an update, False if there is none, None if the repository
+             catalogue could not be refreshed and the answer cannot be trusted.
     """
-    update_repository()
+    if not update_repository():
+        return None
     upgrade_text = get_pkg_upgrade()
     return 'Your packages are up to date' not in upgrade_text and (
         'UPGRADED:' in upgrade_text or 'DOWNGRADED:' in upgrade_text
     )
 
 
-def find_updates() -> bool:
+def find_updates() -> bool | None:
     """
     Look for updates and set the upgrade type from the versions found.
 
@@ -111,23 +113,36 @@ def find_updates() -> bool:
     be installed before a major upgrade. A pending major upgrade is therefore put aside
     while looking, and only restored when there is nothing else to install first.
 
-    :return: True if there is something to upgrade else False.
+    :return: True if there is something to upgrade, False if there is nothing, None if the
+             repository could not be read and the upgrade type is therefore unknown.
     """
     major_upgrade = Data.upgrade_type == 'major'
     Data.upgrade_type = 'none'
-    if check_for_update():
+    update_available = check_for_update()
+    if update_available is None:
+        return None
+    if update_available:
         Data.current_version = get_current_version()
         Data.new_version = get_version()
         Data.upgrade_type = classify_upgrade(Data.current_version, Data.new_version)
         return True
     if major_upgrade:
         Data.upgrade_type = 'major'
-        if check_for_update():
+        update_available = check_for_update()
+        if update_available is None:
+            Data.upgrade_type = 'none'
+            return None
+        if update_available:
             # Read the versions again now that the catalogue of the new ABI has been fetched.
             # The ones stored when the major upgrade was detected come from the old catalogue,
             # and they name the boot environment the upgrade is installed in.
             Data.current_version = get_current_version()
             Data.new_version = get_version(Data.new_abi)
+            if not Data.new_version:
+                # The boot environment of the upgrade is named after this version, and it
+                # cannot be created without one.
+                Data.upgrade_type = 'none'
+                return None
             return True
         Data.upgrade_type = 'none'
     return False
@@ -211,6 +226,9 @@ def get_current_version() -> str:
 def get_version(new_abi: str = None) -> str:
     """
     Get the full GhostBSD version available in the repository.
+
+    pkg rquery exits non-zero both when the query fails and when the repository simply has no
+    such package, so the two cannot be told apart and an empty string covers both.
 
     :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
 
@@ -597,17 +615,19 @@ def is_major_upgrade_available() -> bool:
         return False
 
 
-def update_repository() -> None:
+def update_repository() -> bool:
     """
     Update the repository catalogue of the pending upgrade.
 
     This must run before reading the upgrade list or querying the repository version,
     otherwise pkg answers from a stale catalogue.
+
+    :return: True if the catalogue was refreshed, False if pkg could not refresh it.
     """
     env = {'ASSUME_ALWAYS_YES': 'yes'}
     if Data.upgrade_type == 'major':
         env['ABI'] = Data.new_abi
-    run_command(['pkg', 'update', '-f'], env=env)
+    return run_command(['pkg', 'update', '-f'], env=env).returncode == 0
 
 
 def lock_pkg(lock_pkg_list: list) -> None:

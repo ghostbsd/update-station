@@ -102,7 +102,12 @@ def update_tray():
         # An upgrade is installed in a boot environment and takes effect on the next boot.
         Data.system_tray.tray_icon().set_visible(False)
         return
-    if find_updates():
+    update_available = find_updates()
+    if update_available is None:
+        # The repository could not be read, so nothing is announced until the next round.
+        Data.system_tray.tray_icon().set_visible(False)
+        return
+    if update_available:
         Data.system_tray.tray_icon().set_visible(True)
         notifier = UpdateNotifier()
         notifier.notify()

@@ -633,7 +633,8 @@ class InstallUpdate:
         """
         if updating():
             unlock_update_station()
-        if Data.be_upgrade():
+        be_upgrade = Data.be_upgrade()
+        if be_upgrade:
             # The boot environment is unmounted and either activated or destroyed by now.
             Data.be_name = ''
             Data.be_mount_path = ''
@@ -642,7 +643,7 @@ class InstallUpdate:
             Data.update_started = False
             Data.stop_pkg_refreshing = False
             FailedUpdate()
-        elif update_pkg and find_updates() is True:
+        elif update_pkg and not be_upgrade and find_updates() is True:
             Data.packages_dictionary = get_pkg_upgrade_data()
             StartCheckUpdate()
         else:
