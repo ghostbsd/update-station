@@ -32,7 +32,7 @@ def on_reboot(*args) -> None:
     """
     The function to reboot the system.
     """
-    Popen('shutdown -r now', shell=True)
+    Popen(['shutdown', '-r', 'now'])
     Gtk.main_quit()
 
 
@@ -41,53 +41,118 @@ def get_detail(*args) -> None:
     Get the details of the upgrade failure.
     :return:
     """
-    Popen(f'sudo -u {Data.username} xdg-open {Data.home}/update.failed', shell=True)
+    Popen(['sudo', '-u', Data.username, 'xdg-open', f'{Data.home}/update.failed'])
 
 
-def run_command(command: str, check: bool = False) -> CompletedProcess:
+def build_env(env: dict = None) -> dict:
     """
-    Run a shell command and optionally check for errors.
+    Build the environment for a command from the current environment.
 
-    :param command: The shell command to run.
+    :param env: Optional environment variables added on top of the current environment.
+
+    :return: The environment dictionary, or None to inherit the current environment as is.
+    """
+    return {**os.environ, **env} if env else None
+
+
+def run_command(command: list, check: bool = False, env: dict = None) -> CompletedProcess:
+    """
+    Run a command and optionally check for errors.
+
+    :param command: The command and its arguments as a list.
     :param check: Optional parameter to check for errors.
+    :param env: Optional environment variables added on top of the current environment.
 
     :return: The CompletedProcess object.
     """
-    process = run(command, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    process = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True, env=build_env(env), check=False)
     if check and process.returncode != 0:
-        raise RuntimeError(f"Command failed: {command}\n{process.stderr}")
+        raise RuntimeError(f"Command failed: {' '.join(command)}\n{process.stderr}")
     return process
 
 
-def command_output(command: str) -> Popen:
+def command_output(command: list, env: dict = None) -> Popen:
     """
     Run command and return the live Popen process.
 
-    :param command: The shell command to run.
-    
+    :param command: The command and its arguments as a list.
+    :param env: Optional environment variables added on top of the current environment.
+
     :return: The Popen process object.
     """
     return Popen(
         command,
-        shell=True,
         stdout=PIPE,
         stderr=PIPE,
         close_fds=True,
-        universal_newlines=True
+        universal_newlines=True,
+        env=build_env(env)
     )
 
 
 def check_for_update() -> bool:
     """
     Check if there is an update.
-    
+
     :return: True if there is an update else False.
     """
-    kernel_version_change()
+    update_repository()
     upgrade_text = get_pkg_upgrade()
     return 'Your packages are up to date' not in upgrade_text and (
         'UPGRADED:' in upgrade_text or 'DOWNGRADED:' in upgrade_text
     )
+
+
+def find_updates() -> bool:
+    """
+    Look for updates and set the upgrade type from the versions found.
+
+    The repository of the running system is checked first because its package updates must
+    be installed before a major upgrade. A pending major upgrade is therefore put aside
+    while looking, and only restored when there is nothing else to install first.
+
+    :return: True if there is something to upgrade else False.
+    """
+    major_upgrade = Data.upgrade_type == 'major'
+    Data.upgrade_type = 'none'
+    if check_for_update():
+        Data.current_version = get_current_version()
+        Data.new_version = get_version()
+        Data.upgrade_type = classify_upgrade(Data.current_version, Data.new_version)
+        return True
+    if major_upgrade:
+        Data.upgrade_type = 'major'
+        if check_for_update():
+            # Read the versions again now that the catalogue of the new ABI has been fetched.
+            # The ones stored when the major upgrade was detected come from the old catalogue,
+            # and they name the boot environment the upgrade is installed in.
+            Data.current_version = get_current_version()
+            Data.new_version = get_version(Data.new_abi)
+            return True
+        Data.upgrade_type = 'none'
+    return False
+
+
+def get_enabled_repo_url(repo_type: str, abi: str = None) -> str:
+    """
+    Get the URL of the first enabled repository of the given type from pkg -vv.
+
+    :param repo_type: The last path component of the repository URL ("latest" or "base").
+    :param abi: Optional ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
+
+    :return: The repository URL.
+    """
+    env = {'ABI': abi} if abi else None
+    output = run_command(['pkg', '-vv'], env=env).stdout
+    url = ''
+    for line in output.splitlines():
+        if match := re.search(rf'url\s*:\s*"(https://pkg\.[^"]+/{repo_type})"', line):
+            url = match[1]
+        elif re.search(r'enabled\s*:\s*yes', line) and url:
+            return url
+        elif line.strip() == '}':
+            url = ''
+    return ''
 
 
 def get_default_repo_url() -> str:
@@ -96,43 +161,24 @@ def get_default_repo_url() -> str:
 
     :return: The default pkg repository url.
     """
-    raw_url = Popen(
-        'pkg -vv | grep -B 1 "enabled.*yes" | grep url | grep latest',
-        shell=True,
-        stdout=PIPE,
-        close_fds=True,
-        universal_newlines=True,
-        encoding='utf-8'
-    )
-    match = re.search(r'"(https://pkg\.[^"]+/latest)"', raw_url.stdout.read())
-    return match[1]
+    return get_enabled_repo_url('latest')
 
 
-def get_default_base_repo_url(abi: str = '') -> str:
+def get_default_base_repo_url(abi: str = None) -> str:
     """
     Get the base repository URL, optionally for a specific ABI.
 
-    :param abi: Optional ABI string (e.g., "FreeBSD:15:amd64"). If empty, uses current ABI.
+    :param abi: Optional ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
 
     :return: The base repository URL (GhostBSD-base repository).
     """
-    env = f'env ABI={abi} ' if abi else ''
-    raw_url = Popen(
-        f'{env}pkg -vv | grep -B 1 "enabled.*yes" | grep url | grep base',
-        shell=True,
-        stdout=PIPE,
-        close_fds=True,
-        universal_newlines=True,
-        encoding='utf-8'
-    )
-    match = re.search(r'"(https://pkg\.[^"]+/base)"', raw_url.stdout.read())
-    return match[1]
+    return get_enabled_repo_url('base', abi)
 
 
 def get_abi_upgrade() -> str:
     """
     Get the major upgrade version.
-    
+
     :return: The major upgrade version.
 
     Output:
@@ -149,15 +195,7 @@ def get_current_abi() -> str:
 
     :return: The current ABI of the system.
     """
-    pkg_abi = Popen(
-        'pkg -vv | grep ABI | grep -v ALTABI | cut -d\'"\' -f2',
-        shell=True,
-        stdout=PIPE,
-        close_fds=True,
-        universal_newlines=True,
-        encoding='utf-8'
-    )
-    return pkg_abi.stdout.read().strip()
+    return run_command(['pkg', 'config', 'ABI']).stdout.strip()
 
 
 def get_current_version() -> str:
@@ -166,27 +204,81 @@ def get_current_version() -> str:
 
     :return: The full version string (e.g., "25.02-R14.3p8").
     """
-    result = run_command('ghostbsd-version')
+    result = run_command(['ghostbsd-version'])
     return result.stdout.strip()
 
 
-def get_version(new_abi: str) -> str:
+def get_version(new_abi: str = None) -> str:
     """
-    Get the full GhostBSD version from the new ABI repository.
+    Get the full GhostBSD version available in the repository.
 
-    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
 
-    :return: The full version string (e.g., "25.02-R14.3p8").
+    :return: The full version string (e.g., "25.02-R14.3p8"), or an empty string on failure.
     """
-    result = run_command(f'env ABI={new_abi} IGNORE_OSVERSION=yes pkg rquery "%v" GhostBSD-runtime')
+    env = {'ABI': new_abi, 'IGNORE_OSVERSION': 'yes'} if new_abi else None
+    result = run_command(['pkg', 'rquery', '%v', 'GhostBSD-runtime'], env=env)
+    if result.returncode != 0:
+        return ''
     return result.stdout.strip()
 
 
-def fetch_base_packagelist(new_abi: str) -> list:
+def get_installed_version() -> str:
+    """
+    Get the GhostBSD version of the installed GhostBSD-runtime package.
+
+    :return: The full version string (e.g., "26.1-R15.0p13"), or an empty string on failure.
+    """
+    result = run_command(['pkg', 'query', '%v', 'GhostBSD-runtime'])
+    if result.returncode != 0:
+        return ''
+    return result.stdout.strip()
+
+
+def parse_version(version: str) -> tuple:
+    """
+    Parse a GhostBSD version string into its numeric components.
+
+    :param version: The version string (e.g., "26.1-R15.0p13", "26.2-R15.1b1").
+
+    :return: A tuple of (ghostbsd_major, ghostbsd_minor, freebsd_major, freebsd_minor),
+             or an empty tuple if the string does not match the expected format.
+    """
+    match = re.fullmatch(r'(\d+)\.(\d+)-R(\d+)\.(\d+)(?:(?:a|b|rc|p)\d+)?', version.strip())
+    if not match:
+        return ()
+    return tuple(int(group) for group in match.groups())
+
+
+def classify_upgrade(installed: str, remote: str) -> str:
+    """
+    Classify the upgrade between the installed and the repository GhostBSD version.
+
+    Major upgrades (FreeBSD ABI change) are detected separately through .next_version,
+    so this only distinguishes upgrades served by the current ABI repository.
+
+    :param installed: The installed version string (e.g., "26.1-R15.0p13").
+    :param remote: The repository version string (e.g., "26.2-R15.1p2").
+
+    :return: 'minor' if the FreeBSD minor version changes, 'release' if only the
+             GhostBSD release changes, or 'none' for patch level and package updates.
+    """
+    installed_parts = parse_version(installed)
+    remote_parts = parse_version(remote)
+    if not installed_parts or not remote_parts or remote_parts <= installed_parts:
+        return 'none'
+    if remote_parts[2:] != installed_parts[2:]:
+        return 'minor'
+    if remote_parts[:2] != installed_parts[:2]:
+        return 'release'
+    return 'none'
+
+
+def fetch_base_packagelist(new_abi: str = None) -> list:
     """
     Fetch the base package list from the repository.
 
-    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
 
     :return: List of base package names.
     """
@@ -233,7 +325,7 @@ def create_be(full_version: str, upgrade: bool = False) -> str:
     Create a boot environment.
 
     :param full_version: The complete version string (e.g., "25.02-R14.3p8").
-    :param upgrade: If True, creates a boot environment for a major upgrade.
+    :param upgrade: If True, creates a boot environment for a system upgrade.
 
     :return: The boot environment name.
     """
@@ -255,77 +347,96 @@ def mount_be(be_name: str) -> str:
     return bectl.mount_be(be_name)
 
 
-def bootstrap_pkg_in_be(mount_path: str, new_abi: str) -> Popen:
+def bootstrap_pkg_in_be(mount_path: str, new_abi: str = None) -> Popen:
     """
     Bootstrap pkg in the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
-    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
 
     :return: The Popen process object for live output streaming.
     """
-    command = f'env ABI={new_abi} IGNORE_OSVERSION=yes ASSUME_ALWAYS_YES=yes pkg-static -r {mount_path} bootstrap -f'
-    return command_output(command)
+    env = {'ASSUME_ALWAYS_YES': 'yes'}
+    if new_abi:
+        env.update({'ABI': new_abi, 'IGNORE_OSVERSION': 'yes'})
+    return command_output(['pkg-static', '-r', mount_path, 'bootstrap', '-f'], env=env)
 
 
-def fetch_base_packages_in_be(mount_path: str, new_abi: str, package_list: list) -> Popen:
+def upgrade_packages_in_be(mount_path: str, fetch_only: bool, force: bool, new_abi: str = None,
+                           package_list: list = None) -> Popen:
+    """
+    Fetch or install package upgrades in the mounted boot environment.
+
+    :param mount_path: The mount path of the boot environment.
+    :param fetch_only: If True, only fetch the packages without installing them.
+    :param force: If True, reinstall packages even if they are already up to date.
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
+    :param package_list: Optional list of package names. If empty, upgrades all packages.
+
+    :return: The Popen process object for live output streaming.
+    """
+    env = {'ABI': new_abi} if new_abi else None
+    option = '-Fy' if fetch_only else '-y'
+    if force:
+        option += 'f'
+    command = ['pkg-static', '-r', mount_path, 'upgrade', option] + (package_list or [])
+    return command_output(command, env=env)
+
+
+def fetch_base_packages_in_be(mount_path: str, package_list: list, new_abi: str = None,
+                              force: bool = False) -> Popen:
     """
     Fetch base packages in the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
-    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
     :param package_list: List of base package names to fetch.
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
+    :param force: If True, fetch packages even if they are already up to date.
 
     :return: The Popen process object for live output streaming.
     """
-    env = f'env ABI={new_abi} ' if new_abi else ''
-    packages = ' '.join(package_list)
-    command = f'{env}pkg-static -r {mount_path} upgrade -Fy {packages}'
-    return command_output(command)
+    return upgrade_packages_in_be(mount_path, True, force, new_abi, package_list)
 
 
-def fetch_software_packages_in_be(mount_path: str, new_abi: str = '') -> Popen:
+def fetch_software_packages_in_be(mount_path: str, new_abi: str = None, force: bool = False) -> Popen:
     """
     Fetch all remaining software packages in the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
-    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If empty, uses current ABI.
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
+    :param force: If True, fetch packages even if they are already up to date.
 
     :return: The Popen process object for live output streaming.
     """
-    env = f'env ABI={new_abi} ' if new_abi else ''
-    command = f'{env}pkg-static -r {mount_path} upgrade -Fy'
-    return command_output(command)
+    return upgrade_packages_in_be(mount_path, True, force, new_abi)
 
 
-def upgrade_base_packages_in_be(mount_path: str, new_abi: str, package_list: list) -> Popen:
+def upgrade_base_packages_in_be(mount_path: str, package_list: list, new_abi: str = None,
+                                force: bool = False) -> Popen:
     """
     Install base packages in the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
-    :param new_abi: The new ABI string (e.g., "FreeBSD:15:amd64").
     :param package_list: List of base package names to upgrade.
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
+    :param force: If True, reinstall packages even if they are already up to date.
 
     :return: The Popen process object for live output streaming.
     """
-    env = f'env ABI={new_abi} ' if new_abi else ''
-    packages = ' '.join(package_list)
-    command = f'{env}pkg-static -r {mount_path} upgrade -y {packages}'
-    return command_output(command)
+    return upgrade_packages_in_be(mount_path, False, force, new_abi, package_list)
 
 
-def upgrade_software_packages_in_be(mount_path: str, new_abi: str = '') -> Popen:
+def upgrade_software_packages_in_be(mount_path: str, new_abi: str = None, force: bool = False) -> Popen:
     """
     Install all remaining software packages in the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
-    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If empty, uses current ABI.
+    :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
+    :param force: If True, reinstall packages even if they are already up to date.
 
     :return: The Popen process object for live output streaming.
     """
-    env = f'env ABI={new_abi} ' if new_abi else ''
-    command = f'{env}pkg-static -r {mount_path} upgrade -y'
-    return command_output(command)
+    return upgrade_packages_in_be(mount_path, False, force, new_abi)
 
 
 def umount_upgrade_be(be_name: str) -> None:
@@ -356,25 +467,38 @@ def cleanup_failed_upgrade_be(be_name: str) -> None:
     bectl.destroy_be(be_name)
 
 
+def reboot_is_pending() -> bool:
+    """
+    Check if a boot environment other than the running one is activated for the next boot.
+
+    An upgrade installed in a boot environment only takes effect on reboot, and until then the
+    running system still reports the version it had before, so looking for updates would find
+    and install the very same upgrade a second time.
+
+    :return: True if the system has to reboot before looking for updates again else False.
+    """
+    if not bectl.is_file_system_zfs():
+        return False
+    for be_line in bectl.get_be_list():
+        columns = be_line.split()
+        if len(columns) < 2:
+            continue
+        # 'N' is the running boot environment and 'R' the one for the next boot, so 'NR' is a
+        # system that boots into what it already runs and needs no reboot.
+        if 'R' in columns[1] and 'N' not in columns[1]:
+            return True
+    return False
+
+
 def get_pkg_upgrade(option: str = '') -> str:
     """
     Get the upgrade data from pkg.
     :param option: f to get full upgrade data, n to get only the new packages data.
-    
+
     :return:  The upgrade data.
     """
-
-    env = f'env ABI={Data.new_abi} ' if Data.major_upgrade else ''
-    print(f'{env}pkg upgrade -n{option}')
-    pkg_upgrade = Popen(
-        f'{env}pkg upgrade -n{option}',
-        shell=True,
-        stdout=PIPE,
-        close_fds=True,
-        universal_newlines=True,
-        encoding='utf-8'
-    )
-    return pkg_upgrade.stdout.read()
+    env = {'ABI': Data.new_abi} if Data.upgrade_type == 'major' else None
+    return run_command(['pkg', 'upgrade', f'-n{option}'], env=env).stdout
 
 
 def get_packages_list_by_upgrade_type(upgrade_type: str, update_pkg: str, update_pkg_list: list) -> list:
@@ -402,7 +526,6 @@ def get_pkg_upgrade_data() -> dict:
     """
     This function is used to get the upgrade data from pkg.
     :return: Returns a dictionary with the following keys:
-        - system_upgrade: True if the system is upgrading else False.
         - remove: The list of packages to remove.
         - number_to_remove: The number of packages to remove.
         - upgrade: The list of packages to upgrade.
@@ -415,12 +538,7 @@ def get_pkg_upgrade_data() -> dict:
         - number_to_reinstall: The number of packages to reinstall.
         - total_of_packages: The total number of packages to upgrade.
     """
-    option = ''
-    system_upgrade = False
-    if kernel_version_change() or Data.major_upgrade:
-        Data.kernel_upgrade = True
-        system_upgrade = True
-        option = 'f'
+    option = 'f' if Data.force_reinstall() else ''
     update_pkg = get_pkg_upgrade(option)
     update_pkg_list = update_pkg.splitlines()
     pkg_to_upgrade = get_packages_list_by_upgrade_type(
@@ -444,7 +562,6 @@ def get_pkg_upgrade_data() -> dict:
                           + len(pkg_to_reinstall)
                           + len(pkg_to_remove))
     return {
-        'system_upgrade': system_upgrade,
         'upgrade': pkg_to_upgrade,
         'number_to_upgrade': len(pkg_to_upgrade),
         'downgrade': pkg_to_downgrade,
@@ -480,22 +597,17 @@ def is_major_upgrade_available() -> bool:
         return False
 
 
-def kernel_version_change() -> bool:
+def update_repository() -> None:
     """
-    Check if the kernel version has changed.
-    :return: True if the kernel version has changed else False.
+    Update the repository catalogue of the pending upgrade.
+
+    This must run before reading the upgrade list or querying the repository version,
+    otherwise pkg answers from a stale catalogue.
     """
-    env = f'env ABI={Data.new_abi} ' if Data.major_upgrade else ''
-    print(f'yes | {env}pkg update -f')
-    pkg_update = Popen(
-        f'yes | {env}pkg update -f',
-        shell=True,
-        stdout=PIPE,
-        close_fds=True,
-        universal_newlines=True,
-        encoding='utf-8'
-    )
-    return 'Newer FreeBSD version' in pkg_update.stdout.read()
+    env = {'ASSUME_ALWAYS_YES': 'yes'}
+    if Data.upgrade_type == 'major':
+        env['ABI'] = Data.new_abi
+    run_command(['pkg', 'update', '-f'], env=env)
 
 
 def lock_pkg(lock_pkg_list: list) -> None:
@@ -504,10 +616,7 @@ def lock_pkg(lock_pkg_list: list) -> None:
     :param lock_pkg_list: The list of pkg to lock.
     """
     for line in lock_pkg_list:
-        call(
-            f'pkg lock -y {line.strip()}',
-            shell=True
-        )
+        call(['pkg', 'lock', '-y', line.strip()])
 
 
 def look_update_station() -> None:
@@ -524,9 +633,8 @@ def network_stat() -> str:
     Check if the network is up.
     :return: UP if the network is up else DOWN.
     """
-    cmd = "netstat -rn | grep default"
-    netstat = run(cmd, shell=True)
-    return "UP" if netstat.returncode == 0 else 'DOWN'
+    routes = run_command(['netstat', '-rn'])
+    return "UP" if 'default' in routes.stdout else 'DOWN'
 
 
 def repo_online() -> bool:
@@ -564,10 +672,7 @@ def unlock_all_pkg() -> None:
     """
     Unlock all locked packages.
     """
-    call(
-        'pkg unlock -ay',
-        shell=True
-    )
+    call(['pkg', 'unlock', '-ay'])
 
 
 def unlock_pkg(lock_pkg_list: list) -> None:
@@ -576,10 +681,7 @@ def unlock_pkg(lock_pkg_list: list) -> None:
     :param lock_pkg_list: The list of pkg to unlock.
     """
     for line in lock_pkg_list:
-        call(
-            f'pkg unlock -y {line.strip()}',
-            shell=True
-        )
+        call(['pkg', 'unlock', '-y', line.strip()])
 
 
 def unlock_update_station() -> None:
@@ -603,13 +705,13 @@ def find_if_os_generic_exists() -> bool:
     This function is look if there is some os generic packages installed.
     :return: True if some os generic packages are exists else False.
     """
-    return run_command("pkg info -E -g 'os-generic*'").returncode == 0
+    return run_command(['pkg', 'info', '-E', '-g', 'os-generic*']).returncode == 0
 
 
 def set_package_base_config_file() -> CompletedProcess:
     # /usr/local/etc/pkg/repos/GhostBSD.conf
     config_path = '/usr/local/etc/pkg/repos/GhostBSD.conf'
-    return run_command(f'cp {config_path}.default {config_path}')
+    return run_command(['cp', f'{config_path}.default', config_path])
 
 
 def remove_os_generic(mount_point: str) -> CompletedProcess:
@@ -617,7 +719,7 @@ def remove_os_generic(mount_point: str) -> CompletedProcess:
     This function is used to remove all os generic packages.
     :param mount_point: The mount point of the basepkg-test.
     """
-    return run_command(f'pkg-static -r {mount_point} delete -yf -g "os-generic*"')
+    return run_command(['pkg-static', '-r', mount_point, 'delete', '-yf', '-g', 'os-generic*'])
 
 
 def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
@@ -625,7 +727,7 @@ def install_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
     This function is used to install the GhostBSD-base package.
     :param mount_point: The mount point of the basepkg-test.
     """
-    return run_command(f'pkg-static -r {mount_point} install -y -r GhostBSD-base -g "GhostBSD-*"')
+    return run_command(['pkg-static', '-r', mount_point, 'install', '-y', '-r', 'GhostBSD-base', '-g', 'GhostBSD-*'])
 
 
 def fetch_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
@@ -633,7 +735,7 @@ def fetch_ghostbsd_pkgbase(mount_point: str) -> CompletedProcess:
     This function is used to download the GhostBSD-base package.
     :param mount_point: The mount point of the basepkg-test.
     """
-    return run_command(f'pkg-static -r {mount_point} fetch -y -r GhostBSD-base -g "GhostBSD-*"')
+    return run_command(['pkg-static', '-r', mount_point, 'fetch', '-y', '-r', 'GhostBSD-base', '-g', 'GhostBSD-*'])
 
 
 def restore_vital_files(mount_point: str) -> None:
@@ -641,12 +743,12 @@ def restore_vital_files(mount_point: str) -> None:
     This function is used to restart the vital files.
     :param mount_point: The mount point of the basepkg-test.
     """
-    run_command(f'cp /etc/passwd {mount_point}/etc/passwd')
-    run_command(f'cp /etc/master.passwd {mount_point}/etc/master.passwd')
-    run_command(f'cp /etc/group {mount_point}/etc/group')
-    run_command(f'cp /etc/sysctl.conf {mount_point}/etc/sysctl.conf')
-    run_command(f'mkdir {mount_point}/proc')
-    run_command(f'chroot {mount_point} pwd_mkdb -p /etc/master.passwd')
+    run_command(['cp', '/etc/passwd', f'{mount_point}/etc/passwd'])
+    run_command(['cp', '/etc/master.passwd', f'{mount_point}/etc/master.passwd'])
+    run_command(['cp', '/etc/group', f'{mount_point}/etc/group'])
+    run_command(['cp', '/etc/sysctl.conf', f'{mount_point}/etc/sysctl.conf'])
+    run_command(['mkdir', f'{mount_point}/proc'])
+    run_command(['chroot', mount_point, 'pwd_mkdb', '-p', '/etc/master.passwd'])
 
 
 def remove_package_config() -> CompletedProcess:
@@ -655,4 +757,4 @@ def remove_package_config() -> CompletedProcess:
     :return: The CompletedProcess object.
     """
     config_path = '/usr/local/etc/pkg/repos/GhostBSD.conf'
-    return run_command(f'rm {config_path}')
+    return run_command(['rm', config_path])

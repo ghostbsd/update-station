@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 20:52-0300\n"
+"POT-Creation-Date: 2026-09-23 18:36-0300\n"
 "PO-Revision-Date: 2024-12-13 22:50-0400\n"
 "Last-Translator: Edu_Amr <ghost.radiation065@silomails.com>\n"
 "Language-Team: Portuguese <translation-team-pt@lists.sourceforge.net>\n"
@@ -37,7 +37,7 @@ msgstr "Detalhe"
 #: update_station/dialog.py:155 update_station/dialog.py:185
 #: update_station/dialog.py:216 update_station/dialog.py:247
 #: update_station/dialog.py:280 update_station/dialog.py:306
-#: update_station/frontend.py:141 update_station/frontend.py:839
+#: update_station/frontend.py:141 update_station/frontend.py:866
 msgid "Close"
 msgstr "Fechar"
 
@@ -135,180 +135,187 @@ msgstr ""
 msgid "Updates available!"
 msgstr "Atualizações disponíveis!"
 
-#: update_station/frontend.py:207
+#: update_station/frontend.py:182
+msgid ""
+"This upgrade will be installed in a new boot environment. The system will "
+"reboot into it when done."
+msgstr ""
+
+#: update_station/frontend.py:214
 #, fuzzy
 msgid "Installed packages to be upgraded:"
 msgstr "Pacotes instalados a serem REMOVIDOS:"
 
-#: update_station/frontend.py:213
+#: update_station/frontend.py:220
 #, fuzzy
 msgid "Installed packages to be downgraded:"
 msgstr "Pacotes instalados a serem REMOVIDOS:"
 
-#: update_station/frontend.py:219
+#: update_station/frontend.py:226
 #, fuzzy
 msgid "New packages to be installed:"
 msgstr "Novos pacotes a serem INSTALADOS:"
 
-#: update_station/frontend.py:225
+#: update_station/frontend.py:232
 #, fuzzy
 msgid "Installed packages to be reinstalled:"
 msgstr "Pacotes instalados a serem REMOVIDOS:"
 
-#: update_station/frontend.py:231
+#: update_station/frontend.py:238
 #, fuzzy
 msgid "Installed packages to be removed:"
 msgstr "Pacotes instalados a serem REMOVIDOS:"
 
-#: update_station/frontend.py:276
+#: update_station/frontend.py:283
 msgid "Installing Update"
 msgstr "Instalando Atualização"
 
-#: update_station/frontend.py:378
+#: update_station/frontend.py:385
 #, fuzzy
 msgid "Package updates downloaded"
 msgstr "Pacotes para atualização baixados"
 
-#: update_station/frontend.py:381
+#: update_station/frontend.py:388
 #, fuzzy
 msgid "Installing package updates"
 msgstr "Instalando Atualização"
 
-#: update_station/frontend.py:406
+#: update_station/frontend.py:413
 msgid "Removed"
 msgstr ""
 
-#: update_station/frontend.py:408
+#: update_station/frontend.py:415
 msgid "will reinstall after upgrade"
 msgstr ""
 
-#: update_station/frontend.py:415
+#: update_station/frontend.py:422
 #, fuzzy
 msgid "Software packages upgrade completed"
 msgstr "Pacotes atualizados"
 
-#: update_station/frontend.py:423
+#: update_station/frontend.py:430
 msgid "Reinstalling"
 msgstr "Reinstalando"
 
-#: update_station/frontend.py:444
+#: update_station/frontend.py:451
 #, fuzzy
 msgid "Fetching package updates"
 msgstr "Verificando atualizações"
 
-#: update_station/frontend.py:479
+#: update_station/frontend.py:495
 #, fuzzy
 msgid "Bootstrapping pkg in new boot environment"
 msgstr "Criando ambiente de inicialização"
 
-#: update_station/frontend.py:493
+#: update_station/frontend.py:511
 #, fuzzy
 msgid "Fetching base system packages"
 msgstr "Obtendo a lista de pacotes"
 
-#: update_station/frontend.py:498
+#: update_station/frontend.py:516
 #, fuzzy
 msgid "Fetching software packages"
 msgstr "Verificando atualizações"
 
-#: update_station/frontend.py:512
+#: update_station/frontend.py:532
 #, fuzzy
 msgid "Installing base system packages"
 msgstr "Instalando Atualização"
 
-#: update_station/frontend.py:517
+#: update_station/frontend.py:537
 #, fuzzy
 msgid "Installing software packages"
 msgstr "Instalando Atualização"
 
-#: update_station/frontend.py:530
+#: update_station/frontend.py:550
 #, fuzzy
 msgid "Unmounting boot environment"
 msgstr "Criando ambiente de inicialização"
 
-#: update_station/frontend.py:533
+#: update_station/frontend.py:553
 #, fuzzy
 msgid "Activating new boot environment"
 msgstr "Criando ambiente de inicialização"
 
-#: update_station/frontend.py:547
+#: update_station/frontend.py:567
 msgid "Cleaning old boot environment"
 msgstr "Limpando ambiente de inicialização antigo"
 
-#: update_station/frontend.py:552
+#: update_station/frontend.py:572
 msgid "Creating boot environment"
 msgstr "Criando ambiente de inicialização"
 
-#: update_station/frontend.py:565
+#: update_station/frontend.py:585
 #, fuzzy
 msgid "Mounting boot environment"
 msgstr "Criando ambiente de inicialização"
 
-#: update_station/frontend.py:663
+#: update_station/frontend.py:688
 msgid "Looking For Updates"
 msgstr "Procurando Atualizações"
 
-#: update_station/frontend.py:703
+#: update_station/frontend.py:728
 msgid "Checking if the repository is online"
 msgstr "Verificando se o repositório está online"
 
-#: update_station/frontend.py:707
+#: update_station/frontend.py:732
 msgid "The repository is online"
 msgstr "O repositório está online"
 
-#: update_station/frontend.py:711
+#: update_station/frontend.py:736
 msgid "The mirror is Syncing"
 msgstr "O espelho está sincronizando"
 
-#: update_station/frontend.py:715
+#: update_station/frontend.py:740
 msgid "Updates are already running"
 msgstr "As atualizações já estão em andamento"
 
-#: update_station/frontend.py:719
+#: update_station/frontend.py:744
 msgid "Checking for updates"
 msgstr "Verificando atualizações"
 
-#: update_station/frontend.py:722
+#: update_station/frontend.py:747
 msgid "Getting the list of packages"
 msgstr "Obtendo a lista de pacotes"
 
-#: update_station/frontend.py:726
+#: update_station/frontend.py:751
 msgid "Open the update window"
 msgstr "Abrir a janela de atualização"
 
-#: update_station/frontend.py:739
+#: update_station/frontend.py:766
 msgid "No update found"
 msgstr "Nenhuma atualização encontrada"
 
-#: update_station/frontend.py:746
+#: update_station/frontend.py:773
 msgid "The Mirror is unreachable"
 msgstr "O espelho está inacessível"
 
-#: update_station/frontend.py:771
+#: update_station/frontend.py:798
 msgid "Software updates are now available."
 msgstr "Atualizações de software estão agora disponíveis."
 
-#: update_station/frontend.py:779
+#: update_station/frontend.py:806
 msgid "Major system version upgrade is now available."
 msgstr "Uma atualização importante de versão do sistema está agora disponível."
 
-#: update_station/frontend.py:781
-msgid "System and software updates are now available."
-msgstr "Atualizações de sistema e software estão agora disponíveis."
+#: update_station/frontend.py:808
+#, fuzzy, python-brace-format
+msgid "System upgrade to {} is now available."
+msgstr "Uma atualização importante de versão do sistema está agora disponível."
 
-#: update_station/frontend.py:783 update_station/frontend.py:823
+#: update_station/frontend.py:810 update_station/frontend.py:850
 msgid "Update Available"
 msgstr "Atualização Disponível"
 
-#: update_station/frontend.py:837
+#: update_station/frontend.py:864
 msgid "Open Update"
 msgstr "Abrir Atualização"
 
-#: update_station/frontend.py:882
+#: update_station/frontend.py:909
 msgid "Major version upgrade"
 msgstr "Atualização de versão principal"
 
-#: update_station/frontend.py:890
+#: update_station/frontend.py:917
 #, python-brace-format
 msgid ""
 "Would you like to upgrade from {current} to {new}?\n"
@@ -316,13 +323,16 @@ msgid ""
 "If you select No, you will not be asked again until the next boot."
 msgstr ""
 
-#: update_station/frontend.py:897
+#: update_station/frontend.py:924
 msgid "Yes"
 msgstr ""
 
-#: update_station/frontend.py:901
+#: update_station/frontend.py:928
 msgid "No"
 msgstr ""
+
+#~ msgid "System and software updates are now available."
+#~ msgstr "Atualizações de sistema e software estão agora disponíveis."
 
 #, fuzzy
 #~ msgid ""

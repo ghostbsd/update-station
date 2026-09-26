@@ -19,7 +19,8 @@ from update_station.frontend import UpdateNotifier, TrayIcon, StartCheckUpdate
 from update_station.dialog import NotRoot
 from update_station.data import Data
 from update_station.backend import (
-    check_for_update,
+    find_updates,
+    reboot_is_pending,
     unlock_update_station,
     updating,
     repository_is_syncing,
@@ -97,14 +98,20 @@ def update_tray():
     """
     Function that updates the tray icon.
     """
-    if check_for_update():
+    if reboot_is_pending():
+        # An upgrade is installed in a boot environment and takes effect on the next boot.
+        Data.system_tray.tray_icon().set_visible(False)
+        return
+    if find_updates():
         Data.system_tray.tray_icon().set_visible(True)
         notifier = UpdateNotifier()
         notifier.notify()
     elif is_major_upgrade_available() and Data.do_not_upgrade is False:
-        Data.major_upgrade = True
+        # The new ABI has to be known before the upgrade type becomes major,
+        # because from that point on every pkg command is run against it.
         Data.current_abi = get_current_abi()
         Data.new_abi = get_abi_upgrade()
+        Data.upgrade_type = 'major'
         Data.current_version = get_current_version()
         Data.new_version = get_version(Data.new_abi)
         Data.system_tray.tray_icon().set_visible(True)
