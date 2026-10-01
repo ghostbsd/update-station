@@ -94,7 +94,7 @@ class UpdateWindow:
                 Data.stop_pkg_refreshing = False
                 if updating():
                     unlock_update_station()
-                Data.system_tray.tray_icon().set_visible(True)
+                Data.system_tray.set_visible(True)
 
     def start_update(self, _widget):
         """
@@ -824,7 +824,7 @@ class UpdateNotifier:
         else:
             StartCheckUpdate()
         notification.close()
-        GLib.idle_add(Data.system_tray.tray_icon().set_visible, False)
+        GLib.idle_add(Data.system_tray.set_visible, False)
 
 
 class TrayIcon:
@@ -832,25 +832,33 @@ class TrayIcon:
     The class for the tray icon.
     """
 
-    def tray_icon(self):
-        """
-        Return the status icon widget.
-
-        :return: The GTK StatusIcon.
-        """
-        return self.status_icon
-
     def __init__(self):
         """
         The constructor for the TrayIcon class.
         """
+        self.status_icon = None
+        self.menu = None
+
+    def set_visible(self, visible: bool):
+        """
+        Show or hide the tray icon.
+
+        The icon is built when it is shown and released when it is hidden
+        rather than toggling Gtk.StatusIcon.set_visible(). Hiding a status
+        icon and showing it again re-embeds it in the panel, which leaves
+        the panel with a gap and makes GTK thaw a window it never froze.
+
+        :param visible: True to show the icon, False to hide it.
+        """
+        if not visible:
+            self.status_icon = None
+            return
+        if self.status_icon is not None:
+            return
         self.status_icon = Gtk.StatusIcon()
         self.status_icon.set_tooltip_text(_('Update Available'))
-        self.menu = Gtk.Menu()
-        self.menu.show_all()
         self.status_icon.connect("activate", self.left_click)
         self.status_icon.connect('popup-menu', self.icon_clicked)
-        self.status_icon.set_visible(False)
         self.status_icon.set_from_icon_name('system-software-update')
 
     def nm_menu(self):
@@ -868,11 +876,10 @@ class TrayIcon:
         self.menu.show_all()
         return self.menu
 
-    @classmethod
-    def left_click(cls, status_icon: Gtk.StatusIcon):
+    def left_click(self, _widget: Gtk.Widget):
         """
         Function that is called when the user left-clicks on the tray icon.
-        :param status_icon: The status icon.
+        :param _widget: The status icon, or the menu item that was activated.
         """
         if updating():
             UpdateStationOpen()
@@ -882,7 +889,7 @@ class TrayIcon:
                 MajorUpgradeWindow()
             else:
                 StartCheckUpdate()
-        status_icon.set_visible(False)
+        self.set_visible(False)
 
     def icon_clicked(self, status_icon, button, time):
         """

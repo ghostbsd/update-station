@@ -79,7 +79,7 @@ def signal_check_now(signum, frame):
     """
     def start_check():
         StartCheckUpdate()
-        Data.system_tray.tray_icon().set_visible(False)
+        Data.system_tray.set_visible(False)
         return False  # Don't call again'
 
     Data.stop_pkg_refreshing = True
@@ -100,15 +100,15 @@ def update_tray():
     """
     if reboot_is_pending():
         # An upgrade is installed in a boot environment and takes effect on the next boot.
-        Data.system_tray.tray_icon().set_visible(False)
+        Data.system_tray.set_visible(False)
         return
     update_available = find_updates()
     if update_available is None:
         # The repository could not be read, so nothing is announced until the next round.
-        Data.system_tray.tray_icon().set_visible(False)
+        Data.system_tray.set_visible(False)
         return
     if update_available:
-        Data.system_tray.tray_icon().set_visible(True)
+        Data.system_tray.set_visible(True)
         notifier = UpdateNotifier()
         notifier.notify()
     elif is_major_upgrade_available() and Data.do_not_upgrade is False:
@@ -119,11 +119,11 @@ def update_tray():
         Data.upgrade_type = 'major'
         Data.current_version = get_current_version()
         Data.new_version = get_version(Data.new_abi)
-        Data.system_tray.tray_icon().set_visible(True)
+        Data.system_tray.set_visible(True)
         notifier = UpdateNotifier()
         notifier.notify()
     else:
-        Data.system_tray.tray_icon().set_visible(False)
+        Data.system_tray.set_visible(False)
 
 
 def threading_update():
@@ -147,7 +147,7 @@ def check():
                 if not updating():
                     GLib.idle_add(update_tray)
                 else:
-                    GLib.idle_add(Data.system_tray.tray_icon().set_visible, False)
+                    GLib.idle_add(Data.system_tray.set_visible, False)
         # Wait for an hour to look for updates
         sleep(3600)
 
