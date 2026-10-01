@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 20:52-0300\n"
+"POT-Creation-Date: 2026-09-23 18:36-0300\n"
 "PO-Revision-Date: 2025-11-13 20:55+0000\n"
 "Last-Translator: Fabio Tomat <f.t.public@gmail.com>\n"
 "Language-Team: Friulian <f.t.public@gmail.com>\n"
@@ -37,7 +37,7 @@ msgstr "Detai"
 #: update_station/dialog.py:155 update_station/dialog.py:185
 #: update_station/dialog.py:216 update_station/dialog.py:247
 #: update_station/dialog.py:280 update_station/dialog.py:306
-#: update_station/frontend.py:141 update_station/frontend.py:839
+#: update_station/frontend.py:141 update_station/frontend.py:866
 msgid "Close"
 msgstr "Siere"
 
@@ -137,171 +137,178 @@ msgstr ""
 msgid "Updates available!"
 msgstr "Inzornaments disponibii!"
 
-#: update_station/frontend.py:207
+#: update_station/frontend.py:182
+msgid ""
+"This upgrade will be installed in a new boot environment. The system will "
+"reboot into it when done."
+msgstr ""
+
+#: update_station/frontend.py:214
 msgid "Installed packages to be upgraded:"
 msgstr "Pachets instalâts che a vignaran incementâts di version:"
 
-#: update_station/frontend.py:213
+#: update_station/frontend.py:220
 msgid "Installed packages to be downgraded:"
 msgstr "Pachets instalâts di regredî di version:"
 
-#: update_station/frontend.py:219
+#: update_station/frontend.py:226
 msgid "New packages to be installed:"
 msgstr "Gnûfs pachets di instalâ:"
 
-#: update_station/frontend.py:225
+#: update_station/frontend.py:232
 msgid "Installed packages to be reinstalled:"
 msgstr "Pachets instalâts di tornâ a instalâ:"
 
-#: update_station/frontend.py:231
+#: update_station/frontend.py:238
 msgid "Installed packages to be removed:"
 msgstr "Pachets instalâts di gjavâ:"
 
-#: update_station/frontend.py:276
+#: update_station/frontend.py:283
 msgid "Installing Update"
 msgstr "Instalazion dal inzornament"
 
-#: update_station/frontend.py:378
+#: update_station/frontend.py:385
 msgid "Package updates downloaded"
 msgstr "Inzornaments dai pachets discjariâts"
 
-#: update_station/frontend.py:381
+#: update_station/frontend.py:388
 msgid "Installing package updates"
 msgstr "Daûr a instalâ i inzornaments dai pachets"
 
-#: update_station/frontend.py:406
+#: update_station/frontend.py:413
 msgid "Removed"
 msgstr ""
 
-#: update_station/frontend.py:408
+#: update_station/frontend.py:415
 msgid "will reinstall after upgrade"
 msgstr ""
 
-#: update_station/frontend.py:415
+#: update_station/frontend.py:422
 msgid "Software packages upgrade completed"
 msgstr "Increment di version dai pachets software completât"
 
-#: update_station/frontend.py:423
+#: update_station/frontend.py:430
 msgid "Reinstalling"
 msgstr "Daûr a tornâ a instalâ"
 
-#: update_station/frontend.py:444
+#: update_station/frontend.py:451
 msgid "Fetching package updates"
 msgstr "Daûr a recuperâ i inzornaments dai pachets"
 
-#: update_station/frontend.py:479
+#: update_station/frontend.py:495
 #, fuzzy
 msgid "Bootstrapping pkg in new boot environment"
 msgstr "Daûr a creâ l'ambient di inviament"
 
-#: update_station/frontend.py:493
+#: update_station/frontend.py:511
 #, fuzzy
 msgid "Fetching base system packages"
 msgstr "Daûr a otignî la liste dai pachets"
 
-#: update_station/frontend.py:498
+#: update_station/frontend.py:516
 #, fuzzy
 msgid "Fetching software packages"
 msgstr "Daûr a recuperâ i inzornaments dai pachets"
 
-#: update_station/frontend.py:512
+#: update_station/frontend.py:532
 #, fuzzy
 msgid "Installing base system packages"
 msgstr "Daûr a instalâ i inzornaments dai pachets"
 
-#: update_station/frontend.py:517
+#: update_station/frontend.py:537
 #, fuzzy
 msgid "Installing software packages"
 msgstr "Daûr a instalâ i inzornaments dai pachets"
 
-#: update_station/frontend.py:530
+#: update_station/frontend.py:550
 #, fuzzy
 msgid "Unmounting boot environment"
 msgstr "Daûr a creâ l'ambient di inviament"
 
-#: update_station/frontend.py:533
+#: update_station/frontend.py:553
 #, fuzzy
 msgid "Activating new boot environment"
 msgstr "Daûr a creâ l'ambient di inviament"
 
-#: update_station/frontend.py:547
+#: update_station/frontend.py:567
 msgid "Cleaning old boot environment"
 msgstr "Daûr a netâ vie l'ambient di inviament vecjo"
 
-#: update_station/frontend.py:552
+#: update_station/frontend.py:572
 msgid "Creating boot environment"
 msgstr "Daûr a creâ l'ambient di inviament"
 
-#: update_station/frontend.py:565
+#: update_station/frontend.py:585
 #, fuzzy
 msgid "Mounting boot environment"
 msgstr "Daûr a creâ l'ambient di inviament"
 
-#: update_station/frontend.py:663
+#: update_station/frontend.py:688
 msgid "Looking For Updates"
 msgstr "Daûr a cirî inzornaments"
 
-#: update_station/frontend.py:703
+#: update_station/frontend.py:728
 msgid "Checking if the repository is online"
 msgstr "Daûr a verificâ che il dipuesit al sedi in linie"
 
-#: update_station/frontend.py:707
+#: update_station/frontend.py:732
 msgid "The repository is online"
 msgstr "Il dipuesit al è in linie"
 
-#: update_station/frontend.py:711
+#: update_station/frontend.py:736
 msgid "The mirror is Syncing"
 msgstr "Il servidôr spieli si sta sincronizant"
 
-#: update_station/frontend.py:715
+#: update_station/frontend.py:740
 msgid "Updates are already running"
 msgstr "I inzornaments a son za in cors"
 
-#: update_station/frontend.py:719
+#: update_station/frontend.py:744
 msgid "Checking for updates"
 msgstr "Daûr a controlâ la presince di inzornaments"
 
-#: update_station/frontend.py:722
+#: update_station/frontend.py:747
 msgid "Getting the list of packages"
 msgstr "Daûr a otignî la liste dai pachets"
 
-#: update_station/frontend.py:726
+#: update_station/frontend.py:751
 msgid "Open the update window"
 msgstr "Vierç il barcon dai inzornaments"
 
-#: update_station/frontend.py:739
+#: update_station/frontend.py:766
 msgid "No update found"
 msgstr "Nissun inzornament cjatât"
 
-#: update_station/frontend.py:746
+#: update_station/frontend.py:773
 msgid "The Mirror is unreachable"
 msgstr "Impussibil contatâ il servidôr spieli"
 
-#: update_station/frontend.py:771
+#: update_station/frontend.py:798
 msgid "Software updates are now available."
 msgstr "I inzornaments software a son cumò disponibii."
 
-#: update_station/frontend.py:779
+#: update_station/frontend.py:806
 msgid "Major system version upgrade is now available."
 msgstr "Cumò al è disponibil un increment principâl de version dal sisteme."
 
-#: update_station/frontend.py:781
-msgid "System and software updates are now available."
-msgstr "In chest moment a son disponibii inzornaments software e di sisteme."
+#: update_station/frontend.py:808
+#, fuzzy, python-brace-format
+msgid "System upgrade to {} is now available."
+msgstr "Cumò al è disponibil un increment principâl de version dal sisteme."
 
-#: update_station/frontend.py:783 update_station/frontend.py:823
+#: update_station/frontend.py:810 update_station/frontend.py:850
 msgid "Update Available"
 msgstr "Inzornament disponibil"
 
-#: update_station/frontend.py:837
+#: update_station/frontend.py:864
 msgid "Open Update"
 msgstr "Vierç inzornament"
 
-#: update_station/frontend.py:882
+#: update_station/frontend.py:909
 msgid "Major version upgrade"
 msgstr "Increment principâl di version"
 
-#: update_station/frontend.py:890
+#: update_station/frontend.py:917
 #, python-brace-format
 msgid ""
 "Would you like to upgrade from {current} to {new}?\n"
@@ -309,13 +316,17 @@ msgid ""
 "If you select No, you will not be asked again until the next boot."
 msgstr ""
 
-#: update_station/frontend.py:897
+#: update_station/frontend.py:924
 msgid "Yes"
 msgstr ""
 
-#: update_station/frontend.py:901
+#: update_station/frontend.py:928
 msgid "No"
 msgstr ""
+
+#~ msgid "System and software updates are now available."
+#~ msgstr ""
+#~ "In chest moment a son disponibii inzornaments software e di sisteme."
 
 #~ msgid ""
 #~ "\n"

@@ -24,7 +24,8 @@ from update_station.dialog import (
     RestartSystem
 )
 from update_station.backend import (
-    check_for_update,
+    find_updates,
+    reboot_is_pending,
     get_pkg_upgrade_data,
     unlock_update_station,
     updating,
@@ -93,7 +94,7 @@ class UpdateWindow:
                 Data.stop_pkg_refreshing = False
                 if updating():
                     unlock_update_station()
-                Data.system_tray.tray_icon().set_visible(True)
+                Data.system_tray.set_visible(True)
 
     def start_update(self, _widget):
         """
@@ -131,7 +132,7 @@ class UpdateWindow:
         backup_checkbox.connect("toggled", self.if_backup)
         if bectl.is_file_system_zfs() and Data.second_update is False:
             backup_checkbox.set_active(True)
-            backup_checkbox.set_sensitive(not Data.major_upgrade)
+            backup_checkbox.set_sensitive(not Data.be_upgrade())
             Data.backup = True
         else:
             backup_checkbox.set_active(False)
@@ -167,7 +168,7 @@ class UpdateWindow:
         vbox1.pack_start(vbox2, True, True, 0)
         vbox2.show()
         # Title
-        if Data.major_upgrade:
+        if Data.be_upgrade():
             title_text = _("Upgrade to {}").format(Data.new_version)
         else:
             title_text = _("Updates available!")
@@ -177,6 +178,13 @@ class UpdateWindow:
         )
         update_title_label.set_use_markup(True)
         vbox2.pack_start(update_title_label, False, False, 0)
+        if Data.be_upgrade():
+            be_note_label = Gtk.Label(
+                label=_("This upgrade will be installed in a new boot environment. "
+                        "The system will reboot into it when done.")
+            )
+            be_note_label.set_line_wrap(True)
+            vbox2.pack_start(be_note_label, False, False, 5)
         self.tree_store = Gtk.TreeStore(str, bool)
         sw = Gtk.ScrolledWindow()
         sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
@@ -326,12 +334,12 @@ class InstallUpdate:
 
     @classmethod
     def process_output(
-        cls, command: str, progress: Gtk.ProgressBar, fraction: float
+        cls, command: list, progress: Gtk.ProgressBar, fraction: float
     ) -> tuple:
         """
         Run a command and read its stdout line by line, updating the progress bar.
 
-        :param command: The shell command to run.
+        :param command: The command and its arguments as a list.
         :param progress: The progress bar.
         :param fraction: The fraction to increment the progress bar.
         :return: A tuple of (returncode, stdout_text, stderr_text).
@@ -357,15 +365,15 @@ class InstallUpdate:
         Check if only the pkg package itself is being updated.
 
         :return: A tuple of (update_pkg, packages) where update_pkg is True
-                 if only pkg is being updated and packages is the package string.
+                 if only pkg is being updated and packages is the package list.
         """
         if len(Data.packages_dictionary['upgrade']) == 1 and 'pkg:' in Data.packages_dictionary['upgrade'][0]:
             Data.second_update = True
-            return True, ' pkg'
+            return True, ['pkg']
         Data.second_update = False
-        return False, ''
+        return False, []
 
-    def install_packages(self, option: str, packages: str, progress: Gtk.ProgressBar, fraction: float) -> bool:
+    def install_packages(self, option: str, packages: list, progress: Gtk.ProgressBar, fraction: float) -> bool:
         """
         Install package updates with retry logic for temporary file failures.
 
@@ -385,18 +393,18 @@ class InstallUpdate:
         max_retries = 5
         for _retry in range(max_retries):
             return_code, install_text, stderr_text = self.process_output(
-                f'pkg-static upgrade -y{option}{packages}',
+                ['pkg-static', 'upgrade', f'-y{option}'] + packages,
                 progress, fraction
             )
             if return_code == 3 and 'Fail to create temporary file' in stderr_text:
                 raw_line = install_text.splitlines()[-2]
                 failed_package = raw_line.split()[2].replace(':', '')
                 rquery = command_output(
-                    f'pkg-static rquery -x "%n" "{failed_package}"'
+                    ['pkg-static', 'rquery', '-x', '%n', failed_package]
                 )
                 package_name = rquery.stdout.read().strip()
                 return_code, delete_text, stderr_text = self.process_output(
-                    f'pkg-static delete -y {package_name}',
+                    ['pkg-static', 'delete', '-y', package_name],
                     progress, fraction
                 )
                 if return_code != 0:
@@ -423,7 +431,7 @@ class InstallUpdate:
             progress_message = _("Reinstalling") + f" {package_name}"
             GLib.idle_add(update_progress, progress, fraction, progress_message)
             return_code, reinstall_text, stderr_text = self.process_output(
-                f'pkg-static install -y {package_name}',
+                ['pkg-static', 'install', '-y', package_name],
                 progress, fraction
             )
             if return_code != 0:
@@ -431,7 +439,7 @@ class InstallUpdate:
                 return False
         return return_code == 0
 
-    def fetch_packages(self, option: str, packages: str, progress: Gtk.ProgressBar, fraction: float) -> bool:
+    def fetch_packages(self, option: str, packages: list, progress: Gtk.ProgressBar, fraction: float) -> bool:
         """
         Fetch package updates.
 
@@ -445,7 +453,7 @@ class InstallUpdate:
         GLib.idle_add(update_progress, progress, fraction, progress_message)
         sleep(1)
         return_code, stdout_text, stderr_text = self.process_output(
-            f'pkg-static upgrade -Fy{option}{packages}',
+            ['pkg-static', 'upgrade', f'-Fy{option}'] + packages,
             progress, fraction
         )
         if return_code != 0:
@@ -455,7 +463,7 @@ class InstallUpdate:
 
     def run_upgrade_step(self, proc, progress: Gtk.ProgressBar, fraction: float) -> bool:
         """
-        Run a major upgrade step, logging failure output.
+        Run a boot environment upgrade step, logging failure output.
 
         :param proc: The Popen process object.
         :param progress: The progress bar.
@@ -468,7 +476,7 @@ class InstallUpdate:
             return False
         return True
 
-    def bootstrap_major_upgrade(self, progress: Gtk.ProgressBar, fraction: float) -> bool:
+    def bootstrap_be_upgrade(self, progress: Gtk.ProgressBar, fraction: float) -> bool:
         """
         Bootstrap pkg in the upgrade boot environment.
 
@@ -478,49 +486,53 @@ class InstallUpdate:
         """
         progress_message = _("Bootstrapping pkg in new boot environment")
         GLib.idle_add(update_progress, progress, fraction, progress_message)
-        proc = bootstrap_pkg_in_be(Data.be_mount_path, Data.new_abi)
+        proc = bootstrap_pkg_in_be(Data.be_mount_path, Data.upgrade_abi())
         return self.run_upgrade_step(proc, progress, fraction)
 
-    def fetch_major_upgrade(self, base_package_list: list, progress: Gtk.ProgressBar, fraction: float) -> bool:
+    def fetch_be_upgrade(self, base_package_list: list, progress: Gtk.ProgressBar, fraction: float) -> bool:
         """
-        Fetch base and software packages for a major upgrade in the boot environment.
+        Fetch base and software packages for the upgrade in the boot environment.
 
         :param base_package_list: List of base package names to fetch.
         :param progress: The progress bar.
         :param fraction: The fraction to increment the progress bar.
         :return: True if fetch succeeded, False otherwise.
         """
+        new_abi = Data.upgrade_abi()
+        force = Data.force_reinstall()
         progress_message = _("Fetching base system packages")
         GLib.idle_add(update_progress, progress, fraction, progress_message)
-        proc = fetch_base_packages_in_be(Data.be_mount_path, Data.new_abi, base_package_list)
+        proc = fetch_base_packages_in_be(Data.be_mount_path, base_package_list, new_abi=new_abi, force=force)
         if not self.run_upgrade_step(proc, progress, fraction):
             return False
         progress_message = _("Fetching software packages")
         GLib.idle_add(update_progress, progress, fraction, progress_message)
-        proc = fetch_software_packages_in_be(Data.be_mount_path, Data.new_abi)
+        proc = fetch_software_packages_in_be(Data.be_mount_path, new_abi=new_abi, force=force)
         return self.run_upgrade_step(proc, progress, fraction)
 
-    def install_major_upgrade(self, base_package_list: list, progress: Gtk.ProgressBar, fraction: float) -> bool:
+    def install_be_upgrade(self, base_package_list: list, progress: Gtk.ProgressBar, fraction: float) -> bool:
         """
-        Install base and software packages for a major upgrade in the boot environment.
+        Install base and software packages for the upgrade in the boot environment.
 
         :param base_package_list: List of base package names to install.
         :param progress: The progress bar.
         :param fraction: The fraction to increment the progress bar.
         :return: True if install succeeded, False otherwise.
         """
+        new_abi = Data.upgrade_abi()
+        force = Data.force_reinstall()
         progress_message = _("Installing base system packages")
         GLib.idle_add(update_progress, progress, fraction, progress_message)
-        proc = upgrade_base_packages_in_be(Data.be_mount_path, Data.new_abi, base_package_list)
+        proc = upgrade_base_packages_in_be(Data.be_mount_path, base_package_list, new_abi=new_abi, force=force)
         if not self.run_upgrade_step(proc, progress, fraction):
             return False
         progress_message = _("Installing software packages")
         GLib.idle_add(update_progress, progress, fraction, progress_message)
-        proc = upgrade_software_packages_in_be(Data.be_mount_path, Data.new_abi)
+        proc = upgrade_software_packages_in_be(Data.be_mount_path, new_abi=new_abi, force=force)
         return self.run_upgrade_step(proc, progress, fraction)
 
     @classmethod
-    def finalize_major_upgrade(cls, progress: Gtk.ProgressBar, fraction: float) -> None:
+    def finalize_be_upgrade(cls, progress: Gtk.ProgressBar, fraction: float) -> None:
         """
         Unmount and activate the upgrade boot environment.
 
@@ -540,14 +552,14 @@ class InstallUpdate:
         """
         Clean old boot environments and create a new boot environment.
 
-        :param upgrade: True if major upgrade, False otherwise.
+        :param upgrade: True if the upgrade is installed in the new boot environment, False for a backup.
         :param progress: The progress bar.
         :param fraction: The fraction to increment the progress bar.
         """
         progress_message = _("Cleaning old boot environment")
         GLib.idle_add(update_progress, progress, fraction, progress_message)
         cleanup_old_backups()
-        version = get_version(Data.new_abi) if upgrade else get_current_version()
+        version = Data.new_version if upgrade else get_current_version()
         Data.be_name = create_be(version, upgrade=upgrade)
         progress_message = _("Creating boot environment")
         progress_message += f" {Data.be_name}"
@@ -576,29 +588,29 @@ class InstallUpdate:
         fail = False
         reboot = self.needs_reboot()
         update_pkg, packages = self.is_pkg_only_update()
-        option = 'f' if Data.kernel_upgrade else ''
+        option = 'f' if Data.force_reinstall() else ''
         howmany = (Data.packages_dictionary['total_of_packages'] * 7) + 45
         fraction = 1.0 / howmany
-        if Data.major_upgrade:
+        if Data.be_upgrade():
             self.prepare_boot_environment(True, progress, fraction)
             self.mount_upgrade_be(progress, fraction)
-            if not self.bootstrap_major_upgrade(progress, fraction):
+            if not self.bootstrap_be_upgrade(progress, fraction):
                 cleanup_failed_upgrade_be(Data.be_name)
                 GLib.idle_add(self.win.destroy)
                 GLib.idle_add(self.stop_tread, True, update_pkg, True)
                 return
-            base_package_list = fetch_base_packagelist(Data.new_abi)
-            if not self.fetch_major_upgrade(base_package_list, progress, fraction):
+            base_package_list = fetch_base_packagelist(Data.upgrade_abi())
+            if not self.fetch_be_upgrade(base_package_list, progress, fraction):
                 cleanup_failed_upgrade_be(Data.be_name)
                 GLib.idle_add(self.win.destroy)
                 GLib.idle_add(self.stop_tread, True, update_pkg, True)
                 return
-            if not self.install_major_upgrade(base_package_list, progress, fraction):
+            if not self.install_be_upgrade(base_package_list, progress, fraction):
                 cleanup_failed_upgrade_be(Data.be_name)
                 GLib.idle_add(self.win.destroy)
                 GLib.idle_add(self.stop_tread, True, update_pkg, True)
                 return
-            self.finalize_major_upgrade(progress, fraction)
+            self.finalize_be_upgrade(progress, fraction)
             GLib.idle_add(self.win.destroy)
             GLib.idle_add(self.stop_tread, False, update_pkg, True)
             return
@@ -621,11 +633,17 @@ class InstallUpdate:
         """
         if updating():
             unlock_update_station()
+        be_upgrade = Data.be_upgrade()
+        if be_upgrade:
+            # The boot environment is unmounted and either activated or destroyed by now.
+            Data.be_name = ''
+            Data.be_mount_path = ''
+            Data.upgrade_type = 'none'
         if fail:
             Data.update_started = False
             Data.stop_pkg_refreshing = False
             FailedUpdate()
-        elif update_pkg and check_for_update() is True:
+        elif update_pkg and not be_upgrade and find_updates() is True:
             Data.packages_dictionary = get_pkg_upgrade_data()
             StartCheckUpdate()
         else:
@@ -699,6 +717,11 @@ class StartCheckUpdate:
         The function to check for update and update the progress bar.
         :param progress: The progress bar.
         """
+        if reboot_is_pending():
+            # An upgrade is already installed in a boot environment, so ask for the reboot
+            # instead of looking for updates the running system would install a second time.
+            GLib.idle_add(self.stop_tread, RestartSystem)
+            return
         GLib.idle_add(self.update_progress, progress,
                       _('Checking if the repository is online'))
         sleep(1)
@@ -717,7 +740,7 @@ class StartCheckUpdate:
             else:
                 GLib.idle_add(self.update_progress, progress,
                               _('Checking for updates'))
-                if update_available := check_for_update():
+                if update_available := find_updates():
                     GLib.idle_add(self.update_progress, progress,
                                   _('Getting the list of packages'))
                     Data.packages_dictionary = get_pkg_upgrade_data()
@@ -728,9 +751,11 @@ class StartCheckUpdate:
                 elif update_available is not None:
                     # No regular updates, check for major upgrade
                     if is_major_upgrade_available() and Data.do_not_upgrade is False:
-                        Data.major_upgrade = True
+                        # The new ABI has to be known before the upgrade type becomes major,
+                        # because from that point on every pkg command is run against it.
                         Data.current_abi = get_current_abi()
                         Data.new_abi = get_abi_upgrade()
+                        Data.upgrade_type = 'major'
                         Data.current_version = get_current_version()
                         Data.new_version = get_version(Data.new_abi)
                         GLib.idle_add(self.stop_tread, MajorUpgradeWindow)
@@ -775,10 +800,10 @@ class UpdateNotifier:
         """
         Function that creates the notification for the update.
         """
-        if Data.major_upgrade:
+        if Data.upgrade_type == 'major':
             self.msg = _("Major system version upgrade is now available.")
-        elif Data.kernel_upgrade:
-            self.msg = _("System and software updates are now available.")
+        elif Data.be_upgrade():
+            self.msg = _("System upgrade to {} is now available.").format(Data.new_version)
         self.notification = Notify.Notification().new(
             summary=_('Update Available'),
             body=self.msg,
@@ -794,12 +819,12 @@ class UpdateNotifier:
         :param _action_name: The name of the action.
         """
         Data.stop_pkg_refreshing = True
-        if Data.major_upgrade:
+        if Data.upgrade_type == 'major':
             MajorUpgradeWindow()
         else:
             StartCheckUpdate()
         notification.close()
-        GLib.idle_add(Data.system_tray.tray_icon().set_visible, False)
+        GLib.idle_add(Data.system_tray.set_visible, False)
 
 
 class TrayIcon:
@@ -807,25 +832,33 @@ class TrayIcon:
     The class for the tray icon.
     """
 
-    def tray_icon(self):
-        """
-        Return the status icon widget.
-
-        :return: The GTK StatusIcon.
-        """
-        return self.status_icon
-
     def __init__(self):
         """
         The constructor for the TrayIcon class.
         """
+        self.status_icon = None
+        self.menu = None
+
+    def set_visible(self, visible: bool):
+        """
+        Show or hide the tray icon.
+
+        The icon is built when it is shown and released when it is hidden
+        rather than toggling Gtk.StatusIcon.set_visible(). Hiding a status
+        icon and showing it again re-embeds it in the panel, which leaves
+        the panel with a gap and makes GTK thaw a window it never froze.
+
+        :param visible: True to show the icon, False to hide it.
+        """
+        if not visible:
+            self.status_icon = None
+            return
+        if self.status_icon is not None:
+            return
         self.status_icon = Gtk.StatusIcon()
         self.status_icon.set_tooltip_text(_('Update Available'))
-        self.menu = Gtk.Menu()
-        self.menu.show_all()
         self.status_icon.connect("activate", self.left_click)
         self.status_icon.connect('popup-menu', self.icon_clicked)
-        self.status_icon.set_visible(False)
         self.status_icon.set_from_icon_name('system-software-update')
 
     def nm_menu(self):
@@ -843,21 +876,20 @@ class TrayIcon:
         self.menu.show_all()
         return self.menu
 
-    @classmethod
-    def left_click(cls, status_icon: Gtk.StatusIcon):
+    def left_click(self, _widget: Gtk.Widget):
         """
         Function that is called when the user left-clicks on the tray icon.
-        :param status_icon: The status icon.
+        :param _widget: The status icon, or the menu item that was activated.
         """
         if updating():
             UpdateStationOpen()
         else:
             Data.stop_pkg_refreshing = True
-            if Data.major_upgrade:
+            if Data.upgrade_type == 'major':
                 MajorUpgradeWindow()
             else:
                 StartCheckUpdate()
-        status_icon.set_visible(False)
+        self.set_visible(False)
 
     def icon_clicked(self, status_icon, button, time):
         """
@@ -908,7 +940,7 @@ class MajorUpgradeWindow(Gtk.Window):
         Function that starts the upgrade when Yes is clicked.
         :param _widget: The widget that was clicked.
         """
-        Data.major_upgrade = True
+        Data.upgrade_type = 'major'
         Data.do_not_upgrade = False
         StartCheckUpdate()
         self.destroy()
@@ -918,7 +950,7 @@ class MajorUpgradeWindow(Gtk.Window):
         Function that declines the upgrade when No is clicked.
         :param _widget: The widget that was clicked.
         """
-        Data.major_upgrade = False
+        Data.upgrade_type = 'none'
         Data.do_not_upgrade = True
         self.destroy()
 
