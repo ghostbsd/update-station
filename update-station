@@ -21,8 +21,6 @@ from update_station.data import Data
 from update_station.backend import (
     find_updates,
     reboot_is_pending,
-    unlock_update_station,
-    updating,
     repository_is_syncing,
     is_major_upgrade_available,
     get_abi_upgrade,
@@ -130,8 +128,6 @@ def threading_update():
     """
     Function that creates a thread that checks for updates.
     """
-    if updating():
-        unlock_update_station()
     thr = threading.Thread(target=check, daemon=True)
     thr.start()
 
@@ -144,7 +140,7 @@ def check():
         sleep(120)
         if not repository_is_syncing():
             if not Data.stop_pkg_refreshing:
-                if not updating():
+                if not Data.updating:
                     GLib.idle_add(update_tray)
                 else:
                     GLib.idle_add(Data.system_tray.set_visible, False)
