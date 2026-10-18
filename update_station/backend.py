@@ -457,39 +457,17 @@ def fetch_base_packages_in_be(mount_path: str, package_list: list, new_abi: str 
     return upgrade_packages_in_be(mount_path, pkg_option(True, force), new_abi, package_list, 'install')
 
 
-def get_software_packages_in_be(mount_path: str, base_package_list: list, force: bool) -> list:
-    """
-    Get the packages the software step must handle in the mounted boot environment.
-
-    A forced upgrade with no package names reinstalls every installed package, which would
-    extract the base packages a second time, so they are left out by name.
-
-    :param mount_path: The mount path of the boot environment.
-    :param base_package_list: List of base package names handled by the base step.
-    :param force: True if packages are reinstalled even if they are already up to date.
-
-    :return: List of package names, empty to upgrade all packages.
-    """
-    if not force:
-        return []
-    installed = run_command(['pkg-static', '-r', mount_path, 'query', '%n']).stdout.split()
-    return [package for package in installed if package not in base_package_list]
-
-
-def fetch_software_packages_in_be(mount_path: str, base_package_list: list, new_abi: str = None,
-                                  force: bool = False) -> Popen:
+def fetch_software_packages_in_be(mount_path: str, new_abi: str = None, force: bool = False) -> Popen:
     """
     Fetch all remaining software packages in the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
-    :param base_package_list: List of base package names fetched by the base step.
     :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
     :param force: If True, fetch packages even if they are already up to date.
 
     :return: The Popen process object for live output streaming.
     """
-    package_list = get_software_packages_in_be(mount_path, base_package_list, force)
-    return upgrade_packages_in_be(mount_path, pkg_option(True, force), new_abi, package_list)
+    return upgrade_packages_in_be(mount_path, pkg_option(True, force), new_abi)
 
 
 def upgrade_base_packages_in_be(mount_path: str, package_list: list, new_abi: str = None,
@@ -510,20 +488,17 @@ def upgrade_base_packages_in_be(mount_path: str, package_list: list, new_abi: st
     return upgrade_packages_in_be(mount_path, pkg_option(False, force), new_abi, package_list, 'install')
 
 
-def upgrade_software_packages_in_be(mount_path: str, base_package_list: list, new_abi: str = None,
-                                    force: bool = False) -> Popen:
+def upgrade_software_packages_in_be(mount_path: str, new_abi: str = None, force: bool = False) -> Popen:
     """
     Install all remaining software packages in the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
-    :param base_package_list: List of base package names installed by the base step.
     :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
     :param force: If True, reinstall packages even if they are already up to date.
 
     :return: The Popen process object for live output streaming.
     """
-    package_list = get_software_packages_in_be(mount_path, base_package_list, force)
-    return upgrade_packages_in_be(mount_path, pkg_option(False, force), new_abi, package_list)
+    return upgrade_packages_in_be(mount_path, pkg_option(False, force), new_abi)
 
 
 def mount_devfs_in_be(mount_path: str) -> CompletedProcess:
@@ -537,13 +512,15 @@ def mount_devfs_in_be(mount_path: str) -> CompletedProcess:
     return run_command(['mount', '-t', 'devfs', 'devfs', f'{mount_path}/dev'])
 
 
-def umount_devfs_in_be(mount_path: str) -> None:
+def umount_devfs_in_be(mount_path: str) -> CompletedProcess:
     """
     Unmount devfs from the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
+
+    :return: The CompletedProcess object.
     """
-    run_command(['umount', f'{mount_path}/dev'])
+    return run_command(['umount', f'{mount_path}/dev'])
 
 
 def run_triggers_in_be(mount_path: str) -> Popen:

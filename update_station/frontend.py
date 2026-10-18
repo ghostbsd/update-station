@@ -546,7 +546,7 @@ class InstallUpdate:
             return False
         progress_message = _("Fetching software packages")
         GLib.idle_add(update_progress, progress, fraction, progress_message)
-        proc = fetch_software_packages_in_be(Data.be_mount_path, base_package_list, new_abi=new_abi, force=force)
+        proc = fetch_software_packages_in_be(Data.be_mount_path, new_abi=new_abi, force=force)
         return self.run_upgrade_step(proc, progress, fraction)
 
     def install_be_upgrade(self, base_package_list: list, progress: Gtk.ProgressBar, fraction: float) -> bool:
@@ -567,7 +567,7 @@ class InstallUpdate:
             return False
         progress_message = _("Installing software packages")
         GLib.idle_add(update_progress, progress, fraction, progress_message)
-        proc = upgrade_software_packages_in_be(Data.be_mount_path, base_package_list, new_abi=new_abi, force=force)
+        proc = upgrade_software_packages_in_be(Data.be_mount_path, new_abi=new_abi, force=force)
         return self.run_upgrade_step(proc, progress, fraction)
 
     def run_be_triggers(self, progress: Gtk.ProgressBar, fraction: float) -> bool:
@@ -586,7 +586,10 @@ class InstallUpdate:
             return False
         proc = run_triggers_in_be(Data.be_mount_path)
         succeeded = self.run_upgrade_step(proc, progress, fraction)
-        umount_devfs_in_be(Data.be_mount_path)
+        unmounted = umount_devfs_in_be(Data.be_mount_path)
+        if unmounted.returncode != 0:
+            self.log_failure(unmounted.stdout + unmounted.stderr)
+            return False
         return succeeded
 
     @classmethod
