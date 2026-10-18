@@ -15,7 +15,6 @@ from subprocess import Popen, PIPE, call, run, CompletedProcess
 lib_path: str = f'{sys.prefix}/lib/update-station'
 update_station_db: str = '/var/db/update-station'
 pkg_lock_file: str = f'{update_station_db}/lock-pkgs'
-updates_run: str = '/tmp/update-station'
 
 
 def read_file(file_path: str) -> str:
@@ -42,6 +41,14 @@ def get_detail(*args) -> None:
     :return:
     """
     Popen(['sudo', '-u', Data.username, 'xdg-open', f'{Data.home}/update.failed'])
+
+
+def remove_failure_log() -> None:
+    """
+    Remove the upgrade failure log.
+    """
+    if os.path.exists(f'{Data.home}/update.failed'):
+        os.remove(f'{Data.home}/update.failed')
 
 
 def build_env(env: dict = None) -> dict:
@@ -380,24 +387,58 @@ def bootstrap_pkg_in_be(mount_path: str, new_abi: str = None) -> Popen:
     return command_output(['pkg-static', '-r', mount_path, 'bootstrap', '-f'], env=env)
 
 
-def upgrade_packages_in_be(mount_path: str, fetch_only: bool, force: bool, new_abi: str = None,
-                           package_list: list = None) -> Popen:
+def get_packages_outside_be() -> list:
+    """
+    Get the installed packages whose files live in datasets that are not part of a boot environment.
+
+    /usr/ports and /usr/src are separate datasets, so in a mounted boot environment they are empty
+    and these packages cannot be upgraded there.
+
+    :return: List of installed package names.
+    """
+    packages = ['ports', 'GhostBSD-src', 'GhostBSD-src-sys']
+    return [package for package in packages if run(['pkg', 'info', '-e', package], check=False).returncode == 0]
+
+
+def delete_packages(packages: list) -> Popen:
+    """
+    Delete packages from the running system.
+
+    :param packages: List of package names to delete.
+
+    :return: The Popen process object for live output streaming.
+    """
+    return command_output(['pkg-static', 'delete', '-y'] + packages)
+
+
+def pkg_option(fetch_only: bool, force: bool) -> str:
+    """
+    Build the pkg install or upgrade option.
+
+    :param fetch_only: If True, only fetch the packages without installing them.
+    :param force: If True, reinstall packages even if they are already up to date.
+
+    :return: The option, e.g. "-Fyf".
+    """
+    option = '-Fy' if fetch_only else '-y'
+    return f'{option}f' if force else option
+
+
+def upgrade_packages_in_be(mount_path: str, option: str, new_abi: str = None,
+                           package_list: list = None, subcommand: str = 'upgrade') -> Popen:
     """
     Fetch or install package upgrades in the mounted boot environment.
 
     :param mount_path: The mount path of the boot environment.
-    :param fetch_only: If True, only fetch the packages without installing them.
-    :param force: If True, reinstall packages even if they are already up to date.
+    :param option: The option from pkg_option().
     :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
     :param package_list: Optional list of package names. If empty, upgrades all packages.
+    :param subcommand: 'upgrade' for installed packages, 'install' to also add listed packages that are missing.
 
     :return: The Popen process object for live output streaming.
     """
     env = {'ABI': new_abi} if new_abi else None
-    option = '-Fy' if fetch_only else '-y'
-    if force:
-        option += 'f'
-    command = ['pkg-static', '-r', mount_path, 'upgrade', option] + (package_list or [])
+    command = ['pkg-static', '-r', mount_path, subcommand, option] + (package_list or [])
     return command_output(command, env=env)
 
 
@@ -413,7 +454,7 @@ def fetch_base_packages_in_be(mount_path: str, package_list: list, new_abi: str 
 
     :return: The Popen process object for live output streaming.
     """
-    return upgrade_packages_in_be(mount_path, True, force, new_abi, package_list)
+    return upgrade_packages_in_be(mount_path, pkg_option(True, force), new_abi, package_list, 'install')
 
 
 def fetch_software_packages_in_be(mount_path: str, new_abi: str = None, force: bool = False) -> Popen:
@@ -426,7 +467,7 @@ def fetch_software_packages_in_be(mount_path: str, new_abi: str = None, force: b
 
     :return: The Popen process object for live output streaming.
     """
-    return upgrade_packages_in_be(mount_path, True, force, new_abi)
+    return upgrade_packages_in_be(mount_path, pkg_option(True, force), new_abi)
 
 
 def upgrade_base_packages_in_be(mount_path: str, package_list: list, new_abi: str = None,
@@ -434,14 +475,17 @@ def upgrade_base_packages_in_be(mount_path: str, package_list: list, new_abi: st
     """
     Install base packages in the mounted boot environment.
 
+    pkg install is used rather than pkg upgrade so base packages added to the list since the
+    running release are installed instead of skipped as not installed.
+
     :param mount_path: The mount path of the boot environment.
-    :param package_list: List of base package names to upgrade.
+    :param package_list: List of base package names to install.
     :param new_abi: Optional new ABI string (e.g., "FreeBSD:15:amd64"). If None, uses the current ABI.
     :param force: If True, reinstall packages even if they are already up to date.
 
     :return: The Popen process object for live output streaming.
     """
-    return upgrade_packages_in_be(mount_path, False, force, new_abi, package_list)
+    return upgrade_packages_in_be(mount_path, pkg_option(False, force), new_abi, package_list, 'install')
 
 
 def upgrade_software_packages_in_be(mount_path: str, new_abi: str = None, force: bool = False) -> Popen:
@@ -454,7 +498,43 @@ def upgrade_software_packages_in_be(mount_path: str, new_abi: str = None, force:
 
     :return: The Popen process object for live output streaming.
     """
-    return upgrade_packages_in_be(mount_path, False, force, new_abi)
+    return upgrade_packages_in_be(mount_path, pkg_option(False, force), new_abi)
+
+
+def mount_devfs_in_be(mount_path: str) -> CompletedProcess:
+    """
+    Mount devfs in the mounted boot environment for commands run in a chroot.
+
+    :param mount_path: The mount path of the boot environment.
+
+    :return: The CompletedProcess object.
+    """
+    return run_command(['mount', '-t', 'devfs', 'devfs', f'{mount_path}/dev'])
+
+
+def umount_devfs_in_be(mount_path: str) -> CompletedProcess:
+    """
+    Unmount devfs from the mounted boot environment.
+
+    :param mount_path: The mount path of the boot environment.
+
+    :return: The CompletedProcess object.
+    """
+    return run_command(['umount', f'{mount_path}/dev'])
+
+
+def run_triggers_in_be(mount_path: str) -> Popen:
+    """
+    Run the pkg triggers deferred while installing in the boot environment.
+
+    pkg -r only saves triggers to the root's /var/db/pkg/triggers, so caches such as
+    gschemas.compiled would stay stale until the next pkg run on the new system.
+
+    :param mount_path: The mount path of the boot environment.
+
+    :return: The Popen process object for live output streaming.
+    """
+    return command_output(['chroot', mount_path, '/usr/local/sbin/pkg-static', 'triggers'])
 
 
 def umount_upgrade_be(be_name: str) -> None:
@@ -639,15 +719,6 @@ def lock_pkg(lock_pkg_list: list) -> None:
         call(['pkg', 'lock', '-y', line.strip()])
 
 
-def look_update_station() -> None:
-    """
-    Create a lock file to prevent multiple update at the same time.
-    """
-    if not os.path.exists(updates_run):
-        os.mkdir(updates_run)
-    open(f'{updates_run}/updating', 'w').close()
-
-
 def network_stat() -> str:
     """
     Check if the network is up.
@@ -702,21 +773,6 @@ def unlock_pkg(lock_pkg_list: list) -> None:
     """
     for line in lock_pkg_list:
         call(['pkg', 'unlock', '-y', line.strip()])
-
-
-def unlock_update_station() -> None:
-    """
-    Remove the lock file.
-    """
-    os.remove(f'{updates_run}/updating')
-
-
-def updating() -> bool:
-    """
-    Check if the system is updating.
-    :return: True if the system is updating else False.
-    """
-    return bool(os.path.exists(f'{updates_run}/updating'))
 
 
 # the code below is for upgrading to PKGBASE this will be removed in the future.

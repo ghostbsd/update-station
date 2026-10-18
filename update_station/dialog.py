@@ -3,7 +3,7 @@ import gettext
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from update_station.data import Data
-from update_station.backend import get_detail, on_reboot
+from update_station.backend import get_detail, on_reboot, remove_failure_log
 
 gettext.bindtextdomain('update-station', '/usr/local/share/locale')
 gettext.textdomain('update-station')
@@ -71,6 +71,17 @@ class FailedUpdate(BaseDialog):
         h_box.pack_end(continue_button, False, False, 5)
         h_box.pack_end(restart, False, False, 5)
         self.window.show_all()
+
+    def on_close(self, _widget: Gtk.Widget, _event=None) -> bool:
+        """
+        Remove the failure log and close the window.
+
+        :param _widget: The widget that triggered the event.
+        :param _event: The event object.
+        :return: True to prevent default GTK behavior.
+        """
+        remove_failure_log()
+        return super().on_close(_widget, _event)
 
 
 class RestartSystem(BaseDialog):

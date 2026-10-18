@@ -22,6 +22,7 @@ class Data:
         stop_pkg_refreshing: Boolean that indicates if the update-station should stop refreshing the packages.
         system_tray: Object that contains the system tray of the update-station.
         update_started: Boolean that indicates if the application has started updating the system.
+        updating: Boolean that prevents a second update while the update window or an update is open.
         upgrade_type: String that indicates the kind of upgrade installed in a new boot environment:
             'major' (FreeBSD ABI change), 'minor' (FreeBSD minor release change),
             'release' (GhostBSD release change only) or 'none' for in-place package updates.
@@ -42,6 +43,7 @@ class Data:
     stop_pkg_refreshing: bool = False
     system_tray = None
     update_started: bool = False
+    updating: bool = False
     upgrade_type: str = 'none'
     username: str = os.environ.get('SUDO_USER') if 'SUDO_USER' in os.environ else getpass.getuser()
 

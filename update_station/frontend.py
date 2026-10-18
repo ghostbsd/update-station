@@ -27,9 +27,6 @@ from update_station.backend import (
     find_updates,
     reboot_is_pending,
     get_pkg_upgrade_data,
-    unlock_update_station,
-    updating,
-    look_update_station,
     repo_online,
     repository_is_syncing,
     network_stat,
@@ -44,11 +41,16 @@ from update_station.backend import (
     create_be,
     mount_be,
     bootstrap_pkg_in_be,
+    get_packages_outside_be,
+    delete_packages,
     cleanup_failed_upgrade_be,
     fetch_base_packages_in_be,
     fetch_software_packages_in_be,
     upgrade_base_packages_in_be,
     upgrade_software_packages_in_be,
+    mount_devfs_in_be,
+    umount_devfs_in_be,
+    run_triggers_in_be,
     umount_upgrade_be,
     activate_upgrade_be
 )
@@ -85,15 +87,12 @@ class UpdateWindow:
         :param _event: The event that triggered the delete event.
         """
         if Data.close_session:
-            if updating():
-                unlock_update_station()
             Gtk.main_quit()
         else:
             self.window.destroy()
             if not Data.update_started:
                 Data.stop_pkg_refreshing = False
-                if updating():
-                    unlock_update_station()
+                Data.updating = False
                 Data.system_tray.set_visible(True)
 
     def start_update(self, _widget):
@@ -102,9 +101,35 @@ class UpdateWindow:
 
         :param _widget: The widget that triggered the start update event.
         """
+        packages_to_delete = get_packages_outside_be() if Data.be_upgrade() else []
+        if packages_to_delete and not self.confirm_delete(packages_to_delete):
+            return
         Data.update_started = True
-        InstallUpdate()
+        InstallUpdate(packages_to_delete)
         self.window.destroy()
+
+    def confirm_delete(self, packages: list) -> bool:
+        """
+        Warn that packages will be uninstalled before the upgrade.
+
+        :param packages: List of package names that will be uninstalled.
+        :return: True if OK was clicked, False otherwise.
+        """
+        dialog = Gtk.MessageDialog(
+            transient_for=self.window,
+            modal=True,
+            message_type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            text=_("Packages will be uninstalled")
+        )
+        dialog.format_secondary_text(
+            _("These packages install outside the boot environment and cannot be upgraded with it. "
+              "They will be uninstalled before the upgrade starts:\n\n{packages}\n\n"
+              "You can reinstall them after the reboot.").format(packages=', '.join(packages))
+        )
+        response = dialog.run()
+        dialog.destroy()
+        return response == Gtk.ResponseType.OK
 
     @classmethod
     def if_backup(cls, widget):
@@ -269,14 +294,15 @@ class InstallUpdate:
 
         :param _widget: The widget that triggered the close event.
         """
-        if updating():
-            unlock_update_station()
         Gtk.main_quit()
 
-    def __init__(self):
+    def __init__(self, packages_to_delete: list):
         """
         The constructor for the InstallUpdate class.
+
+        :param packages_to_delete: Packages to uninstall before a boot environment upgrade.
         """
+        self.packages_to_delete = packages_to_delete
         self.win = Gtk.Window()
         self.win.connect("delete-event", self.close_application)
         self.win.set_size_request(500, 75)
@@ -476,6 +502,19 @@ class InstallUpdate:
             return False
         return True
 
+    def delete_packages_outside_be(self, progress: Gtk.ProgressBar, fraction: float) -> bool:
+        """
+        Uninstall the packages that cannot be upgraded in the boot environment.
+
+        :param progress: The progress bar.
+        :param fraction: The fraction to increment the progress bar.
+        :return: True if the packages were uninstalled, False otherwise.
+        """
+        progress_message = _("Uninstalling {packages}").format(packages=', '.join(self.packages_to_delete))
+        GLib.idle_add(update_progress, progress, fraction, progress_message)
+        proc = delete_packages(self.packages_to_delete)
+        return self.run_upgrade_step(proc, progress, fraction)
+
     def bootstrap_be_upgrade(self, progress: Gtk.ProgressBar, fraction: float) -> bool:
         """
         Bootstrap pkg in the upgrade boot environment.
@@ -530,6 +569,28 @@ class InstallUpdate:
         GLib.idle_add(update_progress, progress, fraction, progress_message)
         proc = upgrade_software_packages_in_be(Data.be_mount_path, new_abi=new_abi, force=force)
         return self.run_upgrade_step(proc, progress, fraction)
+
+    def run_be_triggers(self, progress: Gtk.ProgressBar, fraction: float) -> bool:
+        """
+        Run the pkg triggers deferred in the boot environment.
+
+        :param progress: The progress bar.
+        :param fraction: The fraction to increment the progress bar.
+        :return: True if the triggers ran, False otherwise.
+        """
+        progress_message = _("Running package triggers in new boot environment")
+        GLib.idle_add(update_progress, progress, fraction, progress_message)
+        mounted = mount_devfs_in_be(Data.be_mount_path)
+        if mounted.returncode != 0:
+            self.log_failure(mounted.stdout + mounted.stderr)
+            return False
+        proc = run_triggers_in_be(Data.be_mount_path)
+        succeeded = self.run_upgrade_step(proc, progress, fraction)
+        unmounted = umount_devfs_in_be(Data.be_mount_path)
+        if unmounted.returncode != 0:
+            self.log_failure(unmounted.stdout + unmounted.stderr)
+            return False
+        return succeeded
 
     @classmethod
     def finalize_be_upgrade(cls, progress: Gtk.ProgressBar, fraction: float) -> None:
@@ -592,6 +653,10 @@ class InstallUpdate:
         howmany = (Data.packages_dictionary['total_of_packages'] * 7) + 45
         fraction = 1.0 / howmany
         if Data.be_upgrade():
+            if self.packages_to_delete and not self.delete_packages_outside_be(progress, fraction):
+                GLib.idle_add(self.win.destroy)
+                GLib.idle_add(self.stop_tread, True, update_pkg, True)
+                return
             self.prepare_boot_environment(True, progress, fraction)
             self.mount_upgrade_be(progress, fraction)
             if not self.bootstrap_be_upgrade(progress, fraction):
@@ -606,6 +671,11 @@ class InstallUpdate:
                 GLib.idle_add(self.stop_tread, True, update_pkg, True)
                 return
             if not self.install_be_upgrade(base_package_list, progress, fraction):
+                cleanup_failed_upgrade_be(Data.be_name)
+                GLib.idle_add(self.win.destroy)
+                GLib.idle_add(self.stop_tread, True, update_pkg, True)
+                return
+            if not self.run_be_triggers(progress, fraction):
                 cleanup_failed_upgrade_be(Data.be_name)
                 GLib.idle_add(self.win.destroy)
                 GLib.idle_add(self.stop_tread, True, update_pkg, True)
@@ -631,8 +701,7 @@ class InstallUpdate:
         :param update_pkg: True if update pkg was updated first.
         :param reboot: True if system needs to be rebooted after update completed.
         """
-        if updating():
-            unlock_update_station()
+        Data.updating = False
         be_upgrade = Data.be_upgrade()
         if be_upgrade:
             # The boot environment is unmounted and either activated or destroyed by now.
@@ -666,8 +735,6 @@ class StartCheckUpdate:
 
         :param _widget: The window widget.
         """
-        if updating():
-            unlock_update_station()
         Gtk.main_quit()
 
     def __init__(self):
@@ -733,7 +800,7 @@ class StartCheckUpdate:
                 GLib.idle_add(self.update_progress, progress,
                               _('The mirror is Syncing'))
                 GLib.idle_add(self.stop_tread, MirrorSyncing)
-            elif updating():
+            elif Data.updating:
                 GLib.idle_add(self.update_progress, progress,
                               _('Updates are already running'))
                 GLib.idle_add(self.stop_tread, UpdateStationOpen)
@@ -744,7 +811,7 @@ class StartCheckUpdate:
                     GLib.idle_add(self.update_progress, progress,
                                   _('Getting the list of packages'))
                     Data.packages_dictionary = get_pkg_upgrade_data()
-                    look_update_station()
+                    Data.updating = True
                     GLib.idle_add(self.update_progress, progress,
                                   _('Open the update window'))
                     GLib.idle_add(self.stop_tread, UpdateWindow)
@@ -881,7 +948,7 @@ class TrayIcon:
         Function that is called when the user left-clicks on the tray icon.
         :param _widget: The status icon, or the menu item that was activated.
         """
-        if updating():
+        if Data.updating:
             UpdateStationOpen()
         else:
             Data.stop_pkg_refreshing = True
