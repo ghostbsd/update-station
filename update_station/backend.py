@@ -264,12 +264,15 @@ def parse_version(version: str) -> tuple:
     """
     Parse a GhostBSD version string into its numeric components.
 
-    :param version: The version string (e.g., "26.1-R15.0p13", "26.2-R15.1b1").
+    The package version uses "." before the "R" because pkg only compares what follows the
+    last "-", while /etc/version keeps the "-".
+
+    :param version: The version string (e.g., "26.1-R15.0p13", "26.3.R15.1p6").
 
     :return: A tuple of (ghostbsd_major, ghostbsd_minor, freebsd_major, freebsd_minor),
              or an empty tuple if the string does not match the expected format.
     """
-    match = re.fullmatch(r'(\d+)\.(\d+)-R(\d+)\.(\d+)(?:(?:a|b|rc|p)\d+)?', version.strip())
+    match = re.fullmatch(r'(\d+)\.(\d+)[-.]R(\d+)\.(\d+)(?:(?:a|b|rc|p)\d+)?', version.strip())
     if not match:
         return ()
     return tuple(int(group) for group in match.groups())
