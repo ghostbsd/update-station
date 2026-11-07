@@ -28,6 +28,10 @@ class ParseVersionTest(unittest.TestCase):
     def test_legacy_month_release(self):
         self.assertEqual(parse_version('25.02-R14.3p8'), (25, 2, 14, 3))
 
+    def test_package_version_with_dot(self):
+        self.assertEqual(parse_version('26.3.R15.1p6'), (26, 3, 15, 1))
+        self.assertEqual(parse_version('26.4.R15.1rc1'), (26, 4, 15, 1))
+
     def test_surrounding_whitespace(self):
         self.assertEqual(parse_version(' 26.1-R15.0p13\n'), (26, 1, 15, 0))
 
@@ -50,6 +54,9 @@ class ClassifyUpgradeTest(unittest.TestCase):
 
     def test_ghostbsd_release_change(self):
         self.assertEqual(classify_upgrade('26.2-R15.1p2', '26.3-R15.1p5'), 'release')
+
+    def test_ghostbsd_release_change_to_package_version(self):
+        self.assertEqual(classify_upgrade('26.2-R15.1p6', '26.3.R15.1p6'), 'release')
 
     def test_ghostbsd_year_change(self):
         self.assertEqual(classify_upgrade('26.3-R15.1p9', '27.1-R15.1p9'), 'release')
